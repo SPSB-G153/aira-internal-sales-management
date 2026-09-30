@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createSale,getSale,updateSale } from "@/lib/data/sales";
 import { buildDocumentSnapshot,documentOrder } from "@/lib/templates";
+import { getTeamContext } from "@/lib/tenancy";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
@@ -22,8 +23,8 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {
-    const sale=await getSale(id); const db=await createClient();
-    const rows=documentOrder.map(document_type=>({sale_id:id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:new Date().toISOString()}));
+    const sale=await getSale(id); const db=await createClient(); const [{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const rows=documentOrder.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:new Date().toISOString()}));
     const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw new Error(error.message);
     await updateSale(id,{status:"confirmed"});
   } catch {

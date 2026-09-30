@@ -1,3 +1,39 @@
-import Link from"next/link";import{getSales}from"@/lib/data/sales";import{getDocuments}from"@/lib/data/documents";import{documentNames}from"@/lib/types";
-export const dynamic="force-dynamic";
-export default async function Dashboard(){const[sales,docs]=await Promise.all([getSales(),getDocuments()]);const confirmed=sales.filter(s=>s.status==="confirmed").length;const drafts=sales.length-confirmed;const reviewed=docs.filter(d=>d.status==="reviewed").length;const activities=[...sales.map(s=>({date:s.created_at,text:`Sale ${s.sale_reference} created for ${s.customer_name}`,href:`/sales/${s.id}`,kind:"Sale"})),...docs.map(d=>{const s=sales.find(x=>x.id===d.sale_id);return{date:d.generated_at??d.created_at,text:`${documentNames[d.document_type]} ${d.status} · ${s?.sale_reference??"Sale"}`,href:`/documents/${d.id}`,kind:"Document"}})].sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)).slice(0,8);return <div className="page"><div className="page-header"><div><p className="eyebrow">Operations overview</p><h1>Sales work at a glance.</h1><p className="subtle">Live counts from the sales and document registers.</p></div><Link href="/sales/new" className="button accent">＋ New sale</Link></div><div className="stats"><div className="card stat"><span className="subtle">Total sales</span><b>{sales.length}</b></div><div className="card stat"><span className="subtle">Confirmed</span><b>{confirmed}</b></div><div className="card stat"><span className="subtle">Drafts needing action</span><b>{drafts}</b></div><div className="card stat"><span className="subtle">Documents reviewed</span><b>{reviewed}<small style={{fontSize:14,color:"var(--muted)"}}> / {docs.length}</small></b></div></div><div className="detail-grid"><section className="card detail-card"><div className="page-header"><div><p className="eyebrow">Recent sales</p><h2>Latest transactions</h2></div><Link href="/sales" className="button secondary">View all</Link></div><div className="sales-list">{sales.slice(0,5).map(s=><Link href={`/sales/${s.id}`} className="sale-row" style={{gridTemplateColumns:"1fr auto 20px",paddingInline:0}} key={s.id}><div><strong>{s.customer_name}</strong><small>{s.sale_reference} · {s.project_name}</small></div><span className={`badge ${s.status}`}>{s.status}</span><span>›</span></Link>)}</div></section><aside className="card detail-card"><p className="eyebrow">Activity</p><h2>Recent events</h2><div className="stack" style={{marginTop:20}}>{activities.map((a,i)=><Link href={a.href} key={`${a.href}-${i}`}><small className="subtle">{a.kind} · {new Date(a.date).toLocaleString("en-MY",{dateStyle:"medium",timeStyle:"short"})}</small><p style={{margin:"5px 0",fontWeight:700,lineHeight:1.4}}>{a.text}</p></Link>)}</div></aside></div></div>}
+import Link from "next/link";
+import { getSales } from "@/lib/data/sales";
+import { getDocuments } from "@/lib/data/documents";
+import { getTeamContext } from "@/lib/tenancy";
+import { documentNames } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+export default async function Dashboard() {
+  const [sales, docs, context] = await Promise.all([getSales(), getDocuments(), getTeamContext()]);
+  const confirmed = sales.filter((sale) => sale.status === "confirmed").length;
+  const drafts = sales.filter((sale) => sale.status === "draft");
+  const documentsToReview = docs.filter((doc) => doc.status !== "reviewed");
+  const reviewed = docs.length - documentsToReview.length;
+  const activities = [
+    ...sales.map((sale) => ({ date: sale.created_at, text: `Sale ${sale.sale_reference} created for ${sale.customer_name}`, href: `/sales/${sale.id}`, kind: "Sale" })),
+    ...docs.map((doc) => {
+      const sale = sales.find((item) => item.id === doc.sale_id);
+      return { date: doc.generated_at ?? doc.created_at, text: `${documentNames[doc.document_type]} ${doc.status} · ${sale?.sale_reference ?? "Sale"}`, href: `/documents/${doc.id}`, kind: "Document" };
+    }),
+  ].sort((a, b) => Date.parse(b.date) - Date.parse(a.date)).slice(0, 6);
+  const attention = [
+    ...drafts.map((sale) => ({ href: `/sales/${sale.id}`, title: sale.customer_name, detail: `${sale.sale_reference} · Complete and confirm this sale`, tone: "amber" })),
+    ...documentsToReview.map((doc) => {
+      const sale = sales.find((item) => item.id === doc.sale_id);
+      return { href: `/documents/${doc.id}`, title: documentNames[doc.document_type], detail: `${sale?.sale_reference ?? "Sale"} · Review document`, tone: "green" };
+    }),
+  ].slice(0, 6);
+
+  return <div className="page">
+    <div className="page-header"><div><p className="eyebrow">{context.team.name}</p><h1>What needs attention today?</h1><p className="subtle">Move each sale from verified details to a reviewed document pack.</p></div><Link href="/sales/new" className="button accent">＋ New sale</Link></div>
+    <div className="stats"><div className="card stat"><span className="subtle">Total sales</span><b>{sales.length}</b></div><div className="card stat"><span className="subtle">Confirmed</span><b>{confirmed}</b></div><div className="card stat"><span className="subtle">Drafts</span><b>{drafts.length}</b></div><div className="card stat"><span className="subtle">Reviewed documents</span><b>{reviewed}<small> / {docs.length}</small></b></div></div>
+    <div className="dashboard-grid">
+      <section className="card detail-card attention-card"><div className="section-heading"><div><p className="eyebrow">Next actions</p><h2>Needs attention</h2></div><span className="count-pill">{attention.length}</span></div>{attention.length ? <div className="attention-list">{attention.map((item, index) => <Link href={item.href} className="attention-row" key={`${item.href}-${index}`}><span className={`attention-dot ${item.tone}`} /><div><strong>{item.title}</strong><small>{item.detail}</small></div><span>›</span></Link>)}</div> : <div className="calm-state"><span>✓</span><div><strong>You’re caught up</strong><p className="subtle">No drafts or generated documents are waiting.</p></div></div>}</section>
+      <section className="card detail-card"><div className="section-heading"><div><p className="eyebrow">Recent sales</p><h2>Latest transactions</h2></div><Link href="/sales" className="text-link">View all</Link></div><div className="sales-list compact-list">{sales.slice(0, 5).map((sale) => <Link href={`/sales/${sale.id}`} className="sale-row" key={sale.id}><div><strong>{sale.customer_name}</strong><small>{sale.sale_reference} · {sale.project_name}</small></div><span className={`badge ${sale.status}`}>{sale.status}</span><span>›</span></Link>)}</div></section>
+      <aside className="card detail-card activity-card"><p className="eyebrow">Activity</p><h2>Recent events</h2><div className="activity-list">{activities.map((activity, index) => <Link href={activity.href} key={`${activity.href}-${index}`}><small>{activity.kind} · {new Date(activity.date).toLocaleString("en-MY", { dateStyle: "medium", timeStyle: "short" })}</small><strong>{activity.text}</strong></Link>)}</div></aside>
+    </div>
+  </div>;
+}
