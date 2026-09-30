@@ -1,5 +1,5 @@
 export type SaleStatus = "draft" | "confirmed";
-export type DocumentType = "pre_booking_form" | "acceptance_letter" | "hovp_letter" | "rebate_letter";
+export type DocumentType = "pre_booking_form" | "acceptance_letter" | "rebate_letter";
 export type DocumentStatus = "pending" | "generated" | "reviewed";
 export type TeamRole = "owner" | "admin" | "member";
 
@@ -32,4 +32,4 @@ export interface Sale {
   status:SaleStatus; created_at:string;
 }
 export interface SaleDocument { id:string; team_id:string; user_id:string|null; sale_id:string; document_type:DocumentType; content:Record<string,unknown>; status:DocumentStatus; generated_at:string|null; created_at:string; }
-export const documentNames:Record<DocumentType,string>={pre_booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",hovp_letter:"HOVP Letter",rebate_letter:"Rebate Letter"};
+export const documentNames:Record<DocumentType,string>={pre_booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",rebate_letter:"Rebate Letter"};

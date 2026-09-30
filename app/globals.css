@@ -175,9 +175,9 @@ h3 { margin:0; font-size:16px; }
 .source-band { display:flex; align-items:center; gap:10px; padding:9px 12px; margin:-38px -42px 34px; border-bottom:1px solid #d9d9d9; background:#f5f3ed; font-size:11px; }
 .source-band span { padding:4px 7px; border-radius:999px; background:#18332b; color:white; font-weight:800; text-transform:uppercase; }
 .source-band b { flex:1; }.source-band small { color:#666; text-transform:uppercase; letter-spacing:.08em; }
-.source-letter-head { display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:28px; border-bottom:1px solid #777; }
-.source-letter-head b,.source-letter-head small { display:block; }.source-letter-head small { margin-top:3px; color:#555; font-size:9px; letter-spacing:.04em; }
-.source-mark { display:grid; place-items:center; width:55px; height:38px; background:#1c3c33; color:#fff; font-weight:900; letter-spacing:.12em; }
+.source-letter-head { display:flex; align-items:center; gap:14px; padding-bottom:18px; margin-bottom:28px; border-bottom:1px solid #c7c7c7; }
+.source-letter-head b,.source-letter-head small,.source-letter-head em { display:block; }.source-letter-head small { margin-top:3px; color:#555; font-size:9px; letter-spacing:.04em; }.source-letter-head em { margin-top:5px; color:#8f1d23; font-size:11px; font-style:normal; letter-spacing:.12em; }
+.sp-mark { display:grid; place-items:center; width:54px; height:40px; border:4px solid #e22930; border-radius:12px; color:#e22930; font-weight:900; font-size:19px; letter-spacing:-.12em; }.sp-letterhead b { color:#e22930; font-size:13px; letter-spacing:.04em; }
 .source-title { margin:0 0 24px; color:#000; font:800 24px/1.2 Arial,sans-serif; text-align:center; letter-spacing:.04em; }
 .source-title.compact { margin-bottom:18px; font-size:20px; }
 .source-subject { margin:22px 0; color:#000; font:800 16px/1.45 Arial,sans-serif; text-decoration:underline; text-underline-offset:3px; letter-spacing:.01em; }

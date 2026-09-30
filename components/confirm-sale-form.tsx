@@ -13,7 +13,7 @@ export function ConfirmSaleForm({ saleId }: { saleId: string }) {
   return (
     <form action={formAction} className="confirm-form">
       <button className="button accent" disabled={pending}>
-        {pending ? "Generating 4 documents…" : "Confirm & generate"}
+        {pending ? "Generating documents…" : "Confirm & generate documents"}
       </button>
       {state.error ? (
         <p className="action-error" role="alert">
