@@ -34,6 +34,7 @@ export default async function RootLayout({
         </aside>
         <label htmlFor="nav-toggle" className="nav-scrim" />
         <main className="app-shell">{children}</main>
+        <AppNav mobile />
       </body>
     </html>
   );

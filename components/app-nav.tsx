@@ -3,14 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/dashboard", label: "Overview" },
-  { href: "/operations", label: "Process & scoring" },
-  { href: "/sales", label: "Sales" },
-  { href: "/documents", label: "Documents" },
-  { href: "/settings/team", label: "Team" },
+  { href: "/dashboard", label: "Overview", shortLabel: "Home", icon: "◫" },
+  { href: "/operations", label: "Process & scoring", shortLabel: "Process", icon: "↗" },
+  { href: "/sales", label: "Sales", shortLabel: "Sales", icon: "◇" },
+  { href: "/documents", label: "Documents", shortLabel: "Docs", icon: "▤" },
+  { href: "/settings/team", label: "Team", shortLabel: "Team", icon: "◎" },
 ];
 
-export function AppNav() {
+export function AppNav({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePathname();
   const closeMobileNavigation = () => {
     const toggle = document.getElementById("nav-toggle") as HTMLInputElement | null;
@@ -18,8 +18,8 @@ export function AppNav() {
   };
 
   return (
-    <nav aria-label="Primary navigation">
-      {items.map((item) => {
+    <nav aria-label={mobile ? "Mobile navigation" : "Primary navigation"} className={mobile ? "mobile-bottom-nav" : undefined}>
+      {(mobile ? items.slice(0, 4) : items).map((item) => {
         const active = pathname.startsWith(item.href);
         return (
           <Link
@@ -29,7 +29,8 @@ export function AppNav() {
             key={item.href}
             onClick={closeMobileNavigation}
           >
-            {item.label}
+            <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+            <span>{mobile ? item.shortLabel : item.label}</span>
           </Link>
         );
       })}
