@@ -8,9 +8,9 @@ a { color:inherit; text-decoration:none; }
 button,input,select,textarea { font:inherit; }
 button,a,input,select,textarea { -webkit-tap-highlight-color:transparent; }
 .sidebar { position:fixed; inset:0 auto 0 0; width:246px; padding:30px 22px; background:#111319; color:var(--ink); border-right:1px solid var(--line); z-index:20; display:flex; flex-direction:column; }
-.brand { display:flex; gap:12px; align-items:center; font-size:19px; font-weight:800; }
-.brand span { display:grid; place-items:center; width:38px; height:38px; border:1px solid #d4af3766; border-radius:50%; background:linear-gradient(145deg,#e5c158,#aa820a); color:#111319; font-family:Georgia,serif; box-shadow:0 0 22px #d4af3720; }
-.brand small { display:block; margin-top:3px; color:#8e929d; font-size:9px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
+.brand { display:flex; gap:12px; align-items:center; font-size:16px; font-weight:850; color:#f2f2f2; line-height:1.05; }
+.brand span { display:grid; place-items:center; width:42px; height:34px; border:3px solid #e22930; border-radius:10px; color:#e22930; font:900 15px/1 Arial,sans-serif; letter-spacing:-.12em; box-shadow:0 0 18px #e2293022; }
+.brand small { display:block; margin-top:5px; color:#e22930; font-size:9px; font-weight:800; letter-spacing:.17em; text-transform:uppercase; }
 .sidebar nav { display:grid; gap:8px; margin-top:48px; }
 .sidebar nav a { display:flex; align-items:center; gap:12px; padding:13px 14px; border:1px solid transparent; border-radius:10px; font-size:13px; font-weight:750; color:#aeb2bc; }
 .sidebar nav a:hover,.sidebar nav a.active { background:linear-gradient(90deg,#d4af3717,transparent); border-color:#d4af3733; color:#f7e9b4; }
