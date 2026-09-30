@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "vibe-stack-supabase",
-  description: "Next.js + Supabase starter",
+  title: "Aira Sales Desk",
+  description: "Internal property sales and document management",
 };
 
 export default function RootLayout({
@@ -13,7 +14,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body>
+        <input id="nav-toggle" className="nav-toggle" type="checkbox" />
+        <header className="mobile-header">
+          <Link href="/sales" className="brand compact"><span>A</span>Aira Sales Desk</Link>
+          <label htmlFor="nav-toggle" className="menu-button" aria-label="Toggle navigation">☰</label>
+        </header>
+        <aside className="sidebar">
+          <Link href="/sales" className="brand"><span>A</span><div>Aira<small>Sales Desk</small></div></Link>
+          <nav>
+            <Link href="/sales">Sales</Link>
+            <Link href="/documents">Documents</Link>
+            <Link href="/dashboard">Dashboard</Link>
+          </nav>
+          <p className="sidebar-note">One verified sale.<br />Four ready documents.</p>
+        </aside>
+        <label htmlFor="nav-toggle" className="nav-scrim" />
+        <main className="app-shell">{children}</main>
+      </body>
     </html>
   );
 }

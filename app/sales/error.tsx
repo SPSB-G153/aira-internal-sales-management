@@ -1,0 +1,1 @@
+"use client";export default function ErrorPage({reset}:{reset:()=>void}){return <div className="page"><div className="card empty"><h2>Couldn’t load sales</h2><p className="subtle">Check the connection and try again.</p><button className="button" onClick={reset}>Try again</button></div></div>}

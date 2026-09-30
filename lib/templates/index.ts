@@ -1,0 +1,4 @@
+import type { DocumentType,Sale } from "@/lib/types";
+export const documentOrder:DocumentType[]=["pre_booking_form","acceptance_letter","hovp_letter","rebate_letter"];
+const common=(s:Sale)=>({sale_reference:s.sale_reference,customer_name:s.customer_name,customer_ic:s.customer_ic,customer_address:s.customer_address,customer_phone:s.customer_phone,customer_email:s.customer_email,project_name:s.project_name,unit_number:s.unit_number,unit_type:s.unit_type,floor_area:s.floor_area,purchase_price:s.purchase_price,booking_fee:s.booking_fee,spa_value:s.spa_value,loan_amount:s.loan_amount,loan_percentage:s.loan_percentage,rebate_amount:s.rebate_amount,rebate_percentage:s.rebate_percentage,salesperson_name:s.salesperson_name,sale_date:s.sale_date});
+export function buildDocumentSnapshot(sale:Sale,type:DocumentType){return{...common(sale),document_type:type,verified_at:new Date().toISOString()}}
