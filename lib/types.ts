@@ -19,11 +19,17 @@ export interface TeamContext {
 
 export interface Sale {
   id:string; team_id:string; user_id:string|null; sale_reference:string; customer_name:string; customer_ic:string|null;
+  customer_name_2:string|null; customer_ic_2:string|null; customer_salutation:string|null; customer_tin:string|null;
+  customer_nationality:string|null; customer_sex:string|null; customer_race:string|null; bumi_status:boolean|null;
+  customer_occupation:string|null; contact_person:string|null;
   customer_address:string|null; customer_phone:string|null; customer_email:string|null; project_name:string;
-  unit_number:string|null; unit_type:string|null; floor_area:number|null; purchase_price:number;
+  unit_number:string|null; storey_number:string|null; unit_type:string|null; floor_area:number|null; floor_area_sqm:number|null;
+  car_parking_bay:string|null; purchase_price:number;
   booking_fee:number|null; spa_value:number|null; loan_amount:number|null; loan_percentage:number|null;
   rebate_amount:number|null; rebate_percentage:number|null; salesperson_name:string|null; sale_date:string|null;
+  agent_company:string|null; proprietor_name:string|null; solicitor_name:string|null;
+  authorised_signatory_name:string|null; authorised_signatory_position:string|null;
   status:SaleStatus; created_at:string;
 }
 export interface SaleDocument { id:string; team_id:string; user_id:string|null; sale_id:string; document_type:DocumentType; content:Record<string,unknown>; status:DocumentStatus; generated_at:string|null; created_at:string; }
-export const documentNames:Record<DocumentType,string>={pre_booking_form:"Pre-Booking Form",acceptance_letter:"Acceptance Letter",hovp_letter:"HOVP Letter",rebate_letter:"Rebate Letter"};
+export const documentNames:Record<DocumentType,string>={pre_booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",hovp_letter:"HOVP Letter",rebate_letter:"Rebate Letter"};
