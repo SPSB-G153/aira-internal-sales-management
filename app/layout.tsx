@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AppNav } from "@/components/app-nav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,11 +23,7 @@ export default function RootLayout({
         </header>
         <aside className="sidebar">
           <Link href="/sales" className="brand"><span>A</span><div>Aira<small>Sales Desk</small></div></Link>
-          <nav>
-            <Link href="/sales">Sales</Link>
-            <Link href="/documents">Documents</Link>
-            <Link href="/dashboard">Dashboard</Link>
-          </nav>
+          <AppNav />
           <p className="sidebar-note">One verified sale.<br />Four ready documents.</p>
         </aside>
         <label htmlFor="nav-toggle" className="nav-scrim" />

@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="page stack"><div className="stats"><div className="skeleton"/><div className="skeleton"/><div className="skeleton"/><div className="skeleton"/></div><div className="skeleton"/><div className="skeleton"/></div>}

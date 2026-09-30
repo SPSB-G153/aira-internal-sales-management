@@ -1,0 +1,1 @@
+"use client";export default function ErrorPage({reset}:{reset:()=>void}){return <div className="page"><div className="card empty"><h2>Couldn’t load dashboard</h2><p className="subtle">The live data request failed.</p><button className="button" onClick={reset}>Try again</button></div></div>}
