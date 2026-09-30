@@ -53,6 +53,13 @@ h3 { margin:0; font-size:16px; }
 .required { color:var(--red); }
 .error { color:var(--red); font-size:12px; margin:6px 0 0; }
 .alert { padding:13px 15px; border-radius:9px; margin-bottom:18px; background:#fff0f0; color:#8c3030; border:1px solid #f0cccc; }
+.alert.success { background:#e5f6ef; color:#155945; border-color:#bde4d5; }
+.readiness { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:16px 18px; margin-bottom:22px; border:1px solid #efd89d; border-radius:12px; background:#fff9e9; color:#6f5012; }
+.readiness p { margin:5px 0 0; line-height:1.45; }
+.confirm-form { display:grid; justify-items:end; gap:6px; }
+.action-error { max-width:340px; margin:0; color:var(--red); font-size:12px; line-height:1.4; text-align:right; }
+.completion-label { color:var(--muted); font-size:13px; font-weight:800; }
+.results-summary { margin:-6px 0 12px; color:var(--muted); font-size:13px; }
 .form-actions { display:flex; justify-content:flex-end; gap:12px; }
 .detail-grid { display:grid; grid-template-columns:1fr 330px; gap:24px; }
 .detail-card { padding:24px; }
@@ -80,5 +87,5 @@ h3 { margin:0; font-size:16px; }
 .letter-grid>div { padding:16px; border-bottom:1px solid var(--line); }.letter-grid>div:nth-child(odd){border-right:1px solid var(--line)}.letter-grid small,.letter-grid strong { display:block; }.letter-grid small { color:var(--muted); font:10px Arial,sans-serif; text-transform:uppercase; letter-spacing:.08em; }.letter-grid strong { margin-top:6px; }
 .signature { display:grid; grid-template-columns:1fr 1fr; gap:50px; margin-top:110px; font-family:Arial,sans-serif; }.signature span { display:block; border-top:1px solid #7c8984; }.signature b,.signature small { display:block; margin-top:7px; }.signature small { color:var(--muted); font-size:10px; }
 @keyframes shimmer { to { background-position:-200% 0; } }
-@media(max-width:800px){ .mobile-header{display:flex;position:sticky;top:0;height:62px;padding:0 18px;background:var(--ink);color:white;z-index:15;align-items:center;justify-content:space-between}.brand.compact{font-size:15px}.brand.compact span{width:30px;height:30px}.menu-button{font-size:24px;cursor:pointer}.sidebar{transform:translateX(-100%);transition:.2s}.nav-toggle:checked~.sidebar{transform:translateX(0)}.nav-toggle:checked~.nav-scrim{display:block;position:fixed;inset:0;background:#0007;z-index:16}.app-shell{margin:0;padding:26px 18px}.page-header{align-items:stretch;flex-direction:column}.page-header .button{align-self:flex-start}.sale-row{grid-template-columns:1fr auto}.sale-row>*:nth-child(2),.sale-row>*:nth-child(3){display:none}.detail-grid{grid-template-columns:1fr}.doc-grid,.form-grid,.stats{grid-template-columns:1fr}.field.full{grid-column:auto}.kv{grid-template-columns:1fr}.toolbar{flex-direction:column}}
+@media(max-width:800px){ .mobile-header{display:flex;position:sticky;top:0;height:62px;padding:0 18px;background:var(--ink);color:white;z-index:15;align-items:center;justify-content:space-between}.brand.compact{font-size:15px}.brand.compact span{width:30px;height:30px}.menu-button{font-size:24px;cursor:pointer}.sidebar{transform:translateX(-100%);transition:.2s}.nav-toggle:checked~.sidebar{transform:translateX(0)}.nav-toggle:checked~.nav-scrim{display:block;position:fixed;inset:0;background:#0007;z-index:16}.app-shell{margin:0;padding:26px 18px}.page-header{align-items:stretch;flex-direction:column}.page-header .button{align-self:flex-start}.sale-row{grid-template-columns:1fr auto}.sale-row>*:nth-child(2),.sale-row>*:nth-child(3){display:none}.detail-grid{grid-template-columns:1fr}.doc-grid,.form-grid,.stats{grid-template-columns:1fr}.field.full{grid-column:auto}.kv{grid-template-columns:1fr}.toolbar{flex-direction:column}.readiness{align-items:flex-start;flex-direction:column}.confirm-form{justify-items:start}.action-error{text-align:left}}
 @media print{.sidebar,.mobile-header,.no-print{display:none!important}.app-shell{margin:0;padding:0}.card{box-shadow:none;border:0}.letter{border:0;box-shadow:none;min-height:auto;padding:20mm 15mm}.letter-wrap{max-width:none}}
