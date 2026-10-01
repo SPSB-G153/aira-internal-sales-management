@@ -15,19 +15,19 @@ export interface SaleScore {
 }
 
 export const processStages = [
-  { key: "capture", number: "01", title: "POP", owner: "Sales executive", outcome: "Editable prospect offer proposal", evidence: "Buyer, property, price and proposal recorded", sla: "Same working day" },
-  { key: "verify", number: "02", title: "Booking", owner: "Sales admin", outcome: "Purchaser proceeds and 2% deposit is paid", evidence: "Booking confirmed and Notice of Acceptance issued", sla: "Within 1 working day" },
-  { key: "confirm", number: "03", title: "SPA", owner: "Sales admin / solicitor", outcome: "SPA execution is completed", evidence: "SPA signed", sla: "As scheduled" },
-  { key: "review", number: "04", title: "HOVP ready", owner: "Sales admin / PA", outcome: "Handover requirements are complete", evidence: "90% paid and/or foreign consent completed", sla: "After SPA or consent" },
-  { key: "complete", number: "05", title: "HOVP", owner: "Sales admin", outcome: "HOVP letter is issued and reviewed", evidence: "HOVP letter printed or reviewed", sla: "Before handover" },
+  { key: "capture", number: "01", title: "POP", owner: "Sales personnel", outcome: "Editable prospect offer proposal", evidence: "Buyer, property, price and proposal recorded", sla: "Same working day" },
+  { key: "verify", number: "02", title: "Booking", owner: "Sales personnel", outcome: "Purchaser proceeds and 2% deposit is paid", evidence: "Booking confirmed", sla: "Within 1 working day" },
+  { key: "confirm", number: "03", title: "Letters", owner: "Personal Assistant", outcome: "Notice of Acceptance and any Rebate Letter are issued", evidence: "Booking confirmation and issued letters", sla: "After booking" },
+  { key: "review", number: "04", title: "SPA", owner: "Personal Assistant / solicitor", outcome: "SPA execution and handover requirements are completed", evidence: "SPA signed; 90% paid and/or foreign consent completed", sla: "As scheduled" },
+  { key: "complete", number: "05", title: "HOVP", owner: "Personal Assistant", outcome: "HOVP letter is issued and reviewed", evidence: "HOVP letter printed or reviewed", sla: "Before handover" },
 ] as const;
 
 export const governanceRules = [
-  { control: "Single source", rule: "Sale record is the authority; never retype values into letters.", accountable: "Sales admin", proof: "Document snapshots" },
-  { control: "Maker-checker", rule: "The person entering details should not be the only reviewer.", accountable: "Admin / manager", proof: "Reviewed statuses" },
+  { control: "Single source", rule: "Sale record is the authority; never retype values into letters.", accountable: "Personal Assistant", proof: "Document snapshots" },
+  { control: "Maker-checker", rule: "The person entering details should not be the only reviewer.", accountable: "Personal Assistant / manager", proof: "Reviewed statuses" },
   { control: "Minimum evidence", rule: "Identity, contact, unit, salesperson and sale date must be present.", accountable: "Sales executive", proof: "Readiness score" },
-  { control: "Financial guardrail", rule: "Earnest deposit cannot exceed the purchase price.", accountable: "Sales admin", proof: "Integrity score" },
-  { control: "Document sequence", rule: "Issue Notice of Acceptance and any Rebate Letter at booking; issue HOVP only after SPA completion requirements.", accountable: "Sales admin / PA", proof: "Letter timestamps" },
+  { control: "Financial guardrail", rule: "Earnest deposit cannot exceed the purchase price.", accountable: "Sales personnel", proof: "Integrity score" },
+  { control: "Document sequence", rule: "Issue Notice of Acceptance and any Rebate Letter after booking; issue HOVP only after SPA completion requirements.", accountable: "Personal Assistant", proof: "Letter timestamps" },
   { control: "Exception escalation", rule: "Scores below 75 or any blocker require correction before completion.", accountable: "Manager", proof: "Exception queue" },
 ] as const;
 
