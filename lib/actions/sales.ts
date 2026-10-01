@@ -25,7 +25,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {
     const sale=await getSale(id); const db=await createClient(); const [{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const types=sale.rebate_amount&&sale.rebate_amount>0?documentOrder:["acceptance_letter","hovp_letter"] as const;
+    const types=sale.rebate_amount&&sale.rebate_amount>0?["acceptance_letter","rebate_letter"] as const:["acceptance_letter"] as const;
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:new Date().toISOString()}));
     const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw new Error(error.message);
     await updateSale(id,{status:"confirmed"});
@@ -33,4 +33,17 @@ export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Prom
     return {error:"Failed to confirm the sale and generate its booking form."};
   }
   revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(`/sales/${id}?confirmed=1`);
+}
+export async function markSpaSigned(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
+  try { await updateSale(id,{status:"spa_signed"}); } catch { return {error:"Could not mark the SPA as signed."}; }
+  revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/dashboard");return {};
+}
+export async function generateHovp(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
+  try {
+    const sale=await getSale(id);if(sale.status!=="spa_signed")return{error:"Record the SPA as signed before issuing the HOVP letter."};
+    const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"hovp_letter",content:buildDocumentSnapshot(sale,"hovp_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(error)throw error;
+    await updateSale(id,{status:"hovp_ready"});
+  } catch { return {error:"Could not issue the HOVP letter."}; }
+  revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");return {};
 }
