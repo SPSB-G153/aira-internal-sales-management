@@ -191,6 +191,7 @@ h3 { margin:0; font-size:16px; }
 .legal-list { padding-left:22px; }.legal-list li { margin:0 0 12px; padding-left:6px; text-align:justify; }.compact-list li { margin-bottom:7px; }
 .source-signatures { display:grid; grid-template-columns:1fr 1fr; gap:48px; margin-top:72px; }
 .source-signatures span { display:block; border-top:1px solid #333; }.source-signatures b,.source-signatures small { display:block; margin-top:6px; }.source-signatures small { color:#555; font-size:10px; }
+.management-contact { margin-left:16px; }
 .appendix-section { padding-top:48px; margin-top:52px; border-top:1px dashed #aaa; }.appendix-section h3 { margin:24px 0 10px; color:#000; font-size:14px; text-transform:uppercase; letter-spacing:.05em; }
 .source-table { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:24px; font-size:12px; }.source-table th,.source-table td { padding:10px; border:1px solid #d9d9d9; vertical-align:middle; overflow-wrap:anywhere; }.source-table th { width:19%; background:#f3f3f1; text-align:left; }.source-table td { width:31%; }
 .copy-line { margin-top:32px; font-size:12px; }.source-footer { padding-top:14px; margin-top:70px; border-top:1px solid #777; color:#555; font-size:9px; text-align:center; }
