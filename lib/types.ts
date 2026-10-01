@@ -19,7 +19,7 @@ export interface TeamContext {
 
 export interface Sale {
   id:string; team_id:string; user_id:string|null; sale_reference:string; customer_name:string; customer_ic:string|null;
-  customer_name_2:string|null; customer_ic_2:string|null; customer_salutation:string|null; customer_tin:string|null;
+  customer_name_2:string|null; customer_ic_2:string|null; customer_salutation_2:string|null; customer_tin_2:string|null; customer_nationality_2:string|null; customer_sex_2:string|null; customer_race_2:string|null; bumi_status_2:boolean|null; customer_occupation_2:string|null; contact_person_2:string|null; customer_phone_2:string|null; customer_email_2:string|null; customer_address_2:string|null; customer_salutation:string|null; customer_tin:string|null;
   customer_nationality:string|null; customer_sex:string|null; customer_race:string|null; bumi_status:boolean|null;
   customer_occupation:string|null; contact_person:string|null;
   customer_address:string|null; customer_phone:string|null; customer_email:string|null; project_name:string;
