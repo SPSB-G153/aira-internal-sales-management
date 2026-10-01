@@ -6,7 +6,7 @@ export const DEMO_TEAM_ID = "00000000-0000-0000-0000-000000000001";
 export const ACTIVE_TEAM_COOKIE = "aira_team_id";
 
 const demoContext:TeamContext={
-  team:{id:DEMO_TEAM_ID,name:"Aira Demo Team",slug:"aira-demo"},
+  team:{id:DEMO_TEAM_ID,name:"Aira Sales Team",slug:"aira-demo"},
   role:null,
   isDemo:true,
 };

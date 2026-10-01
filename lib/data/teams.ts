@@ -8,7 +8,7 @@ export type TeamMember=TeamMembership&{email?:string};
 export async function getTeams():Promise<TeamOption[]>{
   const db=await createClient();
   const {data:{user}}=await db.auth.getUser();
-  const demo:TeamOption={id:DEMO_TEAM_ID,name:"Aira Demo Team",slug:"aira-demo",role:null,isDemo:true};
+  const demo:TeamOption={id:DEMO_TEAM_ID,name:"Aira Sales Team",slug:"aira-demo",role:null,isDemo:true};
   if(!user)return[demo];
 
   const {data:memberships,error}=await db.from("team_memberships").select("team_id,role").eq("user_id",user.id);
