@@ -17,7 +17,7 @@ export interface SaleScore {
 export const processStages = [
   { key: "capture", number: "01", title: "POP", owner: "Sales personnel", outcome: "Editable prospect offer proposal", evidence: "Buyer, property, price and proposal recorded", sla: "Same working day" },
   { key: "verify", number: "02", title: "Booking", owner: "Sales personnel", outcome: "Purchaser proceeds and 2% deposit is paid", evidence: "Booking confirmed", sla: "Within 1 working day" },
-  { key: "confirm", number: "03", title: "Letters", owner: "Personal Assistant", outcome: "Notice of Acceptance and any Rebate Letter are issued", evidence: "Booking confirmation and issued letters", sla: "After booking" },
+  { key: "confirm", number: "03", title: "Documents", owner: "Personal Assistant", outcome: "Notice of Acceptance and any Rebate Letter are issued", evidence: "Booking confirmation and issued letters", sla: "After booking" },
   { key: "review", number: "04", title: "SPA", owner: "Personal Assistant / solicitor", outcome: "SPA execution and handover requirements are completed", evidence: "SPA signed; 90% paid and/or foreign consent completed", sla: "As scheduled" },
   { key: "complete", number: "05", title: "HOVP", owner: "Personal Assistant", outcome: "HOVP letter is issued and reviewed", evidence: "HOVP letter printed or reviewed", sla: "Before handover" },
 ] as const;
