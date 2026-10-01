@@ -166,7 +166,7 @@ export function SaleForm({ sale }: Props) {
           />
           <div className="field">
             <label>Joint purchase</label>
-            {hasSecond ? <button type="button" className="button secondary" onClick={() => setSecondOpen(true)}>Edit purchaser 2</button> : <div className="form-actions"><button type="button" className="button secondary" onClick={() => {setSecondRelationship("spouse");setSecondOpen(true)}}>Add spouse</button><button type="button" className="button secondary" onClick={() => {setSecondRelationship("joint");setSecondOpen(true)}}>Add purchaser 2</button></div>}
+            {hasSecond ? <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Edit purchaser 2</button> : <div className="form-actions"><button type="button" className="button secondary spouse-toggle" aria-label="Add spouse" onClick={() => {setSecondRelationship("spouse");setSecondOpen(true)}}>✓</button><button type="button" className="button secondary compact-button" onClick={() => {setSecondRelationship("joint");setSecondOpen(true)}}>Add purchaser 2</button></div>}
             <p className="subtle">For spouses or another joint purchaser.</p>
           </div>
           <Field
