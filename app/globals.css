@@ -173,8 +173,7 @@ h3 { margin:0; font-size:16px; }
 .source-band { display:flex; align-items:center; gap:10px; padding:9px 12px; margin:-38px -42px 34px; border-bottom:1px solid #d9d9d9; background:#f5f3ed; font-size:11px; }
 .source-band span { padding:4px 7px; border-radius:999px; background:#18332b; color:white; font-weight:800; text-transform:uppercase; }
 .source-band b { flex:1; }.source-band small { color:#666; text-transform:uppercase; letter-spacing:.08em; }
-.source-letter-head { display:flex; align-items:center; justify-content:flex-end; gap:10px; min-height:54px; margin:0 0 28px; color:#b63138; }
-.spb-mark { display:grid; place-items:center; width:54px; height:54px; border:3px solid currentColor; border-radius:13px; font:900 17px/1 Arial,sans-serif; letter-spacing:-.17em; transform:scaleX(.9); }.spb-letterhead b { display:block; font:900 15px/.92 Arial,sans-serif; letter-spacing:.02em; }
+.source-letter-head { display:flex; align-items:flex-start; justify-content:flex-end; min-height:64px; margin:0 0 28px; }.source-letter-head img { display:block; width:225px; height:auto; max-width:42%; object-fit:contain; }
 .source-title { margin:0 0 24px; color:#000; font:800 24px/1.2 Arial,sans-serif; text-align:center; letter-spacing:.04em; }
 .source-title.compact { margin-bottom:18px; font-size:20px; }
 .source-subject { margin:22px 0; color:#000; font:800 16px/1.45 Arial,sans-serif; text-decoration:underline; text-underline-offset:3px; letter-spacing:.01em; }
@@ -283,7 +282,7 @@ h3 { margin:0; font-size:16px; }
   .letter-grid>div { padding:13px; }
   .signature { grid-template-columns:1fr; gap:46px; margin-top:72px; }
   .source-band { align-items:flex-start; flex-wrap:wrap; margin:-16px -6px 25px; }.source-band b { min-width:150px; }.source-band small { width:100%; }
-  .source-letter-head { min-height:48px; margin-bottom:24px; }.spb-mark { width:46px; height:46px; font-size:14px; }.spb-letterhead b { font-size:12px; }
+  .source-letter-head { min-height:48px; margin-bottom:24px; }.source-letter-head img { width:164px; max-width:56%; }
   .source-title { font-size:20px; }.source-subject { font-size:14px; }
   .source-grid.two-col { grid-template-columns:1fr; }.source-grid.two-col>div:nth-child(odd) { border-right:0; }.source-grid.two-col>div:nth-last-child(2) { border-bottom:1px solid #d9d9d9; }
   .source-grid>div { grid-template-columns:110px minmax(0,1fr); }.source-grid dt,.source-grid dd { padding:9px; }
