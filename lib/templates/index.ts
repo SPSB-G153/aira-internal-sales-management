@@ -1,6 +1,6 @@
 import type { DocumentType,Sale } from "@/lib/types";
-export const documentOrder:DocumentType[]=["acceptance_letter","rebate_letter","hovp_letter"];
-export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,acceptance_letter:1,rebate_letter:2,hovp_letter:3};
+export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","acceptance_letter","rebate_letter","hovp_letter"];
+export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,rebate_letter:3,hovp_letter:5};
 const common=(s:Sale)=>({
   sale_reference:s.sale_reference,customer_name:s.customer_name,customer_ic:s.customer_ic,
   customer_name_2:s.customer_name_2,customer_ic_2:s.customer_ic_2,customer_salutation:s.customer_salutation,

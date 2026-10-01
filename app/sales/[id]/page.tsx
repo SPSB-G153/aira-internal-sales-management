@@ -16,7 +16,7 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   try { sale = await getSale(id); } catch { return notFound(); }
   const [docs, query] = await Promise.all([getDocuments(id), searchParams]);
   const score = scoreSale(sale, docs);
-  const expectedDocuments = sale.rebate_amount && sale.rebate_amount > 0 ? 3 : 2;
+  const expectedDocuments = sale.rebate_amount && sale.rebate_amount > 0 ? 5 : 4;
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = sale.status === "draft" ? "POP details" : "Booking details";
   const statusLabel = sale.status === "draft" ? "POP" : sale.status.replace("_", " ");
