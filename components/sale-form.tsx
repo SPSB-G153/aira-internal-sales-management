@@ -461,6 +461,11 @@ export function SaleForm({ sale }: Props) {
             defaultValue={v("salesperson_name")}
           />
           <Field
+            name="solicitor_name"
+            label="Handling lawyer / firm"
+            defaultValue={v("solicitor_name")}
+          />
+          <Field
             name="sale_date"
             label="Proposal date"
             type="date"

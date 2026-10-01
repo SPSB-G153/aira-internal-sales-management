@@ -10,6 +10,6 @@ const common=(s:Sale)=>({
   customer_email:s.customer_email,project_name:s.project_name,unit_number:s.unit_number,
   storey_number:s.storey_number,unit_type:s.unit_type,floor_area:s.floor_area,floor_area_sqm:s.floor_area_sqm,
   car_parking_bay:s.car_parking_bay,purchase_price:s.purchase_price,booking_fee:s.booking_fee,rebate_amount:s.rebate_amount,
-  salesperson_name:s.salesperson_name,sale_date:s.sale_date,
+  salesperson_name:s.salesperson_name,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
 });
 export function buildDocumentSnapshot(sale:Sale,type:DocumentType){return{...common(sale),document_type:type,verified_at:new Date().toISOString()}}
