@@ -307,3 +307,5 @@ h3 { margin:0; font-size:16px; }
 @media print{@page{size:A4;margin:0}.sidebar,.mobile-header,.mobile-bottom-nav,.no-print,.source-band{display:none!important}html,body{background:#fff!important}.app-shell{margin:0;padding:0}.card{box-shadow:none;border:0}.letter{border:0;box-shadow:none;min-height:0!important;padding:15mm!important}.letter-wrap{max-width:none}.notice-page{display:block!important;min-height:0!important;break-after:page;page-break-after:always}.notice-page:last-child{break-after:auto;page-break-after:auto}.notice-page .source-footer{position:static!important;margin:12mm 0 0!important}.notice-page-number{position:static!important;display:block;text-align:right;margin:4mm 0 0}.source-footer{position:static!important;margin:12mm 0 0!important}.appendix-section{break-before:page;border-top:0;margin-top:0;padding-top:0}}
 
 @media print{.notice-page+.notice-page{break-before:page!important;page-break-before:always!important}}
+
+@media screen{.notice-page+.notice-page{margin-top:52px;padding-top:56px;border-top:18px solid #e5e8e5;box-shadow:0 -1px 0 #cfd5cf}}
