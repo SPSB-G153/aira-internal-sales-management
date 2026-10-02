@@ -484,8 +484,8 @@ export function SaleForm({ sale }: Props) {
               label="Handling lawyer"
               value={v("solicitor_name")}
               options={[
-                ["ZICO Law", "ZICO Law"],
-                ["Jeff Leong, Poon & Wong", "Jeff Leong, Poon & Wong"],
+                ["Zaid Ibrahim & Co (ZICO)", "Zaid Ibrahim & Co (ZICO)"],
+                ["Jeff Leong, Poon & Wong (JLPW)", "Jeff Leong, Poon & Wong (JLPW)"],
               ]}
             />
           )}
