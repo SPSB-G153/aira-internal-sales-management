@@ -311,3 +311,8 @@ h3 { margin:0; font-size:16px; }
 @media screen{.notice-page+.notice-page{margin-top:52px;padding-top:56px;border-top:18px solid #e5e8e5;box-shadow:0 -1px 0 #cfd5cf}}
 
 @media screen{.acceptance-exact{padding:0;background:transparent;border:0;box-shadow:none}.acceptance-exact .notice-page{box-sizing:border-box;min-height:970px;padding:64px 68px;background:#fff;border:1px solid #dfe4df;box-shadow:0 12px 38px #0002}.acceptance-exact .notice-page+.notice-page{margin-top:34px}}
+
+
+/* Keep the HOVP letter and acknowledgement on separate A4 sheets. */
+@media screen { .hovp-exact { display:grid; gap:34px; } .hovp-exact .hovp-sheet { margin:0 auto; max-width:760px; } }
+@media print { .hovp-exact .hovp-sheet { break-after:page; page-break-after:always; } .hovp-exact .hovp-sheet:last-child { break-after:auto; page-break-after:auto; } }
