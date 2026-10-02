@@ -11,7 +11,8 @@ function AcceptanceLetterExact({content}:{content:Content}){
   const salutation=value(content,"customer_salutation","Purchaser");
   const contact=value(content,"salesperson_name","Booking contact");
   const agency=value(content,"agent_company","");
-  return <article className="letter source-letter acceptance-exact">
+  return <>
+    <article className="letter source-letter acceptance-exact notice-sheet">
     <section className="notice-page">
       <CompanyHead/>
       <p className="notice-date">Date: {formattedDate(content.sale_date)}</p>
@@ -25,6 +26,8 @@ function AcceptanceLetterExact({content}:{content:Content}){
       <p>Firstly we ask that you kindly contact our sales and marketing agent {contact}{agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer &ndash; your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.</p>
       <NoticePageFooter page={1}/>
     </section>
+    </article>
+    <article className="letter source-letter acceptance-exact notice-sheet">
     <section className="notice-page">
       <CompanyHead/>
       <p>Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:</p>
@@ -34,7 +37,8 @@ function AcceptanceLetterExact({content}:{content:Content}){
       <ApprovalSignature content={content}/>
       <NoticePageFooter page={2}/>
     </section>
-  </article>
+    </article>
+  </>
 }
 function AcceptanceLetterSource({content}:{content:Content}){
   const price=number(content,"purchase_price");
@@ -82,8 +86,10 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
   if(type==="booking_form")return <BookingForm content={content}/>;
   if(type==="acceptance_letter")return <AcceptanceLetterExact content={content}/>;
   if(type==="rebate_letter")return <RebateLetter content={content}/>;
-  return <HovpLetter content={content}/>;
+  return <HovpLetterExact content={content}/>;
 }
+
+function HovpLetterExact({content}:{content:Content}){const purchaser=value(content,"customer_name");const handover=value(content,"hovp_date","To be confirmed");return <div className="hovp-exact"><article className="letter source-letter hovp-letter hovp-sheet"><CompanyHead/><p>Date: {formattedDate(content.sale_date)}</p><p><b>{purchaser.toUpperCase()}</b><br/>{value(content,"customer_address")}</p><p>Dear Sir or Madam,</p><h1 className="source-subject">RE: &nbsp; AIRA RESIDENCE - HANDOVER OF VACANT POSSESSION</h1><p>We refer to your purchase of Unit <b>{value(content,"unit_number")}</b>, AIRA Residence (&ldquo;Unit&rdquo;).</p><p>We are pleased to inform you that vacant possession of the Unit is available for handover on <b>{handover}</b>.</p><p>The handover of the Unit shall be on the following basis:</p><h3>As-Is, Where-Is Basis and No DLP</h3><p>The Unit, including all fixtures, fittings, furniture, appliances and other items within the Unit, is handed over and accepted on an &ldquo;as-is, where-is&rdquo; basis in its existing condition at the time of handover, in accordance with the SPA.</p><h3>Handover Items</h3><p>The applicable keys, access cards, remote controls and other handover items relating to the Unit will be handed over upon completion of handover formalities.</p><h3>Renovation and Alteration</h3><p>Following handover, any renovation, alteration or modification carried out within the Unit shall be at your own cost and responsibility.</p><h3>Building Management</h3><p>Following handover, matters relating to the building, common areas, facilities and building management shall be referred to AIRA Building Management.</p><p className="management-contact">AIRA Building Management<br/>Tel: 03-2011 5908<br/>Email: airaresidencemgmt@gmail.com</p><p>For matters relating to the HOVP and handover arrangements, please contact:</p><p className="hovp-contact">Name: [Sales Personnel]<br/>Designation: [Designation]<br/>Mobile: [Mobile No.]<br/>Email: [Email Address]</p><p>Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession.</p><p>Thank you.</p><p>Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p><ApprovalSignature content={content}/><CompanyFooter/></article><article className="letter source-letter hovp-sheet appendix-section"><CompanyHead/><h2 className="source-title compact">HOVP HANDOVER ACKNOWLEDGEMENT</h2><p><b>AIRA Residence</b></p><p>I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an &ldquo;as-is, where-is&rdquo; basis.</p><dl className="acceptance-facts"><Fact label="Tower">{value(content,"storey_number")}</Fact><Fact label="Unit No.">{value(content,"unit_number")}</Fact><Fact label="HOVP Date">{handover}</Fact></dl><div className="source-signatures"><Signature name={purchaser} role="Purchaser's Name, NRIC / Passport No. and Date"/><Signature name={value(content,"authorised_signatory_name")} role="For Selangor Properties Sdn Bhd — Name, Designation and Date"/></div><CompanyFooter/></article></div>}
 
 function Letter({content,title,children}:{content:Content;title:string;children:ReactNode}){return <article className="letter source-letter"><div className="source-band"><span>Step {documentSteps[content.document_type as DocumentType]||""}</span><b>{title}</b><small>Generated from approved record</small></div><CompanyHead/><p>{formattedDate(content.sale_date)}</p><p><b>{value(content,"customer_name").toUpperCase()}</b><br/>{value(content,"customer_address")}</p>{children}<CompanyFooter/></article>}
 
