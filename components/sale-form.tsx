@@ -470,7 +470,7 @@ export function SaleForm({ sale }: Props) {
           />
           <Field
             name="salesperson_name"
-            label="Salesperson"
+            label="Booking contact person"
             defaultValue={v("salesperson_name")}
           />
           <Field
