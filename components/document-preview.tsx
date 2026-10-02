@@ -7,7 +7,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const deposit=price*.1;
   const earnest=number(content,"booking_fee") || price*.02;
-  const balance=Math.max(deposit-earnest,0);
+  const balanceDeposit=Math.max(deposit-earnest,0);
   const purchaser=value(content,"customer_name");
   const salutation=value(content,"customer_salutation","Purchaser");
   const isCompany=value(content,"purchaser_type","individual")==="company";
@@ -15,27 +15,27 @@ function AcceptanceLetterSource({content}:{content:Content}){
   const agency=value(content,"agent_company","");
   return <article className="letter source-letter acceptance-letter">
     <CompanyHead/>
-    <p>{formattedDate(content.sale_date)}</p>
+    <p>Date: {formattedDate(content.sale_date)}</p>
     <p><b>{purchaser.toUpperCase()}</b><br/>{value(content,"customer_address")}</p>
     <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
-    <p className="notice-subject">RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</p>
+    <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
     <dl className="acceptance-facts">
-      <Fact label="Project">{value(content,"project_name")}</Fact>
-      <Fact label="Property">Parcel No. {value(content,"unit_number")}{content.storey_number?`, Tower ${value(content,"storey_number")}`:""}</Fact>
-      <Fact label={isCompany?"Developer":"Vendor"}>Selangor Properties Sdn Bhd</Fact>
-      <Fact label="Proprietor">{isCompany?value(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd."):"Selangor Properties Sdn Bhd"}</Fact>
-      <Fact label="Purchaser">{purchaser}</Fact>
-      <Fact label="Purchase Price">{money(price)}</Fact>
+      <Fact label="Project"><b>{value(content,"project_name")}</b></Fact>
+      <Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{content.storey_number?`, Tower ${value(content,"storey_number")}`:""}</b></Fact>
+      <Fact label="Developer"><b>Selangor Properties Berhad</b></Fact>
+      <Fact label="Proprietor"><b>{value(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd.")}</b></Fact>
+      <Fact label="Purchaser"><b>1. {purchaser}</b></Fact>
+      <Fact label="Purchase Price"><b>{money(price)}</b></Fact>
     </dl>
     <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
-    <p>We thank you for your Offer to Purchase the Property described above, dated <b>{formattedDate(content,"sale_date")}</b> (&ldquo;Offer&rdquo;). We are pleased that you have made such a discerning decision to purchase a unit in this award-winning development. We encourage you to discover more of the hidden treasures that only living in the exclusive enclave of Damansara Heights can offer.</p>
-    <p>You are just a few steps away from owning the Property and to help you to progress the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (&ldquo;SPA&rdquo;), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively &ldquo;Sale Documents&rdquo;) in the manner described below.</p>
-    <p>As a first step, we kindly ask that you to contact your sales and marketing agent, {salesperson}{agency?` from ${agency}`:""}, to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter.</p>
+    <p>We thank you for your Offer to Purchase the Property described above which is dated {formattedDate(content,"sale_date")} (&ldquo;<b>Offer</b>&rdquo;). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence - Kuala Lumpur&rsquo;s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence&rsquo;s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.</p>
+    <p>You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (&ldquo;<b>SPA</b>&rdquo;), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively &ldquo;<b>Sale Documents</b>&rdquo;) in the manner described below.</p>
+    <p>Firstly, we ask that you kindly contact our relationship manager {salesperson}{agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter.</p>
     <section className="acceptance-requirements">
       <p>Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:</p>
-      <ol><li>a cheque or bank draft made in favour of &ldquo;Selangor Properties Sdn Bhd&rdquo; for a sum equivalent to <b>{money(balance)}</b>, being payment of the Balance Deposit of the Purchase Price as prescribed in the Sixth Schedule of the SPA; and</li>{isCompany?<li><ol type="a"><li>A certified true copy of your company&rsquo;s board of directors&rsquo; and shareholders&rsquo; (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the memorandum of transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company&rsquo;s common seal and execution by your company&rsquo;s authorized signatories;</li><li>A certified true copy of the Authorised Signatory(ies)&rsquo;s NRIC, latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and</li><li>The company&rsquo;s rubber stamp.</li></ol></li>:<li>if you are an individual, your identity card / passport;</li>}</ol>
-      <p>Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase.</p>
-      <p>Yours faithfully,<br/>On behalf of Selangor Properties Sdn Bhd</p>
+      <ol><li>a cheque or bank draft made in favour of &ldquo;<b>Selangor Properties Berhad</b>&rdquo; for a sum equivalent to <b>{money(balanceDeposit)}</b>, being payment of the balance eight per centum (8%) of the Purchase Price. Together with the paid Earnest Deposit of <b>{money(earnest)}</b>, this makes the total Deposit of <b>{money(deposit)}</b>, equivalent to ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and</li><li><i>if you are an individual</i>, your identity card / passport;<br/><br/>or<br/><br/><i>if you are a corporation</i>:<ol type="a"><li>a certified true copy of your company&rsquo;s board of directors&rsquo; and shareholders&rsquo; (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the memorandum of transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company&rsquo;s common seal and execution by your company&rsquo;s authorized signatories;</li><li>a certified true copy of the latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and</li><li>the company&rsquo;s rubber stamp.</li></ol></li></ol>
+      <p>Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase and henceforth keeping you apprised of the construction progress of your new home in the months and years ahead.</p>
+      <p>Yours faithfully,<br/><b>On behalf of Selangor Properties Berhad</b></p>
       <ApprovalSignature content={content}/>
     </section>
     <CompanyFooter/>
