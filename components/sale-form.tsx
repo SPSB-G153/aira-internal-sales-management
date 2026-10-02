@@ -461,7 +461,7 @@ export function SaleForm({ sale }: Props) {
         </div>
       </section>
       <section className="form-section">
-        <h2>POP administration</h2>
+        <h2>{sale ? "Booking administration" : "POP administration"}</h2>
         <div className="form-grid">
           <Field
             name="sale_reference"
@@ -478,11 +478,13 @@ export function SaleForm({ sale }: Props) {
             label="Sales agency / company"
             defaultValue={v("agent_company")}
           />
-          <Field
-            name="solicitor_name"
-            label="Handling lawyer / firm"
-            defaultValue={v("solicitor_name")}
-          />
+          {sale && (
+            <Field
+              name="solicitor_name"
+              label="Handling lawyer / firm"
+              defaultValue={v("solicitor_name")}
+            />
+          )}
           <Field
             name="sale_date"
             label="Proposal date"
