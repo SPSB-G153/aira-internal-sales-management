@@ -73,12 +73,10 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(money(totalIncentives), 565, 936, 8, true);
   // An ID quotation is informational and must remain distinct from rebates and
   // incentives. It therefore does not affect the POP calculation above.
-  if (values.quotedIdNetSellingPrice != null && values.quotedIdNetSellingPrice > 0) {
-    clear(780, 870, 292, 80);
-    box(780, 870, 292, 80);
-    write("Quoted ID Net Selling Price", 794, 897, 6.5, true);
-    write(`RM ${money(values.quotedIdNetSellingPrice)}`, 794, 925, 8, true);
-  }
+  clear(780, 870, 292, 80);
+  box(780, 870, 292, 80);
+  write("Quoted ID Net Selling Price", 794, 897, 6.5, true);
+  write(values.quotedIdNetSellingPrice != null && values.quotedIdNetSellingPrice > 0 ? `RM ${money(values.quotedIdNetSellingPrice)}` : "", 794, 925, 8, true);
   // Clear the old purchaser's psf and percentage annotations from the scanned
   // approved copy, then derive them from the current app values.
   clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
