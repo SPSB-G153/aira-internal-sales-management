@@ -309,3 +309,5 @@ h3 { margin:0; font-size:16px; }
 @media print{.notice-page+.notice-page{break-before:page!important;page-break-before:always!important}}
 
 @media screen{.notice-page+.notice-page{margin-top:52px;padding-top:56px;border-top:18px solid #e5e8e5;box-shadow:0 -1px 0 #cfd5cf}}
+
+@media screen{.acceptance-exact{padding:0;background:transparent;border:0;box-shadow:none}.acceptance-exact .notice-page{box-sizing:border-box;min-height:970px;padding:64px 68px;background:#fff;border:1px solid #dfe4df;box-shadow:0 12px 38px #0002}.acceptance-exact .notice-page+.notice-page{margin-top:34px}}
