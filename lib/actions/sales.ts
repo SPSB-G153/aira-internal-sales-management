@@ -1,4 +1,4 @@
-"use server";
+await Promise.all((documents??[]).filter(doc=>doc.document_type!=="pre_booking_form").map(doc=>db.from("documents").update({content:buildDocumentSnapshot(sale,doc.document_type as typeof documentOrder[number])}).eq("id",doc.id)));}}catchawait Promise.all((documents??[]).filter(doc=>doc.document_type!=="pre_booking_form").map(doc=>db.from("documents").update({content:buildDocumentSnapshot(sale,doc.document_type as typeof documentOrder[number])}).eq("id",doc.id)));if(sale.rebate_amount&&sale.rebate_amount>0&&!(documents??[]).some(doc=>doc.document_type==="rebate_letter")){const{error:rebateError}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"rebate_letter",content:buildDocumentSnapshot(sale,"rebate_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(rebateError)throw rebateError;}}}catch"use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
