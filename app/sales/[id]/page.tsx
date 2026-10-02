@@ -16,11 +16,11 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   try { sale = await getSale(id); } catch { return notFound(); }
   const [docs, query] = await Promise.all([getDocuments(id), searchParams]);
   const score = scoreSale(sale, docs);
-  const expectedDocuments = sale.rebate_amount && sale.rebate_amount > 0 ? 5 : 4;
+  const expectedDocuments = 4 + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = sale.status === "draft" ? "POP details" : "Booking details";
   const statusLabel = sale.status === "draft" ? "POP" : sale.status.replace("_", " ");
-  const letterSummary = sale.rebate_amount && sale.rebate_amount > 0 ? "Notice of Acceptance and Rebate Letter" : "Notice of Acceptance";
+  const letterSummary = ["Notice of Acceptance", ...(sale.rebate_amount && sale.rebate_amount > 0 ? ["Rebate Letter"] : []), ...(sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? ["Confirmation of Inventories"] : [])].join(", ");
 
   return <div className="page">
     <div className="page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>{sale.customer_name}</h1><p className="subtle">{sale.project_name} · {sale.unit_number || "Unit pending"}</p></div><div className="form-actions"><Link href={`/sales/${id}/edit`} className="button secondary">Edit POP</Link>{sale.status === "draft" && <ConfirmSaleForm saleId={id} />}{sale.status === "confirmed" && <SaleStageActions saleId={id} status="confirmed" />}{sale.status === "spa_signed" && <SaleStageActions saleId={id} status="spa_signed" />}</div></div>

@@ -1,5 +1,5 @@
 export type SaleStatus = "draft" | "confirmed" | "spa_signed" | "hovp_ready";
-export type DocumentType = "pre_booking_form" | "booking_form" | "acceptance_letter" | "rebate_letter" | "hovp_letter";
+export type DocumentType = "pre_booking_form" | "booking_form" | "acceptance_letter" | "rebate_letter" | "inventory_confirmation_letter" | "hovp_letter";
 export type DocumentStatus = "pending" | "generated" | "reviewed";
 export type TeamRole = "owner" | "admin" | "member";
 
@@ -27,10 +27,10 @@ export interface Sale {
   unit_number:string|null; storey_number:string|null; unit_type:string|null; floor_area:number|null; floor_area_sqm:number|null;
   car_parking_bay:string|null; purchase_price:number;
   booking_fee:number|null; spa_value:number|null; loan_amount:number|null; loan_percentage:number|null;
-  rebate_amount:number|null; rebate_percentage:number|null; salesperson_name:string|null; sale_date:string|null;
+  rebate_amount:number|null; rebate_percentage:number|null; quoted_id_net_selling_price:number|null; salesperson_name:string|null; sale_date:string|null;
   agent_company:string|null; proprietor_name:string|null; solicitor_name:string|null;
   authorised_signatory_name:string|null; authorised_signatory_position:string|null;
   status:SaleStatus; created_at:string;
 }
 export interface SaleDocument { id:string; team_id:string; user_id:string|null; sale_id:string; document_type:DocumentType; content:Record<string,unknown>; status:DocumentStatus; generated_at:string|null; created_at:string; }
-export const documentNames:Record<DocumentType,string>={pre_booking_form:"Prospect Offer Proposal Form",booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",rebate_letter:"Rebate Letter",hovp_letter:"HOVP Letter"};
+export const documentNames:Record<DocumentType,string>={pre_booking_form:"Prospect Offer Proposal Form",booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",rebate_letter:"Rebate Letter",inventory_confirmation_letter:"Confirmation of Inventories",hovp_letter:"HOVP Letter"};

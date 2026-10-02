@@ -458,6 +458,12 @@ export function SaleForm({ sale }: Props) {
             type="number"
             defaultValue={v("rebate_amount")}
           />
+          <Field
+            name="quoted_id_net_selling_price"
+            label="Quoted ID net selling price (RM, if any)"
+            type="number"
+            defaultValue={v("quoted_id_net_selling_price")}
+          />
         </div>
       </section>
       <section className="form-section">
