@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { documentSteps } from "@/lib/templates";
 import type { DocumentType } from "@/lib/types";
 
@@ -83,11 +83,31 @@ const formattedDate=(input:unknown)=>typeof input==="string"&&input?new Intl.Dat
 
 export function DocumentPreview({type,content}:{type:DocumentType;content:Content}){
   if(type==="pre_booking_form")return <ProspectOfferForm content={content}/>;
-  if(type==="booking_form")return <BookingForm content={content}/>;
+  if(type==="booking_form")return <BookingFormExact content={content}/>;
   if(type==="acceptance_letter")return <AcceptanceLetterExact content={content}/>;
   if(type==="rebate_letter")return <RebateLetter content={content}/>;
   if(type==="inventory_confirmation_letter")return <InventoryConfirmationLetter content={content}/>;
   return <HovpLetterExact content={content}/>;
+}
+
+function BookingFormExact({content}:{content:Content}){
+  const purchaser=value(content,"customer_name","");const purchaser2=value(content,"customer_name_2","");const price=number(content,"purchase_price");const earnest=price*.02;const balance=price*.08;
+  const address=value(content,"customer_address","").split(/\r?\n|,/).map(line=>line.trim()).filter(Boolean).slice(0,4);
+  const page=(number:number,children?:ReactNode)=><figure className="booking-template-page" key={number}><img src={`/templates/booking-form-page-${number}.png`} alt={`Booking Form template page ${number}`}/>{children}</figure>;
+  const field=(text:string,left:number,top:number,size=14,weight=400)=><span className="booking-template-field" style={{left:`${left/11.9}%`,top:`${top/16.84}%`,fontSize:`${size/11.9}cqw`,fontWeight:weight} as CSSProperties}>{text}</span>;
+  const details=[
+    [purchaser,144,698],[value(content,"customer_salutation","").toString(),366,698],[value(content,"customer_tin","").toString(),544,698],[value(content,"customer_nationality","").toString(),730,698],[value(content,"customer_sex","").toString(),880,698],[value(content,"customer_race","").toString(),990,698],
+    [purchaser2,144,744],[value(content,"customer_salutation_2","").toString(),366,744],[value(content,"customer_tin_2","").toString(),544,744],[value(content,"customer_nationality_2","").toString(),730,744],[value(content,"customer_sex_2","").toString(),880,744],[value(content,"customer_race_2","").toString(),990,744],
+    [value(content,"customer_ic","").toString(),144,934],[value(content,"customer_ic_2","").toString(),144,980],
+    [value(content,"customer_occupation","").toString(),810,934],[value(content,"customer_occupation_2","").toString(),810,980],
+    [value(content,"contact_person","").toString(),150,1218],[value(content,"contact_person_2","").toString(),150,1264],[value(content,"customer_phone","").toString(),500,1218],[value(content,"customer_phone_2","").toString(),500,1264],[value(content,"customer_email","").toString(),790,1218],[value(content,"customer_email_2","").toString(),790,1264],
+  ] as [string,number,number][];
+  return <section className="booking-template-document">
+    {page(1,<>{field(purchaser,176,510)}{field(purchaser2,176,558)}{field(value(content,"customer_ic",""),176,668)}{field(value(content,"customer_ic_2",""),176,716)}{address.map((line,index)=>field(line,104,832+index*48))}{field(formattedDate(content,"sale_date"),176,1032)}{field(value(content,"project_name","Residensi Aira Damansara (Aira Residence Damansara)"),356,1340,13,700)}{field(value(content,"unit_number",""),470,1388,13,700)}{field(value(content,"storey_number",""),704,1388,13,700)}{field(purchaser,360,1456,13,700)}{field(purchaser2,360,1504,13,700)}</>)}
+    {page(2,<>{field(`RM ${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(earnest)}`,176,772,13)}{field(new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(earnest),630,772,13)}{field(`RM ${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(balance)}`,616,954,13)}{field(new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(balance),616,1000,13)}</>)}
+    {page(3)}{page(4)}
+    {page(5,<>{field(value(content,"unit_number",""),388,202,12)}{field(value(content,"storey_number",""),388,250,12)}{field(value(content,"unit_type",""),388,298,12)}{field(value(content,"floor_area_sqm",""),532,348,12)}{field(value(content,"floor_area",""),840,348,12)}{field(new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price),430,398,12)}{field(value(content,"car_parking_bay",""),388,446,12)}{details.map(([text,left,top])=>text?field(text,left,top,11):null)}{address.map((line,index)=>field(line,150,1380+index*44,11))}</>)}
+  </section>
 }
 
 function InventoryConfirmationLetter({content}:{content:Content}){
