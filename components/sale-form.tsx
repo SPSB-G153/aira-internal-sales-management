@@ -479,10 +479,14 @@ export function SaleForm({ sale }: Props) {
             defaultValue={v("agent_company")}
           />
           {sale && (
-            <Field
+            <Select
               name="solicitor_name"
-              label="Handling lawyer / firm"
-              defaultValue={v("solicitor_name")}
+              label="Handling lawyer"
+              value={v("solicitor_name")}
+              options={[
+                ["ZICO Law", "ZICO Law"],
+                ["Jeff Leong, Poon & Wong", "Jeff Leong, Poon & Wong"],
+              ]}
             />
           )}
           <Field
