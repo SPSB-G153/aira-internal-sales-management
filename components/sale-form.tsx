@@ -124,6 +124,11 @@ export function SaleForm({ sale }: Props) {
     Boolean(sale?.customer_name_2 || state.fields?.customer_name_2),
   );
   const [secondRelationship, setSecondRelationship] = useState<"spouse" | "joint">("joint");
+  const [purchaserType, setPurchaserType] = useState<"individual" | "company">(
+    sale?.purchaser_type === "company" || state.fields?.purchaser_type === "company"
+      ? "company"
+      : "individual",
+  );
   const earnest = price === "" ? "" : (Number(price) * 0.02).toFixed(2);
   const changeFt = (x: string) => {
     setAreaFt(x);
@@ -146,6 +151,14 @@ export function SaleForm({ sale }: Props) {
           <span className="template-step">Editable proposal</span>
         </div>
         <div className="form-grid">
+          <div className="field full purchaser-type-field">
+            <label>Purchaser type</label>
+            <div className="purchaser-type-options" role="radiogroup" aria-label="Purchaser type">
+              <label><input type="radio" name="purchaser_type" value="individual" checked={purchaserType === "individual"} onChange={() => setPurchaserType("individual")} /><span>Individual</span></label>
+              <label><input type="radio" name="purchaser_type" value="company" checked={purchaserType === "company"} onChange={() => setPurchaserType("company")} /><span>Company</span></label>
+            </div>
+            <p className="subtle">This selects the correct supporting-document requirements for the booking and acceptance letters.</p>
+          </div>
           <Select
             name="customer_salutation"
             label="Salutation"
