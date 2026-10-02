@@ -5,7 +5,24 @@ const value = (content: Content, key: string) => String(content[key] ?? "").trim
 const amount = (content: Content, key: string) => typeof content[key] === "number" ? content[key] : Number(content[key] ?? 0) || 0;
 const money = (n: number) => new Intl.NumberFormat("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 const fit = (text: string, max = 70) => text.length > max ? `${text.slice(0, max - 1)}…` : text;
-const words = (n: number) => `RM ${money(n)}`;
+function amountInWords(amount: number) {
+  const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+  const underThousand = (value: number): string => {
+    const parts: string[] = [];
+    if (value >= 100) parts.push(`${ones[Math.floor(value / 100)]} Hundred`);
+    const rest = value % 100;
+    if (rest >= 20) parts.push(`${tens[Math.floor(rest / 10)]}${rest % 10 ? ` ${ones[rest % 10]}` : ""}`);
+    else if (rest) parts.push(ones[rest]);
+    return parts.join(" ");
+  };
+  const whole = Math.floor(Math.max(0, amount));
+  const parts: string[] = [];
+  if (whole >= 1_000_000) parts.push(`${underThousand(Math.floor(whole / 1_000_000))} Million`);
+  if (whole % 1_000_000 >= 1_000) parts.push(`${underThousand(Math.floor((whole % 1_000_000) / 1_000))} Thousand`);
+  if (whole % 1_000) parts.push(underThousand(whole % 1_000));
+  return `${parts.join(" ") || "Zero"} Only`;
+}
 
 /** Uses the supplied booking form PDF as an A4 background and writes only app data in its existing slots. */
 export async function createBookingPdf(template: Uint8Array, content: Content) {
