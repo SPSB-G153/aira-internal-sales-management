@@ -8,8 +8,10 @@ import { documentNames } from "@/lib/types";
 export const runtime="nodejs";
 
 export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){
-  const {role}=await getTeamContext();
-  if(role!=="owner")return new NextResponse("Only the workspace owner can download Microsoft Word files.",{status:403});
+  const context=await getTeamContext();
+  // The public demo contains only test data, so it can demonstrate the owner
+  // export. Real workspaces retain the owner-only Word restriction.
+  if(context.role!=="owner"&&!context.isDemo)return new NextResponse("Only the workspace owner can download Microsoft Word files.",{status:403});
   try{
     const {id}=await params;const document=await getDocument(id);const file=document.document_type==="booking_form"?await createBookingFormWord(document.content):await createWordLetter(document.document_type,document.content);
     const filename=`${documentNames[document.document_type].replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase()}.docx`;

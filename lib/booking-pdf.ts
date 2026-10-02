@@ -48,8 +48,18 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(0, value(content, "customer_ic"), 88, 337); fillLine(0, value(content, "customer_ic_2"), 88, 361);
   address.forEach((line, index) => fillLine(0, line, 52, 419 + index * 24));
   write(0, value(content, "sale_date"), 88, 516);
-  write(0, value(content, "unit_number"), 235, 694, 8, true); write(0, value(content, "storey_number"), 352, 694, 8, true);
-  write(0, purchaser1, 180, 728, 8, true); write(0, purchaser2, 180, 752, 8, true);
+
+  // The cover template has fixed labels. Replace only the blank value area so
+  // the unit and purchaser data stay on the same baseline as the template.
+  const cover = pdf.getPage(0);
+  const clearCover = (top: number, x: number, width: number) =>
+    cover.drawRectangle({ x, y: cover.getHeight() - top - 10, width, height: 17, color: rgb(1, 1, 1) });
+  clearCover(683, 178, 360);
+  write(0, `Parcel No. ${value(content, "unit_number")}, Tower ${value(content, "storey_number")}, Residensi Aira Damansara`, 180, 685, 9, true);
+  clearCover(717, 178, 360);
+  write(0, `1. ${purchaser1}`, 180, 719, 9, true);
+  clearCover(741, 178, 360);
+  if (purchaser2) write(0, `2. ${purchaser2}`, 180, 743, 9, true);
 
   // Page 2 financial clauses. These values always derive from the current purchase price.
   fillLine(1, amountInWords(earnest), 88, 386, 9); fillLine(1, money(earnest), 315, 386, 9);
