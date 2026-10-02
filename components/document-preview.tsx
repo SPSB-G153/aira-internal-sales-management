@@ -3,7 +3,7 @@ import { documentSteps } from "@/lib/templates";
 import type { DocumentType } from "@/lib/types";
 
 type Content=Record<string,unknown>;
-function NoticePageFooter({page}:{page:number}){return <><CompanyFooter/><div className="notice-page-number">{page}/2</div></>}
+function NoticePageFooter({page}:{page:number}){return <>{page===1&&<CompanyFooter/>}<div className="notice-page-number">{page}/2</div></>}
 function AcceptanceLetterExact({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const deposit=price*.1;
