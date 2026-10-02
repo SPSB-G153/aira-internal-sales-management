@@ -331,3 +331,7 @@ h3 { margin:0; font-size:16px; }
 /* Precise HOVP acknowledgement field and signature alignment. */
 .hovp-ack-project { margin-bottom:52px!important; } .hovp-ack-fields { margin-bottom:46px; } .hovp-ack-fields dt,.hovp-ack-fields dd,.hovp-ack-fields i { margin:0; } .hovp-ack-fields i { font-style:normal; text-align:center; } .hovp-ack-fields dd { height:15px; border-bottom:1px solid #222; } .hovp-ack-fields dt::after { content:none; }
 .hovp-ack-signatures section>p { margin:0 0 11px!important; text-align:left!important; text-decoration:underline; } .hovp-ack-signatures dl { margin:0; } .hovp-ack-signatures dl>div { display:grid; grid-template-columns:max-content 18px minmax(0,1fr); align-items:end; margin:0 0 10px; } .hovp-ack-signatures dt,.hovp-ack-signatures dd,.hovp-ack-signatures i { margin:0; } .hovp-ack-signatures i { font-style:normal; text-align:center; } .hovp-ack-signatures dd { height:15px; border-bottom:1px solid #222; } .hovp-ack-signatures dt::after { content:none; }
+
+
+/* Keep each HOVP signature field on its own row. */
+.hovp-ack-signatures dl { display:block!important; } .hovp-ack-signatures dl>div { grid-template-columns:145px 18px minmax(0,1fr); }
