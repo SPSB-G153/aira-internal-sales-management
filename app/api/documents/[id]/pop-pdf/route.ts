@@ -11,8 +11,8 @@ const number = (value: unknown) => typeof value === "number" && Number.isFinite(
 const text = (content: Record<string, unknown>, key: string) => String(content[key] ?? "").trim();
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { role } = await getTeamContext();
-  if (!role) return new NextResponse("Sign in to print the POP PDF.", { status: 403 });
+  const context = await getTeamContext();
+  if (!context.isDemo && !context.role) return new NextResponse("Sign in to print the POP PDF.", { status: 403 });
   try {
     const { id } = await params;
     const document = await getDocument(id);
