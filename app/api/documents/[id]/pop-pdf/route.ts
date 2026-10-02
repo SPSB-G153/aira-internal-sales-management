@@ -12,7 +12,7 @@ const text = (content: Record<string, unknown>, key: string) => String(content[k
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { role } = await getTeamContext();
-  if (role !== "owner") return new NextResponse("Only the workspace owner can download POP PDF files.", { status: 403 });
+  if (!role) return new NextResponse("Sign in to print the POP PDF.", { status: 403 });
   try {
     const { id } = await params;
     const document = await getDocument(id);
