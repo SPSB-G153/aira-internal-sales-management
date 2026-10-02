@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDocument } from "@/lib/data/documents";
 import { getTeamContext } from "@/lib/tenancy";
 import { createWordLetter } from "@/lib/word-document";
+import { createBookingFormWord } from "@/lib/booking-form-word";
 import { documentNames } from "@/lib/types";
 
 export const runtime="nodejs";
@@ -10,8 +11,9 @@ export async function GET(_request:Request,{params}:{params:Promise<{id:string}>
   const {role}=await getTeamContext();
   if(role!=="owner")return new NextResponse("Only the workspace owner can download Microsoft Word files.",{status:403});
   try{
-    const {id}=await params;const document=await getDocument(id);const file=await createWordLetter(document.document_type,document.content);
+    const {id}=await params;const document=await getDocument(id);const file=document.document_type==="booking_form"?await createBookingFormWord(document.content):await createWordLetter(document.document_type,document.content);
     const filename=`${documentNames[document.document_type].replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"").toLowerCase()}.docx`;
-    return new NextResponse(file,{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","Content-Disposition":`attachment; filename="${filename}"`,"Cache-Control":"private, no-store"}});
+    const body=file.buffer.slice(file.byteOffset,file.byteOffset+file.byteLength) as ArrayBuffer;
+    return new NextResponse(body,{headers:{"Content-Type":"application/vnd.openxmlformats-officedocument.wordprocessingml.document","Content-Disposition":`attachment; filename="${filename}"`,"Cache-Control":"private, no-store"}});
   }catch{return new NextResponse("The Word document could not be created.",{status:500});}
 }

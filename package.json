@@ -13,7 +13,10 @@
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.45.0",
     "docx": "9.5.1",
+    "exceljs": "^4.4.0",
+    "jszip": "^3.10.2",
     "next": "^15.0.0",
+    "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "stripe": "^17.0.0"

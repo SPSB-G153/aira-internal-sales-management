@@ -3,7 +3,7 @@ export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","ac
 export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,rebate_letter:3,hovp_letter:5};
 const common=(s:Sale)=>({
   sale_reference:s.sale_reference,customer_name:s.customer_name,customer_ic:s.customer_ic,purchaser_type:s.purchaser_type,
-  customer_name_2:s.customer_name_2,customer_ic_2:s.customer_ic_2,customer_salutation:s.customer_salutation,
+  customer_name_2:s.customer_name_2,customer_ic_2:s.customer_ic_2,customer_salutation_2:s.customer_salutation_2,customer_tin_2:s.customer_tin_2,customer_nationality_2:s.customer_nationality_2,customer_sex_2:s.customer_sex_2,customer_race_2:s.customer_race_2,bumi_status_2:s.bumi_status_2,customer_occupation_2:s.customer_occupation_2,contact_person_2:s.contact_person_2,customer_phone_2:s.customer_phone_2,customer_email_2:s.customer_email_2,customer_address_2:s.customer_address_2,customer_salutation:s.customer_salutation,
   customer_tin:s.customer_tin,customer_nationality:s.customer_nationality,customer_sex:s.customer_sex,
   customer_race:s.customer_race,bumi_status:s.bumi_status,customer_occupation:s.customer_occupation,
   contact_person:s.contact_person,customer_address:s.customer_address,customer_phone:s.customer_phone,
