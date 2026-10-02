@@ -36,6 +36,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   const rule = (x1: number, x2: number, top: number) => page.drawLine({ start: { x: x1 / 2, y: y(top) }, end: { x: x2 / 2, y: y(top) }, thickness: 0.45, color: ink });
   const box = (x: number, top: number, width: number, height: number) => page.drawRectangle({ x: x / 2, y: y(top + height), width: width / 2, height: height / 2, borderColor: ink, borderWidth: 0.6 });
 
+  // The approved example centres SALES. For the live print layout, keep both
+  // headings aligned on the left as requested.
+  clear(375, 55, 220, 90);
+  write("SALES", 140, 108, 16);
+
   const spaPrice = Math.max(0, values.listPrice - values.discount);
   const netPrice = Math.max(0, spaPrice - values.rebate);
   const totalIncentives = values.discount + values.rebate + values.otherIncentives;
