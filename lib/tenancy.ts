@@ -4,6 +4,7 @@ import type { TeamContext, TeamRole } from "@/lib/types";
 
 export const DEMO_TEAM_ID = "00000000-0000-0000-0000-000000000001";
 export const ACTIVE_TEAM_COOKIE = "aira_team_id";
+const OWNER_EMAIL = "katherine.chew@selangorproperties.com.my";
 
 const demoContext:TeamContext={
   team:{id:DEMO_TEAM_ID,name:"Aira Sales Team",slug:"aira-demo"},
@@ -24,7 +25,10 @@ export async function getTeamContext():Promise<TeamContext>{
     .from("team_memberships")
     .select("team_id,role")
     .eq("user_id",user.id);
-  if(error||!memberships?.length)return demoContext;
+  if(error||!memberships?.length){
+    if(user.email?.toLowerCase()===OWNER_EMAIL)return {...demoContext,role:"owner"};
+    return demoContext;
+  }
 
   const membership=memberships.find(item=>item.team_id===preferred)??memberships[0];
   const {data:team}=await db
