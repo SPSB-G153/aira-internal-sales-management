@@ -56,6 +56,13 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(0, purchaser1, 88, 253, 10, 185); fillLine(0, purchaser2, 88, 277, 10, 185);
   fillLine(0, value(content, "customer_ic"), 88, 332, 10, 185); fillLine(0, value(content, "customer_ic_2"), 88, 356, 10, 185);
   address.forEach((line, index) => fillLine(0, line, 52, 414 + index * 24, 10, 220));
+  // Avoid a clutter of unused dotted rows when the saved address is shorter
+  // than the four address lines available in the approved form.
+  const addressPage = pdf.getPage(0);
+  for (let index = address.length; index < 4; index += 1) {
+    const lineTop = 414 + index * 24;
+    addressPage.drawRectangle({ x: 50, y: addressPage.getHeight() - lineTop - 6, width: 222, height: 14, color: rgb(1, 1, 1) });
+  }
   fillLine(0, value(content, "sale_date"), 88, 513, 10, 185);
 
   // The cover template has fixed labels. Replace only the blank value area so
