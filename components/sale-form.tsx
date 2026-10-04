@@ -77,6 +77,39 @@ const salutation: [
   ["Dr", "Dr"],
   ["Company", "Company"],
 ];
+const solicitorByUnit: Record<string, string> = {
+  "A-15-03": "Jeff Leong, Poon & Wong",
+  "A-07-05": "Zaid Ibrahim & Co",
+  "A-05-03": "Jeff Leong, Poon & Wong",
+  "A-03-05": "Zaid Ibrahim & Co",
+  "A-03-3A": "Zaid Ibrahim & Co",
+  "A-03-03": "Jeff Leong, Poon & Wong",
+  "A-03-01": "Jeff Leong, Poon & Wong",
+  "A-02-05": "Zaid Ibrahim & Co",
+  "A-02-3A": "Zaid Ibrahim & Co",
+  "A-02-03": "Jeff Leong, Poon & Wong",
+  "A-01-3A": "Zaid Ibrahim & Co",
+  "A-01-03": "Jeff Leong, Poon & Wong",
+  "A-G-03": "Zaid Ibrahim & Co",
+  "A-G-02": "Jeff Leong, Poon & Wong",
+  "A-G-01": "Jeff Leong, Poon & Wong",
+  "B-15-01": "Zaid Ibrahim & Co",
+  "B-13A-03": "Zaid Ibrahim & Co",
+  "B-13-04": "Zaid Ibrahim & Co",
+  "B-08-01": "Zaid Ibrahim & Co",
+  "B-06-03": "Zaid Ibrahim & Co",
+  "B-05-04": "Zaid Ibrahim & Co",
+  "B-3A-04": "Zaid Ibrahim & Co",
+  "B-3A-03": "Zaid Ibrahim & Co",
+  "B-03-04": "Zaid Ibrahim & Co",
+  "B-02-04": "Zaid Ibrahim & Co",
+  "B-02-02": "Zaid Ibrahim & Co",
+  "B-01-04": "Zaid Ibrahim & Co",
+  "B-01-03": "Zaid Ibrahim & Co",
+  "B-01-02": "Zaid Ibrahim & Co",
+  "B-01-01": "Zaid Ibrahim & Co",
+};
+const solicitorForUnit = (unit: string) => solicitorByUnit[unit.trim().toUpperCase()] ?? "";
 const keepSecondPurchaser = (form: HTMLFormElement) =>
   [
     "customer_salutation_2",
@@ -119,6 +152,7 @@ export function SaleForm({ sale }: Props) {
   const [price, setPrice] = useState(String(sale?.purchase_price ?? ""));
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? ""));
+  const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
     Boolean(sale?.customer_name_2 || state.fields?.customer_name_2),
@@ -389,11 +423,16 @@ export function SaleForm({ sale }: Props) {
             defaultValue={v("project_name")}
             error={state.fieldErrors?.project_name}
           />
-          <Field
-            name="unit_number"
-            label="Parcel / unit number"
-            defaultValue={v("unit_number")}
-          />
+          <div className="field">
+            <label htmlFor="unit_number">Parcel / unit number</label>
+            <input
+              id="unit_number"
+              name="unit_number"
+              defaultValue={v("unit_number")}
+              onChange={(event) => setSolicitorName(solicitorForUnit(event.target.value))}
+            />
+            <p className="subtle">The handling lawyer is filled automatically for listed units.</p>
+          </div>
           <Field
             name="storey_number"
             label="Storey number"
@@ -484,17 +523,14 @@ export function SaleForm({ sale }: Props) {
             label="Sales agency / company"
             defaultValue={v("agent_company")}
           />
-          {sale && (
-            <Select
-              name="solicitor_name"
-              label="Handling lawyer"
-              value={v("solicitor_name")}
-              options={[
-                ["Zaid Ibrahim & Co", "Zaid Ibrahim & Co (ZICO)"],
-                ["Jeff Leong, Poon & Wong", "Jeff Leong, Poon & Wong (JLPW)"],
-              ]}
-            />
-          )}
+          <div className="field">
+            <label htmlFor="solicitor_name">Handling lawyer</label>
+            <select id="solicitor_name" name="solicitor_name" value={solicitorName} onChange={(event) => setSolicitorName(event.target.value)}>
+              <option value="">Select</option>
+              <option value="Zaid Ibrahim & Co">Zaid Ibrahim & Co (ZICO)</option>
+              <option value="Jeff Leong, Poon & Wong">Jeff Leong, Poon & Wong (JLPW)</option>
+            </select>
+          </div>
           <Field
             name="sale_date"
             label="Proposal date"
