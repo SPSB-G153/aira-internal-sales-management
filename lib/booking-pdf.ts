@@ -38,6 +38,14 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     const page = pdf.getPage(pageIndex); const rendered=fit(text); const width=fieldWidth || font.widthOfTextAtSize(rendered,size)+3;
     page.drawRectangle({x:x-2,y:page.getHeight()-top-3,width,height:size+6,color:rgb(1,1,1)});
     page.drawText(rendered,{x,y:page.getHeight()-top,size,font,color:ink});
+    // Preserve the template's professional dotted writing line after each
+    // populated value, without allowing dots to run through the text itself.
+    if (fieldWidth) {
+      const textWidth = font.widthOfTextAtSize(rendered, size);
+      const dotWidth = font.widthOfTextAtSize(".", size);
+      const dotCount = Math.max(0, Math.floor((fieldWidth - textWidth - 4) / dotWidth));
+      if (dotCount) page.drawText(".".repeat(dotCount), { x: x + textWidth + 4, y: page.getHeight() - top, size, font, color: ink });
+    }
   };
   const lines = (address: string) => address.split(/\r?\n|,/).map(part => part.trim()).filter(Boolean).slice(0, 4);
   const purchaser1 = value(content, "customer_name"); const purchaser2 = value(content, "customer_name_2");
