@@ -61,7 +61,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const addressPage = pdf.getPage(0);
   for (let index = address.length; index < 4; index += 1) {
     const lineTop = 414 + index * 24;
-    addressPage.drawRectangle({ x: 50, y: addressPage.getHeight() - lineTop - 6, width: 222, height: 14, color: rgb(1, 1, 1) });
+    addressPage.drawRectangle({ x: 45, y: addressPage.getHeight() - lineTop - 12, width: 235, height: 24, color: rgb(1, 1, 1) });
   }
   fillLine(0, value(content, "sale_date"), 88, 513, 10, 185);
 
