@@ -36,6 +36,11 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0) => {
     if (!text) return;
     const page = pdf.getPage(pageIndex); const rendered=fit(text);
+    if (fieldWidth) {
+      const dotWidth = font.widthOfTextAtSize(".", size);
+      const dotCount = Math.max(0, Math.floor(fieldWidth / dotWidth));
+      if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top, size, font, color: ink });
+    }
     page.drawText(rendered,{x,y:page.getHeight()-top,size,font,color:ink});
   };
   const lines = (address: string) => address.split(/\r?\n|,/).map(part => part.trim()).filter(Boolean).slice(0, 4);
