@@ -40,9 +40,10 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
       // Replace the template leader with a clean dotted underline. The value
       // remains legible above the line instead of having dots through it.
       page.drawRectangle({ x: x - 2, y: page.getHeight() - top - 6, width: fieldWidth, height: 14, color: rgb(1, 1, 1) });
-      const dotWidth = font.widthOfTextAtSize(".", size);
+      const dotSize = 6;
+      const dotWidth = font.widthOfTextAtSize(".", dotSize);
       const dotCount = Math.max(0, Math.floor(fieldWidth / dotWidth));
-      if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top - 3, size, font, color: ink });
+      if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top - 8, size: dotSize, font, color: ink });
     }
     page.drawText(rendered,{x,y:page.getHeight()-top,size,font,color:ink});
   };
