@@ -33,9 +33,10 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const write = (pageIndex: number, text: string, x: number, top: number, size = 9, weight = false) => {
     const page = pdf.getPage(pageIndex); page.drawText(fit(text), { x, y: page.getHeight() - top, size, font: weight ? bold : font, color: ink });
   };
-  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 9) => {
-    const page = pdf.getPage(pageIndex); const rendered=fit(text); const width=font.widthOfTextAtSize(rendered,size)+3;
-    page.drawRectangle({x:x-1,y:page.getHeight()-top-2,width,height:size+4,color:rgb(1,1,1)});
+  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0) => {
+    if (!text) return;
+    const page = pdf.getPage(pageIndex); const rendered=fit(text); const width=fieldWidth || font.widthOfTextAtSize(rendered,size)+3;
+    page.drawRectangle({x:x-2,y:page.getHeight()-top-3,width,height:size+6,color:rgb(1,1,1)});
     page.drawText(rendered,{x,y:page.getHeight()-top,size,font,color:ink});
   };
   const lines = (address: string) => address.split(/\r?\n|,/).map(part => part.trim()).filter(Boolean).slice(0, 4);
@@ -44,10 +45,10 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const address = lines(value(content, "customer_address"));
 
   // Page 1 cover and offer summary.
-  fillLine(0, purchaser1, 88, 258); fillLine(0, purchaser2, 88, 282);
-  fillLine(0, value(content, "customer_ic"), 88, 337); fillLine(0, value(content, "customer_ic_2"), 88, 361);
-  address.forEach((line, index) => fillLine(0, line, 52, 419 + index * 24));
-  write(0, value(content, "sale_date"), 88, 516);
+  fillLine(0, purchaser1, 88, 260, 10, 165); fillLine(0, purchaser2, 88, 284, 10, 165);
+  fillLine(0, value(content, "customer_ic"), 88, 339, 10, 165); fillLine(0, value(content, "customer_ic_2"), 88, 363, 10, 165);
+  address.forEach((line, index) => fillLine(0, line, 52, 421 + index * 24, 10, 205));
+  fillLine(0, value(content, "sale_date"), 88, 518, 10, 165);
 
   // The cover template has fixed labels. Replace only the blank value area so
   // the unit and purchaser data stay on the same baseline as the template.
