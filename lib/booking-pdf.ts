@@ -45,10 +45,10 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const address = lines(value(content, "customer_address"));
 
   // Page 1 cover and offer summary.
-  fillLine(0, purchaser1, 88, 260, 10, 165); fillLine(0, purchaser2, 88, 284, 10, 165);
-  fillLine(0, value(content, "customer_ic"), 88, 339, 10, 165); fillLine(0, value(content, "customer_ic_2"), 88, 363, 10, 165);
-  address.forEach((line, index) => fillLine(0, line, 52, 421 + index * 24, 10, 205));
-  fillLine(0, value(content, "sale_date"), 88, 518, 10, 165);
+  fillLine(0, purchaser1, 88, 253, 10, 185); fillLine(0, purchaser2, 88, 277, 10, 185);
+  fillLine(0, value(content, "customer_ic"), 88, 332, 10, 185); fillLine(0, value(content, "customer_ic_2"), 88, 356, 10, 185);
+  address.forEach((line, index) => fillLine(0, line, 52, 414 + index * 24, 10, 220));
+  fillLine(0, value(content, "sale_date"), 88, 513, 10, 185);
 
   // The cover template has fixed labels. Replace only the blank value area so
   // the unit and purchaser data stay on the same baseline as the template.
