@@ -101,6 +101,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(money(netPrice), 565, 845, 8, true);
   write(money(values.otherIncentives), 565, 891, 8);
   write(money(totalIncentives), 565, 936, 8, true);
+  // Use live text for the repeated currency labels as well. This avoids any
+  // clipped glyphs left by the scanned value-line cleanup.
+  [646, 678, 710, 797, 845, 891, 936].forEach((top) => write("RM", 500, top, 8));
   // Draw one clean amount rule at the original printed baseline for each
   // editable row.
   rule(490, 676, 685);
