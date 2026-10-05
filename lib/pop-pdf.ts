@@ -4,6 +4,7 @@ export type PopValues = {
   agent: string;
   spsb: string;
   salesperson: string;
+  saleDate: string;
   purchaser: string;
   unit: string;
   unitType: string;
@@ -94,9 +95,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("4. Comments/Approval:", 135, 1515, 7, true);
   rule(135, 455, 1090); rule(135, 455, 1270); rule(135, 455, 1450); rule(135, 455, 1600);
   write("SBDM/BDM Signature", 165, 1110, 6); write("Date", 400, 1110, 6);
-  write(values.salesperson ? `Name: ${fit(values.salesperson, 28)}` : "Name:", 165, 1290, 6); write("Date", 400, 1290, 6);
-  write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6);
-  write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6);
+  write(values.salesperson || "N/A", 165, 1134, 6, true); write(values.saleDate || "", 400, 1134, 6);
+  write("Head of Sales", 165, 1290, 6); write("Date", 400, 1290, 6);
+  write("N/A", 165, 1314, 6, true);
+  write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6); write(values.saleDate || "", 400, 1494, 6);
+  write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6); write(values.saleDate || "", 400, 1644, 6);
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
 
   pdf.setTitle("Prospect Offer Proposal Form");
