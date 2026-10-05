@@ -133,10 +133,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // The source page already contains both side borders. Only extend their
   // final short segments and close the bottom edge.
   const formGold = rgb(0.83, 0.64, 0.02);
-  // One residual sample-signature stroke crosses the left border. Mask that
-  // narrow strip without touching the live signature labels, then restore it.
-  clear(80, 1100, 45, 65);
-  page.drawLine({ start: { x: 50, y: y(1100) }, end: { x: 50, y: y(1165) }, thickness: 1.2, color: formGold });
+// One residual sample-signature stroke sits immediately left of the live
+// signature label. Mask that otherwise unused narrow strip, then restore the
+// gold border at its original position.
+clear(60, 1060, 70, 120);
+page.drawLine({ start: { x: 50, y: y(1060) }, end: { x: 50, y: y(1180) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 560, y: y(1608) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1608) }, end: { x: 50, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
