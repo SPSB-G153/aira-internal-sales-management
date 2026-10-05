@@ -89,14 +89,32 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   // translateContent also affects subsequent drawing operations, so values
   // retain their template coordinates and move together with the table.
   const appendixWrite = (text: string, x: number, top: number, size = 9) => write(4, text, x, top, size);
-  // Keep every value inside its own printed cell.  In particular, purchaser
-  // names and solicitor details must not spill into the neighbouring column.
-  // A fixed type size prevents one long field from looking smaller than the
-  // other values in the same table. This is the same treatment across A–D.
-  const appendixTextSize = 7;
-  const appendixCell = (text: string, x: number, top: number, _width: number, size = appendixTextSize) => {
+  // Every filled Appendix field uses the same body type. Long purchaser names
+  // are wrapped within their own cell instead of being reduced to a smaller
+  // font than every other line.
+  const appendixTextSize = 9;
+  const cellLines = (text: string, width: number, size: number, maxLines: number) => {
+    const words = text.split(/\s+/).filter(Boolean);
+    const result: string[] = [];
+    let line = "";
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (font.widthOfTextAtSize(candidate, size) <= width || !line) { line = candidate; continue; }
+      result.push(line); line = word;
+    }
+    if (line) result.push(line);
+    if (result.length <= maxLines) return result;
+    const visible = result.slice(0, maxLines);
+    while (visible[maxLines - 1].length && font.widthOfTextAtSize(`${visible[maxLines - 1]}…`, size) > width) visible[maxLines - 1] = visible[maxLines - 1].slice(0, -1);
+    visible[maxLines - 1] = `${visible[maxLines - 1].trimEnd()}…`;
+    return visible;
+  };
+  const appendixCell = (text: string, x: number, top: number, width: number, size = appendixTextSize, maxLines = 1) => {
     if (!text) return;
-    appendixWrite(text, x, top, size);
+    const renderedLines = cellLines(text, width, size, maxLines);
+    const lineHeight = size + 1;
+    const firstTop = top - ((renderedLines.length - 1) * lineHeight) / 2;
+    renderedLines.forEach((line, index) => appendixWrite(line, x, firstTop + index * lineHeight, size));
   };
   // All appended values use the same 8pt face and the baseline used by the
   // purchaser rows, keeping the form visually consistent from A through D.
@@ -106,7 +124,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     { name: purchaser1, salutation: value(content, "customer_salutation"), tin: value(content, "customer_tin"), nationality: value(content, "customer_nationality"), sex: value(content, "customer_sex"), race: value(content, "customer_race"), ic: value(content, "customer_ic"), bumi: value(content, "bumi_status") === "true" ? "Yes" : value(content, "bumi_status") === "false" ? "No" : "", occupation: value(content, "customer_occupation"), contact: value(content, "contact_person"), phone: value(content, "customer_phone"), email: value(content, "customer_email"), address: value(content, "customer_address") },
     { name: purchaser2, salutation: value(content, "customer_salutation_2"), tin: value(content, "customer_tin_2"), nationality: value(content, "customer_nationality_2"), sex: value(content, "customer_sex_2"), race: value(content, "customer_race_2"), ic: value(content, "customer_ic_2"), bumi: value(content, "bumi_status_2") === "true" ? "Yes" : value(content, "bumi_status_2") === "false" ? "No" : "", occupation: value(content, "customer_occupation_2"), contact: value(content, "contact_person_2"), phone: value(content, "customer_phone_2"), email: value(content, "customer_email_2"), address: value(content, "customer_address_2") },
   ];
-  purchasers.forEach((p, index) => { const top = 340 + index * 23; appendixCell(p.name, 72, top, 102); appendixCell(p.salutation, 183, top, 78); appendixCell(p.tin, 272, top, 82); appendixCell(p.nationality, 365, top, 66); appendixCell(p.sex, 440, top, 45); appendixCell(p.race, 495, top, 35); appendixCell(p.ic, 72, 478 + index * 23, 160); appendixCell(p.bumi, 250, 478 + index * 23, 135); appendixCell(p.occupation, 405, 478 + index * 23, 125); appendixCell(p.contact, 75, 609 + index * 23, 155); appendixCell(p.phone, 250, 609 + index * 23, 125); appendixCell(p.email, 395, 609 + index * 23, 125); });
+  purchasers.forEach((p, index) => { const top = 340 + index * 23; appendixCell(p.name, 72, top, 102, appendixTextSize, 2); appendixCell(p.salutation, 183, top, 78); appendixCell(p.tin, 272, top, 82); appendixCell(p.nationality, 365, top, 66); appendixCell(p.sex, 440, top, 45); appendixCell(p.race, 495, top, 35); appendixCell(p.ic, 72, 478 + index * 23, 160); appendixCell(p.bumi, 250, 478 + index * 23, 135); appendixCell(p.occupation, 405, 478 + index * 23, 125); appendixCell(p.contact, 75, 609 + index * 23, 155); appendixCell(p.phone, 250, 609 + index * 23, 125); appendixCell(p.email, 395, 609 + index * 23, 125); });
   // The supplied form has one singular Correspondence Address section. It
   // therefore uses the primary purchaser's saved address and never writes a
   // second address past the bottom border of the Appendix.
