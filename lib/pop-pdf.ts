@@ -73,6 +73,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   [[491, 237, 585, 36], [491, 295, 585, 36], [491, 356, 585, 36], [491, 524, 167, 30], [491, 569, 167, 30]].forEach(([x, top, width, height]) => clear(x, top, width, height));
   clear(491, 420, 585, 40, formGrey);
   clear(491, 477, 167, 30, formGrey);
+  // Clearing the supplied scan also clears its faint vertical edges. Restore
+  // every data cell as a closed rule box so printed values stay contained.
+  [[491, 237, 585, 36], [491, 295, 585, 36], [491, 356, 585, 36], [491, 420, 585, 40], [491, 477, 167, 30], [491, 524, 167, 30], [491, 569, 167, 30]].forEach(([x, top, width, height]) => box(x, top, width, height));
   write(values.agent || "", 526, 260, 8, true);
   write(values.spsb || "", 526, 318, 8, true);
   write(values.salesperson || "", 526, 380, 8, true);
