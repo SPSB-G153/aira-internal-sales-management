@@ -22,6 +22,7 @@ export type PopValues = {
 
 const money = (value: number) => new Intl.NumberFormat("en-MY", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
 const fit = (value: string, max = 52) => value.length > max ? `${value.slice(0, max - 1)}…` : value;
+const compactDate = (value: string) => value ? value.split("-").reverse().map((part, index) => index === 2 ? part.slice(-2) : part).join(".") : "";
 
 /**
  * Uses the approved A-15-03 form itself as the artwork. Only its variable
@@ -110,15 +111,19 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("4. Comments/Approval:", 135, 1515, 7, true);
   rule(135, 455, 1090); rule(135, 455, 1270); rule(135, 455, 1450); rule(135, 455, 1600);
   write("SBDM/BDM Signature", 165, 1110, 6); write("Date", 400, 1110, 6);
-  write(values.salesperson || "N/A", 165, 1134, 6, true); write(values.saleDate || "", 400, 1134, 6);
+  write(values.salesperson || "N/A", 165, 1134, 6, true); write(compactDate(values.saleDate), 400, 1134, 6);
   write("Head of Sales", 165, 1290, 6); write("Date", 400, 1290, 6);
   write("N/A", 165, 1314, 6, true);
-  write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6); write(values.saleDate || "", 400, 1494, 6);
-  write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6); write(values.saleDate || "", 400, 1644, 6);
+  write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6); write(compactDate(values.saleDate), 400, 1494, 6);
+  write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6); write(compactDate(values.saleDate), 400, 1644, 6);
   writeNote(values.proposalNote, 510, 1010);
   writeNote(values.recommendationNote, 510, 1175);
   writeNote(values.feasibilityNote, 510, 1345, 24);
   writeNote(values.commentsNote, 510, 1520);
+  write("Within the Global Discount + Gift Budget", 675, 1360, 6);
+  write("(as shown attached)", 675, 1374, 5.5);
+  write("Outside the Global Discount + Gift Budget", 675, 1445, 6);
+  write("(as shown attached)", 675, 1459, 5.5);
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
 
   pdf.setTitle("Prospect Offer Proposal Form");
