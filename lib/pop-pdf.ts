@@ -105,9 +105,10 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
 
   // The reference is an approved copy containing another purchaser's
   // signatures and notes. A new POP must start with these approval sections blank.
-  // Start after the source template's gold outer border so the approved
-  // left edge remains intact in both the preview and downloaded PDF.
-  clear(110, 970, 390, 680);
+  // Erase the old handwritten approval content while preserving the narrow
+  // gold border stripe between these two clearing regions.
+  clear(80, 970, 18, 680);
+  clear(102, 970, 398, 680);
   clear(470, 970, 620, 680);
   write("1. SBDM/BDM's Proposal:", 135, 1000, 7, true);
   write("2. Recommendation:", 135, 1175, 7, true);
@@ -132,9 +133,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // The source page already contains both side borders. Only extend their
   // final short segments and close the bottom edge.
   const formGold = rgb(0.83, 0.64, 0.02);
-  page.drawLine({ start: { x: 558.5, y: y(1608) }, end: { x: 558.5, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 560, y: y(1608) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1608) }, end: { x: 50, y: y(1680) }, thickness: 1.2, color: formGold });
-  page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 558.5, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
 
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
