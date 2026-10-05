@@ -129,8 +129,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
   // Continue the form's gold left border through the approval block.
   const formGold = rgb(0.83, 0.64, 0.02);
-  page.drawLine({ start: { x: 66 / 2, y: y(970) }, end: { x: 66 / 2, y: y(1680) }, thickness: 1.2, color: formGold });
-  page.drawLine({ start: { x: 66 / 2, y: y(1680) }, end: { x: 1090 / 2, y: y(1680) }, thickness: 1.2, color: formGold });
+  // Match the original outer gold border: the left/right sides are at the
+  // same positions as the top rule, with a closing bottom edge.
+  page.drawLine({ start: { x: 100 / 2, y: y(970) }, end: { x: 100 / 2, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 1120 / 2, y: y(1608) }, end: { x: 1120 / 2, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 100 / 2, y: y(1680) }, end: { x: 1120 / 2, y: y(1680) }, thickness: 1.2, color: formGold });
 
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
