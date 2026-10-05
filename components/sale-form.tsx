@@ -537,6 +537,17 @@ export function SaleForm({ sale }: Props) {
             type="date"
             defaultValue={v("sale_date")}
           />
+          <Select
+            name="payment_method"
+            label="Deposit payment method"
+            value={v("payment_method")}
+            options={[["cheque", "Cheque"], ["bank_transfer", "Bank transfer"]]}
+          />
+          <Field
+            name="payment_reference"
+            label="Cheque no. / bank-transfer reference"
+            defaultValue={v("payment_reference")}
+          />
         </div>
       </section>
       <section className="form-section">

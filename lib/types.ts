@@ -27,6 +27,7 @@ export interface Sale {
   unit_number:string|null; storey_number:string|null; unit_type:string|null; floor_area:number|null; floor_area_sqm:number|null;
   car_parking_bay:string|null; purchase_price:number;
   booking_fee:number|null; spa_value:number|null; loan_amount:number|null; loan_percentage:number|null;
+  payment_method:"cheque"|"bank_transfer"|null; payment_reference:string|null;
   rebate_amount:number|null; rebate_percentage:number|null; quoted_id_net_selling_price:number|null; salesperson_name:string|null; sale_date:string|null;
   agent_company:string|null; proprietor_name:string|null; solicitor_name:string|null;
   authorised_signatory_name:string|null; authorised_signatory_position:string|null;

@@ -82,6 +82,17 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   // The Balance Deposit number belongs in the (RM …) blank immediately below
   // the amount in words. Keeping it on that line avoids the clause heading.
   fillLine(1, amountInWords(balance), 308, 477, 9); fillLine(1, money(balance), 114, 489, 9);
+  const paymentMethod = value(content, "payment_method");
+  const paymentReference = value(content, "payment_reference");
+  if (paymentReference) {
+    const paymentPage = pdf.getPage(1);
+    if (paymentMethod === "bank_transfer") {
+      paymentPage.drawRectangle({ x: 145, y: paymentPage.getHeight() - 408 - 10, width: 230, height: 18, color: rgb(1, 1, 1) });
+      write(1, `Bank transfer ref. ${paymentReference}`, 150, 408, 8);
+    } else {
+      fillLine(1, paymentReference, 194, 408, 8);
+    }
+  }
 
   // Page 3 signature slots remain deliberately blank for signing.
 
