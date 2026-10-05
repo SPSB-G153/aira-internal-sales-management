@@ -102,6 +102,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(spaPsf ? `(RM${money(spaPsf)} psf)` : "", 706, 710, 7);
   write("'B'", 706, 797, 7);
   write(netPsf ? `(RM${money(netPsf)} psf)` : "", 706, 845, 7);
+  // Complete the lower tip of the A+B bracket retained from the approved
+  // form scan. The source page has its upper and centre strokes already.
+  page.drawLine({ start: { x: 452, y: y(812) }, end: { x: 445, y: y(812) }, thickness: 0.6, color: ink });
 
   // The reference is an approved copy containing another purchaser's
   // signatures and notes. A new POP must start with these approval sections blank.
