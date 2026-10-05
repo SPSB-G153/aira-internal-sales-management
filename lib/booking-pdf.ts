@@ -105,7 +105,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const appendixWrite = (text: string, x: number, top: number, size = 8, weight = false) => appendixPage.drawText(fit(text), { x, y: appendixPage.getHeight() - top, size, font: weight ? bold : font, color: ink });
   // One line, one type size, and one left inset for every value. This keeps
   // the appendix simple and avoids turning a purchaser name into a block.
-  const appendixTextSize = 6.75;
+  const appendixTextSize = 8.5;
   const appendixCell = (text: string, x: number, top: number, _width: number, size = appendixTextSize) => {
     if (!text) return;
     appendixWrite(text, x, top, size);
