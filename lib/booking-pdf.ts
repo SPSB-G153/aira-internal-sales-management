@@ -117,8 +117,15 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const registrationOffset = 1;
   const correspondenceOffset = 3;
   const appendixFirstColumnX = 72;
-  appendixCell(value(content, "unit_number"), 194, 101 + propertyOffset, 310); appendixCell(value(content, "storey_number"), 194, 125 + propertyOffset, 310); appendixCell(value(content, "unit_type"), 194, 149 + propertyOffset, 310);
-  appendixCell(value(content, "floor_area_sqm"), 230, 174 + propertyOffset, 65); appendixCell(value(content, "floor_area"), 375, 174 + propertyOffset, 65); appendixCell(money(price), 215, 199 + propertyOffset, 290); appendixCell(value(content, "car_parking_bay"), 194, 223 + propertyOffset, 310);
+  const propertyValueX = 194;
+  appendixCell(value(content, "unit_number"), propertyValueX, 101 + propertyOffset, 310); appendixCell(value(content, "storey_number"), propertyValueX, 125 + propertyOffset, 310); appendixCell(value(content, "unit_type"), propertyValueX, 149 + propertyOffset, 310);
+  appendixCell(value(content, "floor_area_sqm"), 230, 174 + propertyOffset, 65); appendixCell(value(content, "floor_area"), 375, 174 + propertyOffset, 65);
+  // The source form splits the RM label and number in different fonts. Replace
+  // that value area with a single app-driven amount using the shared style.
+  const appendixPage = pdf.getPage(4);
+  appendixPage.drawRectangle({ x: 184, y: appendixPage.getHeight() - (199 + propertyOffset) - 10, width: 325, height: 17, color: rgb(1, 1, 1) });
+  appendixCell(`RM ${money(price)}`, propertyValueX, 199 + propertyOffset, 310);
+  appendixCell(value(content, "car_parking_bay"), propertyValueX, 223 + propertyOffset, 310);
   const purchasers = [
     { name: purchaser1, salutation: value(content, "customer_salutation"), tin: value(content, "customer_tin"), nationality: value(content, "customer_nationality"), sex: value(content, "customer_sex"), race: value(content, "customer_race"), ic: value(content, "customer_ic"), bumi: value(content, "bumi_status") === "true" ? "Yes" : value(content, "bumi_status") === "false" ? "No" : "", occupation: value(content, "customer_occupation"), contact: value(content, "contact_person"), phone: value(content, "customer_phone"), email: value(content, "customer_email"), address: value(content, "customer_address") },
     { name: purchaser2, salutation: value(content, "customer_salutation_2"), tin: value(content, "customer_tin_2"), nationality: value(content, "customer_nationality_2"), sex: value(content, "customer_sex_2"), race: value(content, "customer_race_2"), ic: value(content, "customer_ic_2"), bumi: value(content, "bumi_status_2") === "true" ? "Yes" : value(content, "bumi_status_2") === "false" ? "No" : "", occupation: value(content, "customer_occupation_2"), contact: value(content, "contact_person_2"), phone: value(content, "customer_phone_2"), email: value(content, "customer_email_2"), address: value(content, "customer_address_2") },
