@@ -537,12 +537,19 @@ export function SaleForm({ sale }: Props) {
             type="date"
             defaultValue={v("sale_date")}
           />
-          <Select
-            name="payment_method"
-            label="Deposit payment method"
-            value={v("payment_method")}
-            options={[["cheque", "Cheque"], ["bank_transfer", "Bank transfer"]]}
-          />
+          <div className="field">
+            <label>Deposit payment method</label>
+            <div className="payment-method-options" role="radiogroup" aria-label="Deposit payment method">
+              <label>
+                <input type="radio" name="payment_method" value="cheque" defaultChecked={v("payment_method") === "cheque"} />
+                <span>Cheque</span>
+              </label>
+              <label>
+                <input type="radio" name="payment_method" value="bank_transfer" defaultChecked={v("payment_method") === "bank_transfer"} />
+                <span>Bank transfer</span>
+              </label>
+            </div>
+          </div>
           <Field
             name="payment_reference"
             label="Cheque no. / bank-transfer reference"

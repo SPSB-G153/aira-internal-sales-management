@@ -58,6 +58,9 @@ h3 { margin:0; font-size:16px; }
 .field label { display:block; margin-bottom:7px; font-size:12px; font-weight:800; }
 .field input,.field textarea,.field select { width:100%; border:1px solid var(--line); border-radius:8px; padding:11px 12px; background:#101218; color:var(--ink); outline:none; }
 .field input:focus,.field textarea:focus { border-color:var(--gold); box-shadow:0 0 0 3px #d4af3720; }
+.payment-method-options { display:flex; gap:22px; min-height:46px; align-items:center; border:1px solid var(--line); border-radius:8px; padding:0 14px; background:#101218; }
+.payment-method-options label { display:flex; align-items:center; gap:8px; margin:0; font-size:14px; font-weight:700; cursor:pointer; }
+.payment-method-options input { width:18px; height:18px; accent-color:var(--gold); }
 .required { color:var(--red); }
 .error { color:var(--red); font-size:12px; margin:6px 0 0; }
 .alert { padding:13px 15px; border-radius:9px; margin-bottom:18px; background:#2b2517; color:#efd37a; border:1px solid #6a5521; }
