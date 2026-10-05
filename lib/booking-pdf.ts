@@ -86,7 +86,9 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   // Page 5 Appendix - property and purchaser details from the app.
   const appendixOffset = 24;
   pdf.getPage(4).translateContent(0, -appendixOffset);
-  const appendixWrite = (text: string, x: number, top: number, size = 9) => write(4, text, x, top + appendixOffset, size);
+  // translateContent also affects subsequent drawing operations, so values
+  // retain their template coordinates and move together with the table.
+  const appendixWrite = (text: string, x: number, top: number, size = 9) => write(4, text, x, top, size);
   appendixWrite(value(content, "unit_number"), 194, 101); appendixWrite(value(content, "storey_number"), 194, 125); appendixWrite(value(content, "unit_type"), 194, 149);
   appendixWrite(value(content, "floor_area_sqm"), 230, 174); appendixWrite(value(content, "floor_area"), 375, 174); appendixWrite(money(price), 215, 199); appendixWrite(value(content, "car_parking_bay"), 194, 223);
   const purchasers = [
