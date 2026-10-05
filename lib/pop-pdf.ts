@@ -91,6 +91,7 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // Clear only the prior sample digits. The printed rules and bracket remain
   // part of the approved form artwork and must keep their exact positions.
   [[540, 628], [540, 660], [540, 692], [540, 780], [540, 828], [540, 875], [540, 922]].forEach(([x, top]) => clear(x, top, 138, 20));
+  [[490, 628], [490, 660], [490, 692], [490, 780], [490, 828], [490, 875], [490, 922]].forEach(([x, top]) => clear(x, top, 42, 20));
   write(money(values.listPrice), 565, 646, 8);
   write(money(values.discount), 565, 678, 8);
   write(money(spaPrice), 565, 710, 8);
@@ -98,6 +99,7 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(money(netPrice), 565, 845, 8, true);
   write(money(values.otherIncentives), 565, 891, 8);
   write(money(totalIncentives), 565, 936, 8, true);
+  [646, 678, 710, 797, 845, 891, 936].forEach((top) => write("RM", 500, top, 8));
   // Clear the old purchaser's psf and percentage annotations from the scanned
   // approved copy, then derive them from the current app values.
   clear(702, 620, 120, 38); clear(702, 652, 120, 40); clear(702, 682, 120, 38); clear(702, 765, 120, 52); clear(702, 820, 120, 40);
