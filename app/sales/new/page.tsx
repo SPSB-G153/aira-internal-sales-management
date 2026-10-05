@@ -8,8 +8,19 @@ const testSale: Partial<Sale> = {
   project_name: "Aira Residence", unit_number: "A-01-03", storey_number: "1", unit_type: "A2b", floor_area: 5943, floor_area_sqm: 552.12, car_parking_bay: "LG3 7, 8, 9", purchase_price: 500000, rebate_amount: 10000, quoted_id_net_selling_price: 490000,
   sale_reference: "TEST-POP-001", salesperson_name: "Test Salesperson", agent_company: "Test Sales Agency", solicitor_name: "Jeff Leong, Poon & Wong", sale_date: "2026-10-05", payment_method: "cheque", payment_reference: "TEST-CHQ-001", authorised_signatory_name: "Test Approver", authorised_signatory_position: "Test Manager",
 };
+const testAg01: Partial<Sale> = {
+  ...testSale,
+  unit_number: "A-G-01",
+  storey_number: "G",
+  unit_type: "D",
+  floor_area: 7201,
+  floor_area_sqm: 668.99,
+  car_parking_bay: "LG2 106, 107, 108, 109",
+  solicitor_name: "Jeff Leong, Poon & Wong",
+};
 
 export default async function NewSale({ searchParams }: { searchParams: Promise<{ prefill?: string }> }) {
   const { prefill } = await searchParams;
-  return <div className="page"><div className="page-header"><div><p className="eyebrow">New sale</p><h1>Record verified sale details.</h1><p className="subtle">Required fields are marked. Optional gaps will not prevent confirmation.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><SaleForm initialValues={prefill === "test" ? testSale : undefined}/></div>;
+  const initialValues = prefill === "ag01" ? testAg01 : prefill === "test" ? testSale : undefined;
+  return <div className="page"><div className="page-header"><div><p className="eyebrow">New sale</p><h1>Record verified sale details.</h1><p className="subtle">Required fields are marked. Optional gaps will not prevent confirmation.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><SaleForm initialValues={initialValues}/></div>;
 }
