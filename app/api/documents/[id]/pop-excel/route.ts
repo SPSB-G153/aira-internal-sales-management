@@ -19,7 +19,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
     const content = document.content;
     const price = number(content.purchase_price);
+    const discount = number(content.discount_amount);
     const rebate = number(content.rebate_amount);
+    const otherIncentives = number(content.other_incentives);
     const area = number(content.floor_area);
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(path.join(process.cwd(), "public", "templates", "pop-format.xlsx"));
@@ -34,12 +36,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     sheet.getCell("G15").value = text(content, "unit_type");
     sheet.getCell("G17").value = area || null;
     sheet.getCell("H19").value = price;
-    sheet.getCell("H20").value = 0;
+    sheet.getCell("H20").value = discount;
     sheet.getCell("H21").value = { formula: "H19-H20" };
     sheet.getCell("H24").value = rebate;
     sheet.getCell("H26").value = { formula: "H21-H24" };
     sheet.getCell("H28").value = { formula: "H26" };
-    sheet.getCell("H30").value = 0;
+    sheet.getCell("H30").value = otherIncentives;
     sheet.getCell("H31").value = { formula: "H20+H24+H30" };
     for (const cell of ["H19", "H20", "H21", "H24", "H26", "H28", "H30", "H31"]) sheet.getCell(cell).numFmt = '#,##0.00';
     sheet.pageSetup.paperSize = 9;
