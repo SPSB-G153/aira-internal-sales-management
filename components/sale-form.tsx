@@ -512,6 +512,21 @@ export function SaleForm({ sale, initialValues }: Props) {
         </div>
       </section>
       <section className="form-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">POP approval notes</p>
+            <h2>Notes / remarks for POP</h2>
+          </div>
+          <span className="template-step">Shown in POP approval boxes</span>
+        </div>
+        <div className="form-grid">
+          <div className="field full"><label htmlFor="pop_proposal_note">1. SBDM/BDM&apos;s Proposal - note / remark</label><textarea id="pop_proposal_note" name="pop_proposal_note" rows={4} defaultValue={v("pop_proposal_note")}/></div>
+          <div className="field full"><label htmlFor="pop_recommendation_note">2. Recommendation - note / remark</label><textarea id="pop_recommendation_note" name="pop_recommendation_note" rows={4} defaultValue={v("pop_recommendation_note")}/></div>
+          <div className="field full"><label htmlFor="pop_feasibility_note">3. Feasibility Check - note / remark</label><textarea id="pop_feasibility_note" name="pop_feasibility_note" rows={3} defaultValue={v("pop_feasibility_note")}/></div>
+          <div className="field full"><label htmlFor="pop_comments_note">4. Comments/Approval - note / remark</label><textarea id="pop_comments_note" name="pop_comments_note" rows={4} defaultValue={v("pop_comments_note")}/></div>
+        </div>
+      </section>
+      <section className="form-section">
         <h2>Offer and deposit</h2>
         <div className="form-grid">
           <div className="field">

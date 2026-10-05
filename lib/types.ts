@@ -31,6 +31,7 @@ export interface Sale {
   rebate_amount:number|null; rebate_percentage:number|null; quoted_id_net_selling_price:number|null; salesperson_name:string|null; sale_date:string|null;
   agent_company:string|null; proprietor_name:string|null; solicitor_name:string|null;
   authorised_signatory_name:string|null; authorised_signatory_position:string|null;
+  pop_proposal_note:string|null; pop_recommendation_note:string|null; pop_feasibility_note:string|null; pop_comments_note:string|null;
   status:SaleStatus; created_at:string;
 }
 export interface SaleDocument { id:string; team_id:string; user_id:string|null; sale_id:string; document_type:DocumentType; content:Record<string,unknown>; status:DocumentStatus; generated_at:string|null; created_at:string; }

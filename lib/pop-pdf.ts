@@ -14,6 +14,10 @@ export type PopValues = {
   rebate: number;
   quotedIdNetSellingPrice: number | null;
   otherIncentives: number;
+  proposalNote: string;
+  recommendationNote: string;
+  feasibilityNote: string;
+  commentsNote: string;
 };
 
 const money = (value: number) => new Intl.NumberFormat("en-MY", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
@@ -35,6 +39,17 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
 
   const clear = (x: number, top: number, width: number, height: number) => page.drawRectangle({ x: x / 2, y: y(top + height), width: width / 2, height: height / 2, color: white });
   const write = (value: string, x: number, top: number, size = 8, weight = false) => page.drawText(fit(value), { x: x / 2, y: y(top), size, font: weight ? bold : font, color: ink });
+  const writeNote = (value: string, x: number, top: number, maxChars = 58) => {
+    const words = value.trim().split(/\s+/).filter(Boolean);
+    const lines: string[] = [];
+    let line = "";
+    for (const word of words) {
+      const next = line ? `${line} ${word}` : word;
+      if (next.length > maxChars && line) { lines.push(line); line = word; } else line = next;
+    }
+    if (line) lines.push(line);
+    lines.slice(0, 7).forEach((lineText, index) => write(lineText, x, top + index * 15, 6.5));
+  };
   const rule = (x1: number, x2: number, top: number) => page.drawLine({ start: { x: x1 / 2, y: y(top) }, end: { x: x2 / 2, y: y(top) }, thickness: 0.45, color: ink });
   const box = (x: number, top: number, width: number, height: number) => page.drawRectangle({ x: x / 2, y: y(top + height), width: width / 2, height: height / 2, borderColor: ink, borderWidth: 0.6 });
 
@@ -100,6 +115,10 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("N/A", 165, 1314, 6, true);
   write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6); write(values.saleDate || "", 400, 1494, 6);
   write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6); write(values.saleDate || "", 400, 1644, 6);
+  writeNote(values.proposalNote, 510, 1010);
+  writeNote(values.recommendationNote, 510, 1175);
+  writeNote(values.feasibilityNote, 510, 1345, 24);
+  writeNote(values.commentsNote, 510, 1520);
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
 
   pdf.setTitle("Prospect Offer Proposal Form");
