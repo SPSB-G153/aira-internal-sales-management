@@ -98,10 +98,12 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     if (!text) return;
     appendixWrite(text, x, top, size);
   };
-  // All appended values use the same 8pt face and the baseline used by the
-  // purchaser rows, keeping the form visually consistent from A through D.
-  appendixCell(value(content, "unit_number"), 194, 101, 310); appendixCell(value(content, "storey_number"), 194, 125, 310); appendixCell(value(content, "unit_type"), 194, 149, 310);
-  appendixCell(value(content, "floor_area_sqm"), 230, 174, 65); appendixCell(value(content, "floor_area"), 375, 174, 65); appendixCell(money(price), 215, 199, 290); appendixCell(value(content, "car_parking_bay"), 194, 223, 310);
+  // The Property Details grid is four points taller above its visual centre
+  // than the purchaser grid. Offset its baselines so every Appendix value is
+  // vertically centred in its printed row.
+  const propertyRowOffset = 4;
+  appendixCell(value(content, "unit_number"), 194, 101 + propertyRowOffset, 310); appendixCell(value(content, "storey_number"), 194, 125 + propertyRowOffset, 310); appendixCell(value(content, "unit_type"), 194, 149 + propertyRowOffset, 310);
+  appendixCell(value(content, "floor_area_sqm"), 230, 174 + propertyRowOffset, 65); appendixCell(value(content, "floor_area"), 375, 174 + propertyRowOffset, 65); appendixCell(money(price), 215, 199 + propertyRowOffset, 290); appendixCell(value(content, "car_parking_bay"), 194, 223 + propertyRowOffset, 310);
   const purchasers = [
     { name: purchaser1, salutation: value(content, "customer_salutation"), tin: value(content, "customer_tin"), nationality: value(content, "customer_nationality"), sex: value(content, "customer_sex"), race: value(content, "customer_race"), ic: value(content, "customer_ic"), bumi: value(content, "bumi_status") === "true" ? "Yes" : value(content, "bumi_status") === "false" ? "No" : "", occupation: value(content, "customer_occupation"), contact: value(content, "contact_person"), phone: value(content, "customer_phone"), email: value(content, "customer_email"), address: value(content, "customer_address") },
     { name: purchaser2, salutation: value(content, "customer_salutation_2"), tin: value(content, "customer_tin_2"), nationality: value(content, "customer_nationality_2"), sex: value(content, "customer_sex_2"), race: value(content, "customer_race_2"), ic: value(content, "customer_ic_2"), bumi: value(content, "bumi_status_2") === "true" ? "Yes" : value(content, "bumi_status_2") === "false" ? "No" : "", occupation: value(content, "customer_occupation_2"), contact: value(content, "contact_person_2"), phone: value(content, "customer_phone_2"), email: value(content, "customer_email_2"), address: value(content, "customer_address_2") },
@@ -110,6 +112,6 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   // The supplied form has one singular Correspondence Address section. It
   // therefore uses the primary purchaser's saved address and never writes a
   // second address past the bottom border of the Appendix.
-  lines(value(content, "customer_address")).forEach((line, lineIndex) => appendixCell(line, 75, 690 + lineIndex * 22, 430));
+  lines(value(content, "customer_address")).forEach((line, lineIndex) => appendixCell(line, 75, 692 + lineIndex * 22, 430));
   return pdf.save();
 }
