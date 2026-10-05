@@ -66,6 +66,8 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   const listPsf = values.size ? values.listPrice / values.size : 0;
   const spaPsf = values.size ? spaPrice / values.size : 0;
   const netPsf = values.size ? netPrice / values.size : 0;
+  const discountPercentage = values.listPrice > 0 ? (values.discount / values.listPrice) * 100 : 0;
+  const rebatePercentage = values.listPrice > 0 ? (values.rebate / values.listPrice) * 100 : 0;
 
   // Entry cells in the approved layout.
   // Keep the approved template's box borders and shaded Purchaser / Unit cells.
@@ -107,8 +109,10 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
   write(listPsf ? `(RM${money(listPsf)} psf)` : "", 706, 646, 7);
   write("'A'", 706, 677, 7);
+  write(`${discountPercentage.toFixed(2)}%`, 835, 677, 6);
   write(spaPsf ? `(RM${money(spaPsf)} psf)` : "", 706, 710, 7);
   write("'B'", 706, 797, 7);
+  write(`${rebatePercentage.toFixed(1)}%`, 835, 797, 6);
   write(netPsf ? `(RM${money(netPsf)} psf)` : "", 706, 845, 7);
   // Redraw the A+B bracket instead of retaining the incomplete scanned mark.
   // Its top and bottom caps deliberately use the same length and weight.
