@@ -7,7 +7,7 @@ export async function getSales(search="",status="") {
   const {team}=await getTeamContext();
   let query=db.from("sales").select("*").eq("team_id",team.id).order("status",{ascending:false}).order("sale_date",{ascending:false,nullsFirst:false}).order("created_at",{ascending:false});
   if(status) query=query.eq("status",status);
-  if(search) query=query.or(`customer_name.ilike.%${search.replaceAll(",","")}%,project_name.ilike.%${search.replaceAll(",","")}%,sale_reference.ilike.%${search.replaceAll(",","")}%`);
+  if(search) query=query.or(`customer_name.ilike.%${search.replaceAll(",","")}%,project_name.ilike.%${search.replaceAll(",","")}%,sale_reference.ilike.%${search.replaceAll(",","")}%,unit_number.ilike.%${search.replaceAll(",","")}%`);
   const {data,error}=await query;
   if(error) throw new Error(error.message);
   return (data??[]) as Sale[];
