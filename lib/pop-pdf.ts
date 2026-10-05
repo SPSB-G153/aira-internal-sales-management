@@ -66,7 +66,6 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   const listPsf = values.size ? values.listPrice / values.size : 0;
   const spaPsf = values.size ? spaPrice / values.size : 0;
   const netPsf = values.size ? netPrice / values.size : 0;
-  const incentivePercentage = values.listPrice > 0 ? (totalIncentives / values.listPrice) * 100 : 0;
 
   // Entry cells in the approved layout.
   // Keep the approved template's box borders and shaded Purchaser / Unit cells.
@@ -103,10 +102,6 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(spaPsf ? `(RM${money(spaPsf)} psf)` : "", 706, 710, 7);
   write("'B'", 706, 797, 7);
   write(netPsf ? `(RM${money(netPsf)} psf)` : "", 706, 845, 7);
-  // The scanned reference contains a fixed 0.00% beside the A+B bracket.
-  // Replace it with the current form's calculated incentive percentage.
-  clear(930, 650, 130, 150);
-  write(`${incentivePercentage.toFixed(2)}%`, 920, 750, 7, true);
 
   // The reference is an approved copy containing another purchaser's
   // signatures and notes. A new POP must start with these approval sections blank.
