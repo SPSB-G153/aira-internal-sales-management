@@ -88,12 +88,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
 
   // Amounts: List - Discount = SPA; SPA - Rebate = proposed net; all
   // incentives are calculated from the three entered incentive values.
-  [[540, 612], [540, 647], [540, 680], [540, 767], [540, 812], [540, 860], [540, 906]].forEach(([x, top]) => clear(x, top, 138, 44));
-  // Clear the old scanned line fragments before adding the live values, so a
-  // cleanup mask can never clip the text on the next row.
-  clear(490, 682, 190, 18);
-  clear(490, 806, 190, 18);
-  clear(490, 900, 190, 28);
+  // Clear only the prior sample digits. The printed rules and bracket remain
+  // part of the approved form artwork and must keep their exact positions.
+  [[540, 628], [540, 660], [540, 692], [540, 780], [540, 828], [540, 875], [540, 922]].forEach(([x, top]) => clear(x, top, 138, 20));
   write(money(values.listPrice), 565, 646, 8);
   write(money(values.discount), 565, 678, 8);
   write(money(spaPrice), 565, 710, 8);
@@ -101,17 +98,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(money(netPrice), 565, 845, 8, true);
   write(money(values.otherIncentives), 565, 891, 8);
   write(money(totalIncentives), 565, 936, 8, true);
-  // Use live text for the repeated currency labels as well. This avoids any
-  // clipped glyphs left by the scanned value-line cleanup.
-  [646, 678, 710, 797, 845, 891, 936].forEach((top) => write("RM", 500, top, 8));
-  // Draw one clean amount rule at the original printed baseline for each
-  // editable row.
-  rule(490, 676, 685);
-  rule(490, 676, 815);
-  rule(490, 676, 920);
   // Clear the old purchaser's psf and percentage annotations from the scanned
   // approved copy, then derive them from the current app values.
-  clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
+  clear(702, 620, 120, 38); clear(702, 652, 120, 40); clear(702, 682, 120, 38); clear(702, 765, 120, 52); clear(702, 820, 120, 40);
   write(listPsf ? `(RM${money(listPsf)} psf)` : "", 706, 646, 7);
   write("'A'", 706, 677, 7);
   write(`${discountPercentage.toFixed(2)}%`, 835, 677, 6);
@@ -119,19 +108,6 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("'B'", 706, 797, 7);
   write(`${rebatePercentage.toFixed(1)}%`, 835, 797, 6);
   write(netPsf ? `(RM${money(netPsf)} psf)` : "", 706, 845, 7);
-  // Redraw the A+B bracket instead of retaining the incomplete scanned mark.
-  // Its top and bottom caps deliberately use the same length and weight.
-  clear(880, 620, 70, 230);
-  const bracketX = 452;
-  const bracketCapStart = 445;
-  const bracketTop = 650;
-  const bracketMid = 732;
-  const bracketBottom = 812;
-  const bracketWeight = 0.75;
-  page.drawLine({ start: { x: bracketX, y: y(bracketTop) }, end: { x: bracketX, y: y(bracketBottom) }, thickness: bracketWeight, color: ink });
-  page.drawLine({ start: { x: bracketCapStart, y: y(bracketTop) }, end: { x: bracketX, y: y(bracketTop) }, thickness: bracketWeight, color: ink });
-  page.drawLine({ start: { x: bracketX, y: y(bracketMid) }, end: { x: 460, y: y(bracketMid) }, thickness: bracketWeight, color: ink });
-  page.drawLine({ start: { x: bracketCapStart, y: y(bracketBottom) }, end: { x: bracketX, y: y(bracketBottom) }, thickness: bracketWeight, color: ink });
 
   // The reference is an approved copy containing another purchaser's
   // signatures and notes. A new POP must start with these approval sections blank.
@@ -171,15 +147,6 @@ page.drawLine({ start: { x: 50, y: y(1060) }, end: { x: 50, y: y(1180) }, thickn
   page.drawLine({ start: { x: 560, y: y(1608) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1608) }, end: { x: 50, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
-
-  // Keep every live amount above the scanned template and all cleanup masks.
-  write(money(values.listPrice), 565, 646, 8);
-  write(money(values.discount), 565, 678, 8);
-  write(money(spaPrice), 565, 710, 8);
-  write(money(values.rebate), 565, 797, 8);
-  write(money(netPrice), 565, 845, 8, true);
-  write(money(values.otherIncentives), 565, 891, 8);
-  write(money(totalIncentives), 565, 936, 8, true);
 
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
