@@ -110,37 +110,36 @@ const solicitorByUnit: Record<string, string> = {
   "B-01-01": "Zaid Ibrahim & Co",
 };
 const solicitorForUnit = (unit: string) => solicitorByUnit[unit.trim().toUpperCase()] ?? "";
-const detailsByUnit: Record<string, { floorArea: number; unitType: string }> = {
-  "A-01-03": { floorArea: 5943, unitType: "A2b" },
-  "A-01-3A": { floorArea: 5943, unitType: "A2b" },
-  "A-02-03": { floorArea: 5351, unitType: "A2" },
-  "A-02-05": { floorArea: 4489, unitType: "B" },
-  "A-02-3A": { floorArea: 5351, unitType: "A2" },
-  "A-03-01": { floorArea: 5253, unitType: "A1" },
-  "A-03-03": { floorArea: 5351, unitType: "A2" },
-  "A-03-05": { floorArea: 4489, unitType: "B" },
-  "A-03-3A": { floorArea: 5351, unitType: "A2" },
-  "A-05-03": { floorArea: 5351, unitType: "A2" },
-  "A-07-05": { floorArea: 4489, unitType: "B" },
-  "A-15-03": { floorArea: 5351, unitType: "A2" },
-  "A-G-01": { floorArea: 7201, unitType: "D" },
-  "A-G-02": { floorArea: 5856, unitType: "E" },
-  "A-G-03": { floorArea: 6383, unitType: "F" },
-  "B-01-01": { floorArea: 1894, unitType: "G2" },
-  "B-01-02": { floorArea: 1894, unitType: "H2" },
-  "B-01-03": { floorArea: 1894, unitType: "G1" },
-  "B-01-04": { floorArea: 1894, unitType: "H1" },
-  "B-02-02": { floorArea: 1894, unitType: "H2" },
-  "B-02-04": { floorArea: 1894, unitType: "H1" },
-  "B-03-04": { floorArea: 1894, unitType: "H1" },
-  "B-05-04": { floorArea: 1894, unitType: "H1" },
-  "B-06-03": { floorArea: 1894, unitType: "G1" },
-  "B-08-01": { floorArea: 1894, unitType: "G2" },
-  "B-13-04": { floorArea: 1894, unitType: "H1" },
-  "B-13A-03": { floorArea: 1894, unitType: "G1" },
-  "B-15-01": { floorArea: 1894, unitType: "G2" },
-  "B-3A-03": { floorArea: 1894, unitType: "G1" },
-  "B-3A-04": { floorArea: 1894, unitType: "H1" },
+const detailsByUnit: Record<string, { floorArea: number; unitType: string; parkingBay?: string }> = {
+  "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 36, 37, 38" },
+  "A-01-3A": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 33, 34, 35" },
+  "A-02-03": { floorArea: 5351, unitType: "A2", parkingBay: "LG3 16, 17, 18" },
+  "A-02-05": { floorArea: 4489, unitType: "B", parkingBay: "LG3 75, 76, 77" },
+  "A-02-3A": { floorArea: 5351, unitType: "A2", parkingBay: "LG3 57, 58, 59" },
+  "A-03-01": { floorArea: 5253, unitType: "A1", parkingBay: "LG3 72, 73, 74" },
+  "A-03-03": { floorArea: 5351, unitType: "A2", parkingBay: "LG3 102, 103, 104" },
+  "A-03-05": { floorArea: 4489, unitType: "B", parkingBay: "LG3 39, 40, 41" },
+  "A-03-3A": { floorArea: 5351, unitType: "A2", parkingBay: "LG3 4, 5, 6" },
+  "A-05-03": { floorArea: 5351, unitType: "A2", parkingBay: "LG3 69, 70, 71" },
+  "A-07-05": { floorArea: 4489, unitType: "B", parkingBay: "LG2 25, 26, 27" },
+  "A-15-03": { floorArea: 5351, unitType: "A2", parkingBay: "LG1 54, 55, 56" },
+  "A-G-01": { floorArea: 7201, unitType: "D", parkingBay: "LG2 106, 107, 108" },
+  "A-G-02": { floorArea: 5856, unitType: "E", parkingBay: "LG1 1, 2, 3" },
+  "A-G-03": { floorArea: 6383, unitType: "F", parkingBay: "LG1 89, 90, 91" },
+  "B-01-01": { floorArea: 1894, unitType: "G2", parkingBay: "LG4 80, 81" },
+  "B-01-02": { floorArea: 1894, unitType: "H2", parkingBay: "LG4 3, 4" },
+  "B-01-03": { floorArea: 1894, unitType: "G1", parkingBay: "LG4 82, 83" },
+  "B-01-04": { floorArea: 1894, unitType: "H1", parkingBay: "LG4 1, 2" },
+  "B-02-02": { floorArea: 1894, unitType: "H2", parkingBay: "LG4 76, 77" },
+  "B-02-04": { floorArea: 1894, unitType: "H1", parkingBay: "LG4 5, 6" },
+  "B-03-04": { floorArea: 1894, unitType: "H1", parkingBay: "LG4 9, 10" },
+  "B-05-04": { floorArea: 1894, unitType: "H1", parkingBay: "LG4 68, 69" },
+  "B-06-03": { floorArea: 1894, unitType: "G1", parkingBay: "LG4 13, 14" },
+  "B-08-01": { floorArea: 1894, unitType: "G2", parkingBay: "LG4 40, 41" },
+  "B-13A-03": { floorArea: 1894, unitType: "G1", parkingBay: "LG2 114, 115" },
+  "B-15-01": { floorArea: 1894, unitType: "G2", parkingBay: "LG2 84, 85, 86" },
+  "B-3A-03": { floorArea: 1894, unitType: "G1", parkingBay: "LG4 74, 75" },
+  "B-3A-04": { floorArea: 1894, unitType: "H1", parkingBay: "LG4 72, 73" },
 };
 const detailsForUnit = (unit: string) => detailsByUnit[unit.trim().toUpperCase()];
 const keepSecondPurchaser = (form: HTMLFormElement) =>
@@ -186,6 +185,7 @@ export function SaleForm({ sale, initialValues }: Props) {
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
   const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? ""));
+  const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
   const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? initialValues?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
@@ -211,6 +211,7 @@ export function SaleForm({ sale, initialValues }: Props) {
     const details = detailsForUnit(unit);
     if (!details) return;
     setUnitType(details.unitType);
+    if (details.parkingBay) setParkingBay(details.parkingBay);
     changeFt(String(details.floorArea));
   };
   return (
@@ -503,11 +504,10 @@ export function SaleForm({ sale, initialValues }: Props) {
             />
             <p className="subtle">Automatically converted.</p>
           </div>
-          <Field
-            name="car_parking_bay"
-            label="Car parking bay"
-            defaultValue={v("car_parking_bay")}
-          />
+          <div className="field">
+            <label htmlFor="car_parking_bay">Car parking bay</label>
+            <input id="car_parking_bay" name="car_parking_bay" value={parkingBay} onChange={(event) => setParkingBay(event.target.value)} />
+          </div>
         </div>
       </section>
       <section className="form-section">
