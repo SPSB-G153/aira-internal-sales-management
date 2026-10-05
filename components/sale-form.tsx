@@ -2,7 +2,7 @@
 import { useActionState, useState } from "react";
 import { saveSale, type FormState } from "@/lib/actions/sales";
 import type { Sale } from "@/lib/types";
-type Props = { sale?: Sale };
+type Props = { sale?: Sale; initialValues?: Partial<Sale> };
 const Field = ({
   name,
   label,
@@ -176,24 +176,24 @@ const keepSecondPurchaser = (form: HTMLFormElement) =>
     form.appendChild(hidden);
   });
 
-export function SaleForm({ sale }: Props) {
+export function SaleForm({ sale, initialValues }: Props) {
   const [state, action, pending] = useActionState<FormState, FormData>(
     saveSale,
     {},
   );
-  const v = (key: keyof Sale) => state.fields?.[key] ?? sale?.[key] ?? "";
-  const [price, setPrice] = useState(String(sale?.purchase_price ?? ""));
-  const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? ""));
-  const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? ""));
-  const [unitType, setUnitType] = useState(String(sale?.unit_type ?? state.fields?.unit_type ?? ""));
-  const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
+  const v = (key: keyof Sale) => state.fields?.[key] ?? sale?.[key] ?? initialValues?.[key] ?? "";
+  const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
+  const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
+  const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
+  const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? ""));
+  const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? initialValues?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
-    Boolean(sale?.customer_name_2 || state.fields?.customer_name_2),
+    Boolean(sale?.customer_name_2 || initialValues?.customer_name_2 || state.fields?.customer_name_2),
   );
   const [secondRelationship, setSecondRelationship] = useState<"spouse" | "joint">("joint");
   const [purchaserType, setPurchaserType] = useState<"individual" | "company">(
-    sale?.purchaser_type === "company" || state.fields?.purchaser_type === "company"
+    sale?.purchaser_type === "company" || initialValues?.purchaser_type === "company" || state.fields?.purchaser_type === "company"
       ? "company"
       : "individual",
   );
