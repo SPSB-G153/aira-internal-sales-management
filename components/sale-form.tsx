@@ -110,6 +110,39 @@ const solicitorByUnit: Record<string, string> = {
   "B-01-01": "Zaid Ibrahim & Co",
 };
 const solicitorForUnit = (unit: string) => solicitorByUnit[unit.trim().toUpperCase()] ?? "";
+const detailsByUnit: Record<string, { floorArea: number; unitType: string }> = {
+  "A-01-03": { floorArea: 5943, unitType: "A2b" },
+  "A-01-3A": { floorArea: 5943, unitType: "A2b" },
+  "A-02-03": { floorArea: 5351, unitType: "A2" },
+  "A-02-05": { floorArea: 4489, unitType: "B" },
+  "A-02-3A": { floorArea: 5351, unitType: "A2" },
+  "A-03-01": { floorArea: 5253, unitType: "A1" },
+  "A-03-03": { floorArea: 5351, unitType: "A2" },
+  "A-03-05": { floorArea: 4489, unitType: "B" },
+  "A-03-3A": { floorArea: 5351, unitType: "A2" },
+  "A-05-03": { floorArea: 5351, unitType: "A2" },
+  "A-07-05": { floorArea: 4489, unitType: "B" },
+  "A-15-03": { floorArea: 5351, unitType: "A2" },
+  "A-G-01": { floorArea: 7201, unitType: "D" },
+  "A-G-02": { floorArea: 5856, unitType: "E" },
+  "A-G-03": { floorArea: 6383, unitType: "F" },
+  "B-01-01": { floorArea: 1894, unitType: "G2" },
+  "B-01-02": { floorArea: 1894, unitType: "H2" },
+  "B-01-03": { floorArea: 1894, unitType: "G1" },
+  "B-01-04": { floorArea: 1894, unitType: "H1" },
+  "B-02-02": { floorArea: 1894, unitType: "H2" },
+  "B-02-04": { floorArea: 1894, unitType: "H1" },
+  "B-03-04": { floorArea: 1894, unitType: "H1" },
+  "B-05-04": { floorArea: 1894, unitType: "H1" },
+  "B-06-03": { floorArea: 1894, unitType: "G1" },
+  "B-08-01": { floorArea: 1894, unitType: "G2" },
+  "B-13-04": { floorArea: 1894, unitType: "H1" },
+  "B-13A-03": { floorArea: 1894, unitType: "G1" },
+  "B-15-01": { floorArea: 1894, unitType: "G2" },
+  "B-3A-03": { floorArea: 1894, unitType: "G1" },
+  "B-3A-04": { floorArea: 1894, unitType: "H1" },
+};
+const detailsForUnit = (unit: string) => detailsByUnit[unit.trim().toUpperCase()];
 const keepSecondPurchaser = (form: HTMLFormElement) =>
   [
     "customer_salutation_2",
@@ -152,6 +185,7 @@ export function SaleForm({ sale }: Props) {
   const [price, setPrice] = useState(String(sale?.purchase_price ?? ""));
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? ""));
+  const [unitType, setUnitType] = useState(String(sale?.unit_type ?? state.fields?.unit_type ?? ""));
   const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
@@ -171,6 +205,13 @@ export function SaleForm({ sale }: Props) {
   const changeM = (x: string) => {
     setAreaM(x);
     setAreaFt(x === "" ? "" : (Number(x) * 10.7639).toFixed(2));
+  };
+  const applyUnitDetails = (unit: string) => {
+    setSolicitorName(solicitorForUnit(unit));
+    const details = detailsForUnit(unit);
+    if (!details) return;
+    setUnitType(details.unitType);
+    changeFt(String(details.floorArea));
   };
   return (
     <form action={action} className="card form-card">
@@ -429,20 +470,19 @@ export function SaleForm({ sale }: Props) {
               id="unit_number"
               name="unit_number"
               defaultValue={v("unit_number")}
-              onChange={(event) => setSolicitorName(solicitorForUnit(event.target.value))}
+              onChange={(event) => applyUnitDetails(event.target.value)}
             />
-            <p className="subtle">The handling lawyer is filled automatically for listed units.</p>
+            <p className="subtle">The handling lawyer, unit type and area are filled automatically for listed units.</p>
           </div>
           <Field
             name="storey_number"
             label="Storey number"
             defaultValue={v("storey_number")}
           />
-          <Field
-            name="unit_type"
-            label="Unit type"
-            defaultValue={v("unit_type")}
-          />
+          <div className="field">
+            <label htmlFor="unit_type">Unit type</label>
+            <input id="unit_type" name="unit_type" value={unitType} onChange={(event) => setUnitType(event.target.value)} />
+          </div>
           <div className="field">
             <label>Area (sq ft)</label>
             <input
