@@ -96,9 +96,13 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
         paymentPage.drawLine({ start: { x: x + 3.5, y: paymentPage.getHeight() - 412.5 }, end: { x: x + 7, y: paymentPage.getHeight() - 407.5 }, thickness: 1, color: ink });
       }
     };
-    tick(150, paymentMethod === "cheque"); write(1, "Cheque", 162, 408, 8);
-    tick(215, paymentMethod === "bank_transfer"); write(1, "Bank transfer", 227, 408, 8);
-    if (paymentReference) write(1, `Ref: ${paymentReference}`, 315, 408, 8);
+    const paymentLabel = paymentMethod === "bank_transfer" ? "Bank transfer" : "Cheque no.";
+    tick(150, true); write(1, paymentLabel, 162, 408, 8);
+    const lineStart = paymentMethod === "bank_transfer" ? 220 : 208;
+    const dotSize = 6;
+    const dotCount = Math.floor((390 - lineStart) / font.widthOfTextAtSize(".", dotSize));
+    paymentPage.drawText(".".repeat(dotCount), { x: lineStart, y: paymentPage.getHeight() - 416, size: dotSize, font, color: ink });
+    if (paymentReference) write(1, paymentReference, lineStart + 4, 408, 8);
   }
 
   // Page 3 signature slots remain deliberately blank for signing.
