@@ -172,6 +172,15 @@ page.drawLine({ start: { x: 50, y: y(1060) }, end: { x: 50, y: y(1180) }, thickn
   page.drawLine({ start: { x: 50, y: y(1608) }, end: { x: 50, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 560, y: y(1680) }, thickness: 1.2, color: formGold });
 
+  // Keep every live amount above the scanned template and all cleanup masks.
+  write(money(values.listPrice), 565, 646, 8);
+  write(money(values.discount), 565, 678, 8);
+  write(money(spaPrice), 565, 710, 8);
+  write(money(values.rebate), 565, 797, 8);
+  write(money(netPrice), 565, 845, 8, true);
+  write(money(values.otherIncentives), 565, 891, 8);
+  write(money(totalIncentives), 565, 936, 8, true);
+
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
 }
