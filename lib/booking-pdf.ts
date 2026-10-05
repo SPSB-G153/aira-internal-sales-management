@@ -81,7 +81,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(1, amountInWords(earnest), 88, 386, 9); fillLine(1, money(earnest), 315, 386, 9);
   // The Balance Deposit number belongs in the (RM …) blank immediately below
   // the amount in words. Keeping it on that line avoids the clause heading.
-  fillLine(1, amountInWords(balance), 308, 477, 9); fillLine(1, money(balance), 114, 489, 9);
+  fillLine(1, amountInWords(balance), 335, 477, 9); fillLine(1, money(balance), 114, 489, 9);
   const paymentMethod = value(content, "payment_method");
   const paymentReference = value(content, "payment_reference");
   if (paymentReference) {
