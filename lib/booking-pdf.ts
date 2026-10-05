@@ -116,18 +116,23 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     const firstTop = top - ((renderedLines.length - 1) * lineHeight) / 2;
     renderedLines.forEach((line, index) => appendixWrite(line, x, firstTop + index * lineHeight, size));
   };
-  // All appended values use the same 8pt face and the baseline used by the
-  // purchaser rows, keeping the form visually consistent from A through D.
-  appendixCell(value(content, "unit_number"), 194, 101, 310); appendixCell(value(content, "storey_number"), 194, 125, 310); appendixCell(value(content, "unit_type"), 194, 149, 310);
-  appendixCell(value(content, "floor_area_sqm"), 230, 174, 65); appendixCell(value(content, "floor_area"), 375, 174, 65); appendixCell(money(price), 215, 199, 290); appendixCell(value(content, "car_parking_bay"), 194, 223, 310);
+  // These offsets use the centred Part C row as the visual reference.  Each
+  // section's printed grid has a slightly different row height, so a single
+  // raw coordinate would leave some values visibly high in their cell.
+  const propertyOffset = 4;
+  const purchaserOffset = -2;
+  const registrationOffset = 1;
+  const correspondenceOffset = 3;
+  appendixCell(value(content, "unit_number"), 194, 101 + propertyOffset, 310); appendixCell(value(content, "storey_number"), 194, 125 + propertyOffset, 310); appendixCell(value(content, "unit_type"), 194, 149 + propertyOffset, 310);
+  appendixCell(value(content, "floor_area_sqm"), 230, 174 + propertyOffset, 65); appendixCell(value(content, "floor_area"), 375, 174 + propertyOffset, 65); appendixCell(money(price), 215, 199 + propertyOffset, 290); appendixCell(value(content, "car_parking_bay"), 194, 223 + propertyOffset, 310);
   const purchasers = [
     { name: purchaser1, salutation: value(content, "customer_salutation"), tin: value(content, "customer_tin"), nationality: value(content, "customer_nationality"), sex: value(content, "customer_sex"), race: value(content, "customer_race"), ic: value(content, "customer_ic"), bumi: value(content, "bumi_status") === "true" ? "Yes" : value(content, "bumi_status") === "false" ? "No" : "", occupation: value(content, "customer_occupation"), contact: value(content, "contact_person"), phone: value(content, "customer_phone"), email: value(content, "customer_email"), address: value(content, "customer_address") },
     { name: purchaser2, salutation: value(content, "customer_salutation_2"), tin: value(content, "customer_tin_2"), nationality: value(content, "customer_nationality_2"), sex: value(content, "customer_sex_2"), race: value(content, "customer_race_2"), ic: value(content, "customer_ic_2"), bumi: value(content, "bumi_status_2") === "true" ? "Yes" : value(content, "bumi_status_2") === "false" ? "No" : "", occupation: value(content, "customer_occupation_2"), contact: value(content, "contact_person_2"), phone: value(content, "customer_phone_2"), email: value(content, "customer_email_2"), address: value(content, "customer_address_2") },
   ];
-  purchasers.forEach((p, index) => { const top = 340 + index * 23; appendixCell(p.name, 72, top, 102, appendixTextSize, 2); appendixCell(p.salutation, 183, top, 78); appendixCell(p.tin, 272, top, 82); appendixCell(p.nationality, 365, top, 66); appendixCell(p.sex, 440, top, 45); appendixCell(p.race, 495, top, 35); appendixCell(p.ic, 72, 478 + index * 23, 160); appendixCell(p.bumi, 250, 478 + index * 23, 135); appendixCell(p.occupation, 405, 478 + index * 23, 125); appendixCell(p.contact, 75, 609 + index * 23, 155); appendixCell(p.phone, 250, 609 + index * 23, 125); appendixCell(p.email, 395, 609 + index * 23, 125); });
+  purchasers.forEach((p, index) => { const purchaserTop = 340 + purchaserOffset + index * 23; const registrationTop = 478 + registrationOffset + index * 23; const contactTop = 609 + index * 23; appendixCell(p.name, 72, purchaserTop, 102, appendixTextSize, 2); appendixCell(p.salutation, 183, purchaserTop, 78); appendixCell(p.tin, 272, purchaserTop, 82); appendixCell(p.nationality, 365, purchaserTop, 66); appendixCell(p.sex, 440, purchaserTop, 45); appendixCell(p.race, 495, purchaserTop, 35); appendixCell(p.ic, 72, registrationTop, 160); appendixCell(p.bumi, 250, registrationTop, 135); appendixCell(p.occupation, 405, registrationTop, 125); appendixCell(p.contact, 75, contactTop, 155); appendixCell(p.phone, 250, contactTop, 125); appendixCell(p.email, 395, contactTop, 125); });
   // The supplied form has one singular Correspondence Address section. It
   // therefore uses the primary purchaser's saved address and never writes a
   // second address past the bottom border of the Appendix.
-  lines(value(content, "customer_address")).forEach((line, lineIndex) => appendixCell(line, 75, 690 + lineIndex * 22, 430));
+  lines(value(content, "customer_address")).forEach((line, lineIndex) => appendixCell(line, 75, 690 + correspondenceOffset + lineIndex * 22, 430));
   return pdf.save();
 }
