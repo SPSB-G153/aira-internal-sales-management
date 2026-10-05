@@ -21,6 +21,12 @@ export async function createSale(values:Omit<Partial<Sale>,"id"|"created_at">) {
   if(error) throw new Error(error.message); return data as Sale;
 }
 export async function updateSale(id:string,values:Partial<Sale>) {
-  const db=await createClient(); const {team}=await getTeamContext(); const {team_id:_,...safeValues}=values; const {data,error}=await db.from("sales").update(safeValues).eq("team_id",team.id).eq("id",id).select("*").single();
+  const db=await createClient();
+  const {team}=await getTeamContext();
+  const {team_id:_,...safeValues}=values;
+  // Saving revised purchaser or unit details must not downgrade an already
+  // confirmed sale to draft, otherwise its Booking Form snapshot stays stale.
+  if(safeValues.status==="draft")delete safeValues.status;
+  const {data,error}=await db.from("sales").update(safeValues).eq("team_id",team.id).eq("id",id).select("*").single();
   if(error) throw new Error(error.message); return data as Sale;
 }
