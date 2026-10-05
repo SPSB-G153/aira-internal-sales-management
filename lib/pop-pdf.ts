@@ -48,8 +48,6 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   const listPsf = values.size ? values.listPrice / values.size : 0;
   const spaPsf = values.size ? spaPrice / values.size : 0;
   const netPsf = values.size ? netPrice / values.size : 0;
-  const discountPercent = values.listPrice ? values.discount / values.listPrice : 0;
-  const rebatePercent = values.listPrice ? values.rebate / values.listPrice : 0;
 
   // Entry cells in the approved layout.
   [[491, 237, 585, 36], [491, 295, 585, 36], [491, 356, 585, 36], [491, 420, 585, 40], [491, 477, 167, 30], [491, 524, 167, 30], [491, 569, 167, 30]].forEach(([x, top, width, height]) => clear(x, top, width, height));
@@ -81,9 +79,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // approved copy, then derive them from the current app values.
   clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
   write(listPsf ? `(RM${money(listPsf)} psf)` : "", 706, 646, 7);
-  write(`'A'                         ${(discountPercent * 100).toFixed(2)}%`, 706, 677, 7);
+  write("'A'", 706, 677, 7);
   write(spaPsf ? `(RM${money(spaPsf)} psf)` : "", 706, 710, 7);
-  write(`'B'                         ${(rebatePercent * 100).toFixed(2)}%`, 706, 797, 7);
+  write("'B'", 706, 797, 7);
   write(netPsf ? `(RM${money(netPsf)} psf)` : "", 706, 845, 7);
 
   // The reference is an approved copy containing another purchaser's
