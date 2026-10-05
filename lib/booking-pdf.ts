@@ -91,12 +91,12 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const appendixWrite = (text: string, x: number, top: number, size = 9) => write(4, text, x, top, size);
   // Keep every value inside its own printed cell.  In particular, purchaser
   // names and solicitor details must not spill into the neighbouring column.
-  const appendixTextSize = 8;
-  const appendixCell = (text: string, x: number, top: number, width: number, size = appendixTextSize) => {
+  // A fixed type size prevents one long field from looking smaller than the
+  // other values in the same table. This is the same treatment across A–D.
+  const appendixTextSize = 7;
+  const appendixCell = (text: string, x: number, top: number, _width: number, size = appendixTextSize) => {
     if (!text) return;
-    let fittedSize = size;
-    while (fittedSize > 6 && font.widthOfTextAtSize(text, fittedSize) > width) fittedSize -= 0.25;
-    appendixWrite(text, x, top, fittedSize);
+    appendixWrite(text, x, top, size);
   };
   // All appended values use the same 8pt face and the baseline used by the
   // purchaser rows, keeping the form visually consistent from A through D.
