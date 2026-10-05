@@ -104,6 +104,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   rule(490, 676, 685);
   rule(490, 676, 815);
   rule(490, 676, 920);
+  // The last cleanup strip touches the ascenders of the total. Paint the
+  // total again after the rule so the full value remains visible.
+  write(money(totalIncentives), 565, 936, 8, true);
   // Clear the old purchaser's psf and percentage annotations from the scanned
   // approved copy, then derive them from the current app values.
   clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
