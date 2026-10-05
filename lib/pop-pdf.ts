@@ -92,6 +92,8 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // part of the approved form artwork and must keep their exact positions.
   [[540, 628], [540, 660], [540, 692], [540, 780], [540, 828], [540, 875], [540, 922]].forEach(([x, top]) => clear(x, top, 138, 20));
   [[490, 628], [490, 660], [490, 692], [490, 780], [490, 828], [490, 875], [490, 922]].forEach(([x, top]) => clear(x, top, 42, 20));
+  clear(820, 660, 60, 30);
+  clear(820, 780, 60, 30);
   write(money(values.listPrice), 565, 646, 8);
   write(money(values.discount), 565, 678, 8);
   write(money(spaPrice), 565, 710, 8);
