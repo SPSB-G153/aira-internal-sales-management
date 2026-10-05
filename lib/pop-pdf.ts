@@ -112,12 +112,12 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("3. Feasibility Check:", 135, 1360, 7, true);
   write("4. Comments/Approval:", 135, 1515, 7, true);
   rule(135, 455, 1090); rule(135, 455, 1270); rule(135, 455, 1450); rule(135, 455, 1600);
-  write("SBDM/BDM Signature", 165, 1110, 6); write("Date", 400, 1110, 6);
-  write(values.salesperson || "N/A", 165, 1134, 6, true); write(compactDate(values.saleDate), 400, 1134, 6);
-  write("Head of Sales", 165, 1290, 6); write("Date", 400, 1290, 6);
-  write("N/A", 165, 1314, 6, true);
-  write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6); write(compactDate(values.saleDate), 400, 1494, 6);
-  write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6); write(compactDate(values.saleDate), 400, 1644, 6);
+  write("SBDM/BDM Signature", 135, 1110, 6); write("Date", 400, 1110, 6);
+  write(values.salesperson || "N/A", 135, 1134, 6, true); write(compactDate(values.saleDate), 400, 1134, 6);
+  write("Head of Sales", 135, 1290, 6); write("Date", 400, 1290, 6);
+  write("N/A", 135, 1314, 6, true);
+  write("Director of Property", 135, 1470, 6); write("Date", 400, 1470, 6); write(compactDate(values.saleDate), 400, 1494, 6);
+  write("Director of Property", 135, 1620, 6); write("Date", 400, 1620, 6); write(compactDate(values.saleDate), 400, 1644, 6);
   writeNote(values.proposalNote, 510, 1010);
   writeNote(values.recommendationNote, 510, 1175);
   writeNote(values.feasibilityNote, 510, 1345, 24);
@@ -127,9 +127,8 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("Outside the Global Discount + Gift Budget", 675, 1445, 6);
   write("(as shown attached)", 675, 1459, 5.5);
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
-  // Continue the form's gold left border through the approval block, aligned
-  // with the supplied template's approval margin.
-  page.drawLine({ start: { x: 135 / 2, y: y(970) }, end: { x: 135 / 2, y: y(1680) }, thickness: 1.2, color: rgb(0.83, 0.64, 0.02) });
+  // Continue the form's gold left border through the approval block.
+  page.drawLine({ start: { x: 90 / 2, y: y(970) }, end: { x: 90 / 2, y: y(1680) }, thickness: 1.2, color: rgb(0.83, 0.64, 0.02) });
 
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
