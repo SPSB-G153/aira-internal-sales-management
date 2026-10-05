@@ -84,14 +84,21 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(1, amountInWords(balance), 335, 477, 9); fillLine(1, money(balance), 114, 489, 9);
   const paymentMethod = value(content, "payment_method");
   const paymentReference = value(content, "payment_reference");
-  if (paymentReference) {
+  if (paymentMethod) {
     const paymentPage = pdf.getPage(1);
-    if (paymentMethod === "bank_transfer") {
-      paymentPage.drawRectangle({ x: 145, y: paymentPage.getHeight() - 408 - 10, width: 230, height: 18, color: rgb(1, 1, 1) });
-      write(1, `Bank transfer ref. ${paymentReference}`, 150, 408, 8);
-    } else {
-      fillLine(1, paymentReference, 194, 408, 8);
-    }
+    // Replace the template's fixed cheque wording with an explicit payment
+    // choice. This gives the signed form an unambiguous Cheque/Bank transfer tick.
+    paymentPage.drawRectangle({ x: 145, y: paymentPage.getHeight() - 408 - 10, width: 260, height: 18, color: rgb(1, 1, 1) });
+    const tick = (x: number, checked: boolean) => {
+      paymentPage.drawRectangle({ x, y: paymentPage.getHeight() - 414, width: 8, height: 8, borderColor: ink, borderWidth: 0.75 });
+      if (checked) {
+        paymentPage.drawLine({ start: { x: x + 1.5, y: paymentPage.getHeight() - 410 }, end: { x: x + 3.5, y: paymentPage.getHeight() - 412.5 }, thickness: 1, color: ink });
+        paymentPage.drawLine({ start: { x: x + 3.5, y: paymentPage.getHeight() - 412.5 }, end: { x: x + 7, y: paymentPage.getHeight() - 407.5 }, thickness: 1, color: ink });
+      }
+    };
+    tick(150, paymentMethod === "cheque"); write(1, "Cheque", 162, 408, 8);
+    tick(215, paymentMethod === "bank_transfer"); write(1, "Bank transfer", 227, 408, 8);
+    if (paymentReference) write(1, `Ref: ${paymentReference}`, 315, 408, 8);
   }
 
   // Page 3 signature slots remain deliberately blank for signing.
