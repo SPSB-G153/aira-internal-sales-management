@@ -132,9 +132,9 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // The source page already contains both side borders. Only extend their
   // final short segments and close the bottom edge.
   const formGold = rgb(0.83, 0.64, 0.02);
-  page.drawLine({ start: { x: 562.5, y: y(1608) }, end: { x: 562.5, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 558.5, y: y(1608) }, end: { x: 558.5, y: y(1680) }, thickness: 1.2, color: formGold });
   page.drawLine({ start: { x: 50, y: y(1608) }, end: { x: 50, y: y(1680) }, thickness: 1.2, color: formGold });
-  page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 562.5, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 558.5, y: y(1680) }, thickness: 1.2, color: formGold });
 
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
