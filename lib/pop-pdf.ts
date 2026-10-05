@@ -127,9 +127,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("Outside the Global Discount + Gift Budget", 675, 1445, 6);
   write("(as shown attached)", 675, 1459, 5.5);
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
-  // The source template already provides the left and right gold borders.
-  // Add only the missing closing edge, aligned to those exact source edges.
-  page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 562.5, y: y(1680) }, thickness: 1.2, color: rgb(0.83, 0.64, 0.02) });
+  // Complete the template's outer gold box at its existing left/right edges.
+  const formGold = rgb(0.83, 0.64, 0.02);
+  page.drawLine({ start: { x: 50, y: y(970) }, end: { x: 50, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 562.5, y: y(1608) }, end: { x: 562.5, y: y(1680) }, thickness: 1.2, color: formGold });
+  page.drawLine({ start: { x: 50, y: y(1680) }, end: { x: 562.5, y: y(1680) }, thickness: 1.2, color: formGold });
 
   pdf.setTitle("Prospect Offer Proposal Form");
   return pdf.save();
