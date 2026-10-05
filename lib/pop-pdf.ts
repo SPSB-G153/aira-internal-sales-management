@@ -91,12 +91,6 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(money(netPrice), 565, 845, 8, true);
   write(money(values.otherIncentives), 565, 891, 8);
   write(money(totalIncentives), 565, 936, 8, true);
-  // An ID quotation is informational and must remain distinct from rebates and
-  // incentives. It therefore does not affect the POP calculation above.
-  clear(780, 870, 292, 80);
-  box(780, 870, 292, 80);
-  write("Quoted ID Net Selling Price", 794, 897, 6.5, true);
-  write(values.quotedIdNetSellingPrice != null && values.quotedIdNetSellingPrice > 0 ? `RM ${money(values.quotedIdNetSellingPrice)}` : "", 794, 925, 8, true);
   // Clear the old purchaser's psf and percentage annotations from the scanned
   // approved copy, then derive them from the current app values.
   clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
@@ -106,29 +100,23 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write("'B'", 706, 797, 7);
   write(netPsf ? `(RM${money(netPsf)} psf)` : "", 706, 845, 7);
 
-  // The reference is an approved copy containing another purchaser's
-  // signatures and notes. A new POP must start with these approval sections blank.
-  clear(80, 970, 420, 680);
-  clear(470, 970, 620, 680);
-  write("1. SBDM/BDM's Proposal:", 135, 1000, 7, true);
-  write("2. Recommendation:", 135, 1175, 7, true);
-  write("3. Feasibility Check:", 135, 1360, 7, true);
-  write("4. Comments/Approval:", 135, 1515, 7, true);
-  rule(135, 455, 1090); rule(135, 455, 1270); rule(135, 455, 1450); rule(135, 455, 1600);
-  write("SBDM/BDM Signature", 165, 1110, 6); write("Date", 400, 1110, 6);
+  // Preserve the approved template's exact headings, signature rules, labels,
+  // and boxes. Clear only its old handwritten/sample values before adding live data.
+  clear(95, 1008, 350, 74); clear(145, 1115, 290, 30);
+  clear(150, 1200, 110, 48);
+  clear(95, 1370, 350, 70); clear(385, 1368, 62, 76);
+  clear(95, 1520, 350, 70); clear(385, 1518, 62, 80);
+  clear(500, 992, 565, 126); clear(500, 1155, 565, 135);
+  clear(500, 1340, 145, 38); clear(500, 1425, 145, 38);
+  clear(500, 1502, 565, 142);
   write(values.salesperson || "N/A", 165, 1134, 6, true); write(compactDate(values.saleDate), 400, 1134, 6);
-  write("Head of Sales", 165, 1290, 6); write("Date", 400, 1290, 6);
-  write("N/A", 165, 1314, 6, true);
-  write("Director of Property", 165, 1470, 6); write("Date", 400, 1470, 6); write(compactDate(values.saleDate), 400, 1494, 6);
-  write("Director of Property", 165, 1620, 6); write("Date", 400, 1620, 6); write(compactDate(values.saleDate), 400, 1644, 6);
+  write("N/A", 165, 1242, 6, true);
+  write(compactDate(values.saleDate), 400, 1494, 6);
+  write(compactDate(values.saleDate), 400, 1644, 6);
   writeNote(values.proposalNote, 510, 1010);
   writeNote(values.recommendationNote, 510, 1175);
   writeNote(values.feasibilityNote, 510, 1345, 24);
   writeNote(values.commentsNote, 510, 1520);
-  write("Within the Global Discount + Gift Budget", 675, 1360, 6);
-  write("(as shown attached)", 675, 1374, 5.5);
-  write("Outside the Global Discount + Gift Budget", 675, 1445, 6);
-  write("(as shown attached)", 675, 1459, 5.5);
   box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
 
   pdf.setTitle("Prospect Offer Proposal Form");
