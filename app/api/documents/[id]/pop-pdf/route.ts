@@ -20,7 +20,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const content = document.content;
     const bytes = await createPopPdf(await readFile(path.join(process.cwd(), "public", "templates", "approved-pop.pdf")), {
       agent: [text(content, "salesperson_name"), text(content, "agent_company")].filter(Boolean).join(", "),
-      spsb: text(content, "spsb") || "SPSB",
+      spsb: text(content, "spsb") || "NOT APPLICABLE",
       salesperson: text(content, "salesperson_name"), saleDate: text(content, "sale_date"), purchaser: text(content, "customer_name"), unit: text(content, "unit_number"), unitType: text(content, "unit_type"),
       size: number(content.floor_area), listPrice: number(content.purchase_price), discount: number(content.discount_amount), rebate: number(content.rebate_amount), quotedIdNetSellingPrice: typeof content.quoted_id_net_selling_price === "number" ? content.quoted_id_net_selling_price : null, otherIncentives: number(content.other_incentives), proposalNote: text(content, "pop_proposal_note"), recommendationNote: text(content, "pop_recommendation_note"), feasibilityNote: text(content, "pop_feasibility_note"), commentsNote: text(content, "pop_comments_note"),
     });

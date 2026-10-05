@@ -36,9 +36,10 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   const pageHeight = page.getHeight();
   const y = (top: number) => pageHeight - top / 2;
   const white = rgb(1, 1, 1);
+  const formGrey = rgb(0.94, 0.94, 0.93);
   const ink = rgb(0.13, 0.13, 0.13);
 
-  const clear = (x: number, top: number, width: number, height: number) => page.drawRectangle({ x: x / 2, y: y(top + height), width: width / 2, height: height / 2, color: white });
+  const clear = (x: number, top: number, width: number, height: number, color = white) => page.drawRectangle({ x: x / 2, y: y(top + height), width: width / 2, height: height / 2, color });
   const write = (value: string, x: number, top: number, size = 8, weight = false) => page.drawText(fit(value), { x: x / 2, y: y(top), size, font: weight ? bold : font, color: ink });
   const writeNote = (value: string, x: number, top: number, maxChars = 58) => {
     const words = value.trim().split(/\s+/).filter(Boolean);
@@ -67,7 +68,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   const netPsf = values.size ? netPrice / values.size : 0;
 
   // Entry cells in the approved layout.
-  [[491, 237, 585, 36], [491, 295, 585, 36], [491, 356, 585, 36], [491, 420, 585, 40], [491, 477, 167, 30], [491, 524, 167, 30], [491, 569, 167, 30]].forEach(([x, top, width, height]) => clear(x, top, width, height));
+  // Keep the approved template's box borders and shaded Purchaser / Unit cells.
+  // We erase only the prior sample values inside those original cells.
+  [[491, 237, 585, 36], [491, 295, 585, 36], [491, 356, 585, 36], [491, 524, 167, 30], [491, 569, 167, 30]].forEach(([x, top, width, height]) => clear(x, top, width, height));
+  clear(491, 420, 585, 40, formGrey);
+  clear(491, 477, 167, 30, formGrey);
   write(values.agent || "", 526, 260, 8, true);
   write(values.spsb || "", 526, 318, 8, true);
   write(values.salesperson || "", 526, 380, 8, true);
