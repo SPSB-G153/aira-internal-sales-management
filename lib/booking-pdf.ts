@@ -84,11 +84,9 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(1, amountInWords(balance), 335, 477, 9); fillLine(1, money(balance), 114, 489, 9);
   const paymentReference = value(content, "payment_reference");
   if (paymentReference) {
-    const paymentPage = pdf.getPage(1);
-    // Retain the approved clause wording and its original dotted rule.
-    // Only replace the centre of the cheque-number blank with the saved value.
-    paymentPage.drawRectangle({ x: 233, y: paymentPage.getHeight() - 408 - 10, width: 116, height: 18, color: rgb(1, 1, 1) });
-    write(1, paymentReference, 236, 408, 8);
+    // Match the Date field: start with the saved value, then preserve a
+    // continuous dotted leader across the rest of the approved blank.
+    fillLine(1, paymentReference, 233, 408, 8, 116);
   }
 
   // Page 3 signature slots remain deliberately blank for signing.
