@@ -126,10 +126,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   // Bumi-status rows. Mask only the glyph area—not gridlines—then write the
   // selected app value in the same left-aligned style as the other sections.
   const appendixPage = pdf.getPage(4);
-  // Clear the source form's fixed (centred) status prompt without disturbing
-  // its outer borders, then restore the four row rules in the same position.
-  appendixPage.drawRectangle({ x: 182, y: 302, width: 172, height: 94, color: rgb(1, 1, 1) });
-  [396, 373, 350, 327, 304].forEach((y) => appendixPage.drawLine({ start: { x: 181, y }, end: { x: 355, y }, thickness: 0.5, color: rgb(0, 0, 0) }));
+  [386, 363, 340, 317].forEach((y) => appendixPage.drawRectangle({ x: 245, y, width: 60, height: 10, color: rgb(1, 1, 1) }));
   purchasers.forEach((p, index) => { const purchaserTop = 340 + purchaserOffset + index * 23; const registrationTop = 478 + registrationOffset + index * 23; const contactTop = 609 + index * 23; appendixCell(p.name, 68, purchaserTop, 112); appendixCell(p.salutation, 183, purchaserTop, 78); appendixCell(p.tin, 272, purchaserTop, 82); appendixCell(p.nationality, 365, purchaserTop, 66); appendixCell(p.sex, 440, purchaserTop, 45); appendixCell(p.race, 495, purchaserTop, 35); appendixCell(p.ic, 72, registrationTop, 102); appendixCell(p.bumi, 186, registrationTop, 165); appendixCell(p.occupation, 366, registrationTop, 165); appendixCell(p.contact, 75, contactTop, 102); appendixCell(p.phone, 186, contactTop, 165); appendixCell(p.email, 448, contactTop, 82); });
   // The supplied form has one singular Correspondence Address section. It
   // therefore uses the primary purchaser's saved address and never writes a
