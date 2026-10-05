@@ -111,7 +111,7 @@ const solicitorByUnit: Record<string, string> = {
 };
 const solicitorForUnit = (unit: string) => solicitorByUnit[unit.trim().toUpperCase()] ?? "";
 const detailsByUnit: Record<string, { floorArea: number; unitType: string; parkingBay?: string }> = {
-  "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 36, 37, 38" },
+  "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 7, 8, 9" },
   "A-01-3A": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 33, 34, 35" },
   "A-02-03": { floorArea: 5351, unitType: "A2", parkingBay: "LG3 16, 17, 18" },
   "A-02-05": { floorArea: 4489, unitType: "B", parkingBay: "LG3 75, 76, 77" },
