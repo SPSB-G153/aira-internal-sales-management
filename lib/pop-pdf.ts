@@ -89,6 +89,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   // Amounts: List - Discount = SPA; SPA - Rebate = proposed net; all
   // incentives are calculated from the three entered incentive values.
   [[540, 612], [540, 647], [540, 680], [540, 767], [540, 812], [540, 860], [540, 906]].forEach(([x, top]) => clear(x, top, 138, 44));
+  // Clear the old scanned line fragments before adding the live values, so a
+  // cleanup mask can never clip the text on the next row.
+  clear(490, 682, 190, 18);
+  clear(490, 806, 190, 18);
+  clear(490, 900, 190, 28);
   write(money(values.listPrice), 565, 646, 8);
   write(money(values.discount), 565, 678, 8);
   write(money(spaPrice), 565, 710, 8);
@@ -96,17 +101,11 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(money(netPrice), 565, 845, 8, true);
   write(money(values.otherIncentives), 565, 891, 8);
   write(money(totalIncentives), 565, 936, 8, true);
-  // Remove the scanned fragments first, then draw one clean amount rule at
-  // the original printed baseline for each editable row.
-  clear(490, 682, 190, 18);
-  clear(490, 806, 190, 18);
-  clear(490, 900, 190, 28);
+  // Draw one clean amount rule at the original printed baseline for each
+  // editable row.
   rule(490, 676, 685);
   rule(490, 676, 815);
   rule(490, 676, 920);
-  // The last cleanup strip touches the ascenders of the total. Paint the
-  // total again after the rule so the full value remains visible.
-  write(money(totalIncentives), 565, 936, 8, true);
   // Clear the old purchaser's psf and percentage annotations from the scanned
   // approved copy, then derive them from the current app values.
   clear(702, 620, 188, 38); clear(702, 652, 200, 40); clear(702, 682, 188, 38); clear(702, 765, 200, 52); clear(702, 820, 188, 40);
