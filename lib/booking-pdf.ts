@@ -89,12 +89,20 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   // translateContent also affects subsequent drawing operations, so values
   // retain their template coordinates and move together with the table.
   const appendixWrite = (text: string, x: number, top: number, size = 9) => write(4, text, x, top, size);
-  appendixWrite(value(content, "unit_number"), 194, 101); appendixWrite(value(content, "storey_number"), 194, 125); appendixWrite(value(content, "unit_type"), 194, 149);
-  appendixWrite(value(content, "floor_area_sqm"), 230, 174); appendixWrite(value(content, "floor_area"), 375, 174); appendixWrite(money(price), 215, 199); appendixWrite(value(content, "car_parking_bay"), 194, 223);
+  // Keep every value inside its own printed cell.  In particular, purchaser
+  // names and solicitor details must not spill into the neighbouring column.
+  const appendixCell = (text: string, x: number, top: number, width: number, size = 8) => {
+    if (!text) return;
+    let fittedSize = size;
+    while (fittedSize > 6 && font.widthOfTextAtSize(text, fittedSize) > width) fittedSize -= 0.25;
+    appendixWrite(text, x, top, fittedSize);
+  };
+  appendixCell(value(content, "unit_number"), 194, 101, 310, 9); appendixCell(value(content, "storey_number"), 194, 125, 310, 9); appendixCell(value(content, "unit_type"), 194, 149, 310, 9);
+  appendixCell(value(content, "floor_area_sqm"), 230, 174, 65, 9); appendixCell(value(content, "floor_area"), 375, 174, 65, 9); appendixCell(money(price), 215, 199, 290, 9); appendixCell(value(content, "car_parking_bay"), 194, 223, 310, 9);
   const purchasers = [
     { name: purchaser1, salutation: value(content, "customer_salutation"), tin: value(content, "customer_tin"), nationality: value(content, "customer_nationality"), sex: value(content, "customer_sex"), race: value(content, "customer_race"), ic: value(content, "customer_ic"), bumi: value(content, "bumi_status") === "true" ? "Yes" : value(content, "bumi_status") === "false" ? "No" : "", occupation: value(content, "customer_occupation"), contact: value(content, "contact_person"), phone: value(content, "customer_phone"), email: value(content, "customer_email"), address: value(content, "customer_address") },
     { name: purchaser2, salutation: value(content, "customer_salutation_2"), tin: value(content, "customer_tin_2"), nationality: value(content, "customer_nationality_2"), sex: value(content, "customer_sex_2"), race: value(content, "customer_race_2"), ic: value(content, "customer_ic_2"), bumi: value(content, "bumi_status_2") === "true" ? "Yes" : value(content, "bumi_status_2") === "false" ? "No" : "", occupation: value(content, "customer_occupation_2"), contact: value(content, "contact_person_2"), phone: value(content, "customer_phone_2"), email: value(content, "customer_email_2"), address: value(content, "customer_address_2") },
   ];
-  purchasers.forEach((p, index) => { const top = 340 + index * 23; appendixWrite(p.name, 72, top, 8); appendixWrite(p.salutation, 183, top, 8); appendixWrite(p.tin, 272, top, 8); appendixWrite(p.nationality, 365, top, 8); appendixWrite(p.sex, 440, top, 8); appendixWrite(p.race, 495, top, 8); appendixWrite(p.ic, 72, 478 + index * 23, 8); appendixWrite(p.bumi, 250, 478 + index * 23, 8); appendixWrite(p.occupation, 405, 478 + index * 23, 8); appendixWrite(p.contact, 75, 609 + index * 23, 8); appendixWrite(p.phone, 250, 609 + index * 23, 8); appendixWrite(p.email, 395, 609 + index * 23, 8); lines(p.address).forEach((line, lineIndex) => appendixWrite(line, 75, 690 + index * 70 + lineIndex * 22, 8)); });
+  purchasers.forEach((p, index) => { const top = 340 + index * 23; appendixCell(p.name, 72, top, 102); appendixCell(p.salutation, 183, top, 78); appendixCell(p.tin, 272, top, 82); appendixCell(p.nationality, 365, top, 66); appendixCell(p.sex, 440, top, 45); appendixCell(p.race, 495, top, 35); appendixCell(p.ic, 72, 478 + index * 23, 160); appendixCell(p.bumi, 250, 478 + index * 23, 135); appendixCell(p.occupation, 405, 478 + index * 23, 125); appendixCell(p.contact, 75, 609 + index * 23, 155); appendixCell(p.phone, 250, 609 + index * 23, 125); appendixCell(p.email, 395, 609 + index * 23, 125); lines(p.address).forEach((line, lineIndex) => appendixCell(line, 75, 690 + index * 70 + lineIndex * 22, 430)); });
   return pdf.save();
 }
