@@ -84,7 +84,10 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(1, amountInWords(balance), 335, 477, 9); fillLine(1, money(balance), 114, 489, 9);
   const paymentMethod = value(content, "payment_method");
   const paymentReference = value(content, "payment_reference");
-  if (paymentMethod) {
+  // A keyed reference is sufficient to populate this field. This prevents a
+  // cheque number from being omitted merely because the payment radio was not
+  // selected before the sale was saved.
+  if (paymentMethod || paymentReference) {
     const paymentPage = pdf.getPage(1);
     // Replace the template's fixed cheque wording with an explicit payment
     // choice. This gives the signed form an unambiguous Cheque/Bank transfer tick.
