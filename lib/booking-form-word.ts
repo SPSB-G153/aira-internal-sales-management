@@ -47,13 +47,10 @@ function setParagraphText(xml:string,paraId:string,text:string){
 }
 
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
-  let seen=0; const leader=(value:string,placeholder:string)=>{
-    const dotCount=[...placeholder].filter(character=>character==="…"||character===".").length;
-    return `${escapeXml(value)}${"…".repeat(Math.max(1,dotCount-Math.ceil(value.length*.55)))}`;
-  };
+  let seen=0;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;){2,}\.?/g,match=>{
     if(seen++!==index)return match;
-    return leader(text,match);
+    return escapeXml(text);
   }));
 }
 
@@ -79,10 +76,15 @@ export async function createBookingFormWord(content:Content){
 
   // Cover page fields and the two calculated deposit clauses.
   xml=setPlaceholder(xml,"2723075B",0,purchaser);
+  xml=setParagraphText(xml,"05DDE296","……………………………………………");
   xml=setPlaceholder(xml,"2C4A54A2",0,purchaser2);
+  xml=setParagraphText(xml,"3A9D90E9","……………………………………………");
   xml=setPlaceholder(xml,"190CE0CA",0,value(content,"customer_ic"));
+  xml=setParagraphText(xml,"1E186992","……………………………………………");
   xml=setPlaceholder(xml,"2996C4C1",0,value(content,"customer_ic_2"));
-  ["15C5D840","1605BD77","07404104","5EB91CC6"].forEach((id,index)=>{xml=setPlaceholder(xml,id,0,addresses[index]??"");});
+  xml=setParagraphText(xml,"1806FB3B","……………………………………………");
+  const addressSlots=[["15C5D840","6205DD40"],["1605BD77","75423034"],["07404104","470AEF53"],["5EB91CC6","3826AFAD"]] as const;
+  addressSlots.forEach(([slot,line],index)=>{xml=setPlaceholder(xml,slot,0,addresses[index]??"");if(addresses[index])xml=setParagraphText(xml,line,"……………………………………………");});
   xml=appendParagraphText(xml,"098C17D3",value(content,"sale_date"));
   xml=setPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
   xml=setPlaceholder(xml,"47A166A2",1,money(earnest));
