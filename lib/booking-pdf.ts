@@ -45,7 +45,9 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
       const dotCount = Math.max(0, Math.floor(fieldWidth / dotWidth));
       if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top - 8, size: dotSize, font, color: ink });
     }
-    page.drawText(rendered,{x,y:page.getHeight()-top,size,font,color:ink});
+    // Keep every typed value close to its dotted leader, matching the
+    // approved template's Date-field baseline.
+    page.drawText(rendered,{x,y:page.getHeight()-top-4,size,font,color:ink});
   };
   const lines = (address: string) => address.split(/\r?\n|,/).map(part => part.trim()).filter(Boolean).slice(0, 4);
   const purchaser1 = value(content, "customer_name"); const purchaser2 = value(content, "customer_name_2");
