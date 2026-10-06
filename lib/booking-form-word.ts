@@ -65,20 +65,18 @@ function setPlaceholder(xml:string,paraId:string,index:number,text:string){
   }));
 }
 
-// The approved PDF prints values above a dotted rule.  Preserve that visual
-// treatment in Word by applying a dotted underline to the filled run and a
-// small reserved tail for the rest of the original field width.
-function underlineFilledField(xml:string,paraId:string,text:string,pad=9){
+// Keep the original leader after a value. Replacing it outright shortens the
+// clause and changes its wrapping; retaining the remaining dots keeps Word's
+// line geometry aligned with the approved PDF template.
+function setDottedPlaceholder(xml:string,paraId:string,index:number,text:string){
   if(!text)return xml;
-  const escaped=escapeXml(text).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(
-    new RegExp(`(<w:r\\b[^>]*>)((?:(?!<\\/w:r>)[\\s\\S])*?<w:t(?:\\s[^>]*)?>${escaped}</w:t>(?:(?!<\\/w:r>)[\\s\\S])*)<\\/w:r>`),
-    (_match,open:string,body:string)=>{
-      const withTail=body.replace(`>${escapeXml(text)}</w:t>`,`>${escapeXml(text)}${"&#160;".repeat(pad)}</w:t>`);
-      if(/<w:rPr>/.test(withTail))return `${open}${withTail.replace("</w:rPr>",'<w:u w:val="dotted"/></w:rPr>')}</w:r>`;
-      return `${open}<w:rPr><w:u w:val="dotted"/></w:rPr>${withTail}</w:r>`;
-    }
-  ));
+  let seen=0;
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
+    if(seen++!==index)return match;
+    const originalWidth=[...match].reduce((width,char)=>width+(char==="."?1:3),0);
+    const remaining=Math.max(3,originalWidth-text.length*2);
+    return `${escapeXml(text)}${".".repeat(remaining)}`;
+  }));
 }
 
 function appendParagraphText(xml:string,paraId:string,text:string){
@@ -113,19 +111,13 @@ export async function createBookingFormWord(content:Content){
   const addressSlots=[["15C5D840","6205DD40"],["1605BD77","75423034"],["07404104","470AEF53"],["5EB91CC6","3826AFAD"]] as const;
   addressSlots.forEach(([slot,line],index)=>{xml=setPlaceholder(xml,slot,0,addresses[index]??"");if(addresses[index])xml=setDottedLine(xml,line,300);});
   xml=appendParagraphText(xml,"098C17D3",value(content,"sale_date"));
-  xml=setPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
-  // Each replacement removes its own placeholder, so subsequent fields are
-  // always addressed from the remaining approved blanks. This keeps the
-  // figure inside “(RM …)” and reserves the later cheque-number blank.
-  xml=setPlaceholder(xml,"47A166A2",0,money(earnest));
-  xml=setPlaceholder(xml,"47A166A2",1,value(content,"payment_reference"));
-  xml=setPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
-  xml=setPlaceholder(xml,"7B9320A6",0,money(balance));
-  xml=underlineFilledField(xml,"47A166A2",amountInWords(earnest),15);
-  xml=underlineFilledField(xml,"47A166A2",money(earnest),9);
-  xml=underlineFilledField(xml,"47A166A2",value(content,"payment_reference"),12);
-  xml=underlineFilledField(xml,"7B9320A6",amountInWords(balance),15);
-  xml=underlineFilledField(xml,"7B9320A6",money(balance),9);
+  xml=setDottedPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
+  // Dotted leaders remain in place after their values, therefore later
+  // approved blanks retain their original positions in the paragraph.
+  xml=setDottedPlaceholder(xml,"47A166A2",1,money(earnest));
+  xml=setDottedPlaceholder(xml,"47A166A2",3,value(content,"payment_reference"));
+  xml=setDottedPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
+  xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance));
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
