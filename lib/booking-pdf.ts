@@ -44,6 +44,12 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
       const dotWidth = font.widthOfTextAtSize(".", dotSize);
       const dotCount = Math.max(0, Math.floor(fieldWidth / dotWidth));
       if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top - 8, size: dotSize, font, color: ink });
+    } else {
+      // Page 2 already supplies its own dotted leaders. Clear only the leader
+      // directly behind the inserted value so the template's rule remains in
+      // place without striking through the text.
+      const textWidth = font.widthOfTextAtSize(rendered, size);
+      page.drawRectangle({ x: x - 1, y: page.getHeight() - top - 2, width: textWidth + 2, height: 4, color: rgb(1, 1, 1) });
     }
     page.drawText(rendered,{x,y:page.getHeight()-top,size,font,color:ink});
   };
