@@ -4,6 +4,10 @@ type Content = Record<string, unknown>;
 const value = (content: Content, key: string) => String(content[key] ?? "").trim();
 const amount = (content: Content, key: string) => typeof content[key] === "number" ? content[key] : Number(content[key] ?? 0) || 0;
 const money = (n: number) => new Intl.NumberFormat("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const towerFromUnit = (unit: string) => {
+  const tower = unit.split("-")[0]?.toUpperCase();
+  return tower === "A" || tower === "B" ? tower : "";
+};
 const fit = (text: string, max = 70) => text.length > max ? `${text.slice(0, max - 1)}…` : text;
 function amountInWords(amount: number) {
   const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
@@ -71,7 +75,9 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const clearCover = (top: number, x: number, width: number) =>
     cover.drawRectangle({ x, y: cover.getHeight() - top - 10, width, height: 17, color: rgb(1, 1, 1) });
   clearCover(683, 178, 360);
-  write(0, `Parcel No. ${value(content, "unit_number")}, Tower ${value(content, "storey_number")}, Residensi Aira Damansara`, 180, 685, 9, true);
+  const unitNumber = value(content, "unit_number");
+  const tower = towerFromUnit(unitNumber);
+  write(0, `Parcel No. ${unitNumber}${tower ? `, Tower ${tower}` : ""}, Residensi Aira Damansara`, 180, 685, 9, true);
   clearCover(717, 178, 360);
   write(0, `1. ${purchaser1}`, 180, 719, 9, true);
   clearCover(741, 178, 360);

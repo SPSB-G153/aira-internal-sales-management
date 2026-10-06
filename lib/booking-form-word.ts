@@ -8,6 +8,7 @@ const value=(content:Content,key:string)=>String(content[key]??"").trim();
 const amount=(content:Content,key:string)=>typeof content[key]==="number"?content[key] as number:Number(content[key]??0)||0;
 const escapeXml=(text:string)=>text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const money=(amount:number)=>amount.toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
+const towerFromUnit=(unit:string)=>{const tower=unit.split("-")[0]?.toUpperCase();return tower==="A"||tower==="B"?tower:"";};
 
 function amountInWords(amount:number){
   const ones=["","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"];
@@ -87,7 +88,8 @@ export async function createBookingFormWord(content:Content){
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
-  xml=setParagraphText(xml,"1A9E0EF9",`Parcel No. ${value(content,"unit_number")}, Tower ${value(content,"storey_number")}, Residensi Aira Damansara`);
+  const unitNumber=value(content,"unit_number"),tower=towerFromUnit(unitNumber);
+  xml=setParagraphText(xml,"1A9E0EF9",`Parcel No. ${unitNumber}${tower?`, Tower ${tower}`:""}, Residensi Aira Damansara`);
   xml=appendParagraphText(xml,"326B72B1",purchaser);
   xml=appendParagraphText(xml,"7BCD07FC",purchaser2);
   xml=appendParagraphText(xml,"38D7146D",value(content,"unit_number"));
