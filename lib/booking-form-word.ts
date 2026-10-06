@@ -70,8 +70,8 @@ function underlineFieldRun(xml:string,paraId:string,text:string,pad:number){
     const runEnd=runClose+6;
     let run=paragraph.slice(runStart,runEnd).replace(token,`>${escaped}${"&#160;".repeat(pad)}</w:t>`);
     run=run.includes("</w:rPr>")
-      ? run.replace("</w:rPr>",'<w:u w:val="dotted"/></w:rPr>')
-      : run.replace(/^(<w:r\b[^>]*>)/,'$1<w:rPr><w:u w:val="dotted"/></w:rPr>');
+      ? run.replace("</w:rPr>",'<w:u w:val="dotted"/><w:position w:val="2"/></w:rPr>')
+      : run.replace(/^(<w:r\b[^>]*>)/,'$1<w:rPr><w:u w:val="dotted"/><w:position w:val="2"/></w:rPr>');
     return `${paragraph.slice(0,runStart)}${run}${paragraph.slice(runEnd)}`;
   });
 }
@@ -88,6 +88,12 @@ function breakBeforeText(xml:string,paraId:string,text:string){
     const before=paragraph.slice(openEnd+1,plain);
     return `${paragraph.slice(0,openEnd+1)}${before}</w:t><w:br/><w:t>${paragraph.slice(plain)}`;
   });
+}
+
+function addSpaceBeforeText(xml:string,paraId:string,text:string){
+  if(!text)return xml;
+  const escaped=escapeXml(text);
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(`>${escaped}`,`>&#160;${escaped}`));
 }
 
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
@@ -156,7 +162,9 @@ export async function createBookingFormWord(content:Content){
   xml=setDottedPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
   xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance),6);
   xml=breakBeforeText(xml,"47A166A2",amountInWords(earnest));
-  xml=breakBeforeText(xml,"47A166A2","my/our");
+  xml=breakBeforeText(xml,"47A166A2","per centum (2%)");
+  xml=breakBeforeText(xml,"47A166A2","....................................");
+  xml=addSpaceBeforeText(xml,"7B9320A6",amountInWords(balance));
   xml=breakBeforeText(xml,"7B9320A6","(RM");
 
   // Appendix overview and property details.
