@@ -57,6 +57,39 @@ function setDottedLine(xml:string,paraId:string,left:number){
   }));
 }
 
+function underlineFieldRun(xml:string,paraId:string,text:string,pad:number){
+  if(!text)return xml;
+  const escaped=escapeXml(text);
+  return updateParagraph(xml,paraId,paragraph=>{
+    const token=`>${escaped}</w:t>`;
+    const textAt=paragraph.indexOf(token);
+    if(textAt<0)return paragraph;
+    const runStart=paragraph.lastIndexOf("<w:r ",textAt);
+    const runClose=paragraph.indexOf("</w:r>",textAt);
+    if(runStart<0||runClose<0)return paragraph;
+    const runEnd=runClose+6;
+    let run=paragraph.slice(runStart,runEnd).replace(token,`>${escaped}${"&#160;".repeat(pad)}</w:t>`);
+    run=run.includes("</w:rPr>")
+      ? run.replace("</w:rPr>",'<w:u w:val="dotted"/></w:rPr>')
+      : run.replace(/^(<w:r\b[^>]*>)/,'$1<w:rPr><w:u w:val="dotted"/></w:rPr>');
+    return `${paragraph.slice(0,runStart)}${run}${paragraph.slice(runEnd)}`;
+  });
+}
+
+function breakBeforeText(xml:string,paraId:string,text:string){
+  if(!text)return xml;
+  const escaped=escapeXml(text);
+  return updateParagraph(xml,paraId,paragraph=>{
+    const plain=paragraph.indexOf(escaped);
+    if(plain<0)return paragraph;
+    const textStart=paragraph.lastIndexOf("<w:t",plain);
+    const openEnd=paragraph.indexOf(">",textStart);
+    if(textStart<0||openEnd<0)return paragraph;
+    const before=paragraph.slice(openEnd+1,plain);
+    return `${paragraph.slice(0,openEnd+1)}${before}</w:t><w:br/><w:t>${paragraph.slice(plain)}`;
+  });
+}
+
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
   let seen=0;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
@@ -101,15 +134,19 @@ export async function createBookingFormWord(content:Content){
 
   // Cover page fields and the two calculated deposit clauses.
   xml=setPlaceholder(xml,"2723075B",0,purchaser);
-  xml=setDottedLine(xml,"05DDE296",1020);
+  xml=underlineFieldRun(xml,"2723075B",purchaser,12);
+  xml=setParagraphText(xml,"05DDE296","");
   xml=setPlaceholder(xml,"2C4A54A2",0,purchaser2);
-  xml=setDottedLine(xml,"3A9D90E9",1020);
+  xml=underlineFieldRun(xml,"2C4A54A2",purchaser2,18);
+  xml=setParagraphText(xml,"3A9D90E9","");
   xml=setPlaceholder(xml,"190CE0CA",0,value(content,"customer_ic"));
-  xml=setDottedLine(xml,"1E186992",1020);
+  xml=underlineFieldRun(xml,"190CE0CA",value(content,"customer_ic"),24);
+  xml=setParagraphText(xml,"1E186992","");
   xml=setPlaceholder(xml,"2996C4C1",0,value(content,"customer_ic_2"));
-  xml=setDottedLine(xml,"1806FB3B",1020);
+  xml=underlineFieldRun(xml,"2996C4C1",value(content,"customer_ic_2"),24);
+  xml=setParagraphText(xml,"1806FB3B","");
   const addressSlots=[["15C5D840","6205DD40"],["1605BD77","75423034"],["07404104","470AEF53"],["5EB91CC6","3826AFAD"]] as const;
-  addressSlots.forEach(([slot,line],index)=>{xml=setPlaceholder(xml,slot,0,addresses[index]??"");if(addresses[index])xml=setDottedLine(xml,line,300);});
+  addressSlots.forEach(([slot,line],index)=>{const address=addresses[index]??"";xml=setPlaceholder(xml,slot,0,address);xml=underlineFieldRun(xml,slot,address,20);xml=setParagraphText(xml,line,"");});
   xml=appendParagraphText(xml,"098C17D3",value(content,"sale_date"));
   xml=setDottedPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
   // Dotted leaders remain in place after their values, therefore later
@@ -118,6 +155,9 @@ export async function createBookingFormWord(content:Content){
   xml=setDottedPlaceholder(xml,"47A166A2",4,value(content,"payment_reference"));
   xml=setDottedPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
   xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance),6);
+  xml=breakBeforeText(xml,"47A166A2",amountInWords(earnest));
+  xml=breakBeforeText(xml,"47A166A2","my/our");
+  xml=breakBeforeText(xml,"7B9320A6",`(RM......${money(balance)}`);
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
