@@ -47,10 +47,13 @@ function setParagraphText(xml:string,paraId:string,text:string){
 }
 
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
-  let seen=0; const leader=(value:string)=>`${escapeXml(value)} ${".".repeat(Math.max(3,40-value.length))}`;
+  let seen=0; const leader=(value:string,placeholder:string)=>{
+    const dotCount=[...placeholder].filter(character=>character==="…"||character===".").length;
+    return `${escapeXml(value)}${"…".repeat(Math.max(1,dotCount-Math.ceil(value.length*.55)))}`;
+  };
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;){2,}\.?/g,match=>{
     if(seen++!==index)return match;
-    return leader(text);
+    return leader(text,match);
   }));
 }
 
