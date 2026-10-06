@@ -98,9 +98,13 @@ export async function createBookingFormWord(content:Content){
   addressSlots.forEach(([slot,line],index)=>{xml=setPlaceholder(xml,slot,0,addresses[index]??"");if(addresses[index])xml=setDottedLine(xml,line,300);});
   xml=appendParagraphText(xml,"098C17D3",value(content,"sale_date"));
   xml=setPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
-  xml=setPlaceholder(xml,"47A166A2",1,money(earnest));
+  // Each replacement removes its own placeholder, so subsequent fields are
+  // always addressed from the remaining approved blanks. This keeps the
+  // figure inside “(RM …)” and reserves the later cheque-number blank.
+  xml=setPlaceholder(xml,"47A166A2",0,money(earnest));
+  xml=setPlaceholder(xml,"47A166A2",1,value(content,"payment_reference"));
   xml=setPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
-  xml=setPlaceholder(xml,"7B9320A6",1,money(balance));
+  xml=setPlaceholder(xml,"7B9320A6",0,money(balance));
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
