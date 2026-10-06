@@ -157,7 +157,7 @@ export async function createBookingFormWord(content:Content){
   xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance),6);
   xml=breakBeforeText(xml,"47A166A2",amountInWords(earnest));
   xml=breakBeforeText(xml,"47A166A2","my/our");
-  xml=breakBeforeText(xml,"7B9320A6",`(RM......${money(balance)}`);
+  xml=breakBeforeText(xml,"7B9320A6","(RM");
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
