@@ -86,7 +86,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   if (paymentReference) {
     // Match the Date field: start with the saved value, then preserve a
     // continuous dotted leader across the rest of the approved blank.
-    fillLine(1, paymentReference, 233, 408, 8, 116);
+    fillLine(1, paymentReference, 233, 408, 8, 116, -4);
   }
 
   // Page 3 signature slots remain deliberately blank for signing.
