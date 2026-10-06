@@ -68,14 +68,14 @@ function setPlaceholder(xml:string,paraId:string,index:number,text:string){
 // Keep the original leader after a value. Replacing it outright shortens the
 // clause and changes its wrapping; retaining the remaining dots keeps Word's
 // line geometry aligned with the approved PDF template.
-function setDottedPlaceholder(xml:string,paraId:string,index:number,text:string){
+function setDottedPlaceholder(xml:string,paraId:string,index:number,text:string,leadingDots=0){
   if(!text)return xml;
   let seen=0;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
     if(seen++!==index)return match;
     const originalWidth=[...match].reduce((width,char)=>width+(char==="."?1:3),0);
-    const remaining=Math.max(3,originalWidth-text.length*2);
-    return `${escapeXml(text)}${".".repeat(remaining)}`;
+    const remaining=Math.max(3,originalWidth-leadingDots-text.length*2);
+    return `${".".repeat(leadingDots)}${escapeXml(text)}${".".repeat(remaining)}`;
   }));
 }
 
@@ -114,10 +114,10 @@ export async function createBookingFormWord(content:Content){
   xml=setDottedPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
   // Dotted leaders remain in place after their values, therefore later
   // approved blanks retain their original positions in the paragraph.
-  xml=setDottedPlaceholder(xml,"47A166A2",1,money(earnest));
+  xml=setDottedPlaceholder(xml,"47A166A2",1,money(earnest),6);
   xml=setDottedPlaceholder(xml,"47A166A2",3,value(content,"payment_reference"));
   xml=setDottedPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
-  xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance));
+  xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance),6);
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
