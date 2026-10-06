@@ -65,6 +65,22 @@ function setPlaceholder(xml:string,paraId:string,index:number,text:string){
   }));
 }
 
+// The approved PDF prints values above a dotted rule.  Preserve that visual
+// treatment in Word by applying a dotted underline to the filled run and a
+// small reserved tail for the rest of the original field width.
+function underlineFilledField(xml:string,paraId:string,text:string,pad=9){
+  if(!text)return xml;
+  const escaped=escapeXml(text).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(
+    new RegExp(`(<w:r\\b[^>]*>)((?:(?!<\\/w:r>)[\\s\\S])*?<w:t(?:\\s[^>]*)?>${escaped}</w:t>(?:(?!<\\/w:r>)[\\s\\S])*)<\\/w:r>`),
+    (_match,open:string,body:string)=>{
+      const withTail=body.replace(`>${escapeXml(text)}</w:t>`,`>${escapeXml(text)}${"&#160;".repeat(pad)}</w:t>`);
+      if(/<w:rPr>/.test(withTail))return `${open}${withTail.replace("</w:rPr>",'<w:u w:val="dotted"/></w:rPr>')}</w:r>`;
+      return `${open}<w:rPr><w:u w:val="dotted"/></w:rPr>${withTail}</w:r>`;
+    }
+  ));
+}
+
 function appendParagraphText(xml:string,paraId:string,text:string){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\"> ${escapeXml(text)}</w:t></w:r></w:p>`));
 }
@@ -105,6 +121,11 @@ export async function createBookingFormWord(content:Content){
   xml=setPlaceholder(xml,"47A166A2",1,value(content,"payment_reference"));
   xml=setPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
   xml=setPlaceholder(xml,"7B9320A6",0,money(balance));
+  xml=underlineFilledField(xml,"47A166A2",amountInWords(earnest),15);
+  xml=underlineFilledField(xml,"47A166A2",money(earnest),9);
+  xml=underlineFilledField(xml,"47A166A2",value(content,"payment_reference"),12);
+  xml=underlineFilledField(xml,"7B9320A6",amountInWords(balance),15);
+  xml=underlineFilledField(xml,"7B9320A6",money(balance),9);
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
