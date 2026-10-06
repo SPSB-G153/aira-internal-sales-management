@@ -33,7 +33,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const write = (pageIndex: number, text: string, x: number, top: number, size = 9, weight = false) => {
     const page = pdf.getPage(pageIndex); page.drawText(fit(text), { x, y: page.getHeight() - top, size, font: weight ? bold : font, color: ink });
   };
-  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0) => {
+  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0, textOffset = 4) => {
     if (!text) return;
     const page = pdf.getPage(pageIndex); const rendered=fit(text);
     if (fieldWidth) {
@@ -47,7 +47,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     }
     // Keep every typed value close to its dotted leader, matching the
     // approved template's Date-field baseline.
-    page.drawText(rendered,{x,y:page.getHeight()-top-4,size,font,color:ink});
+    page.drawText(rendered,{x,y:page.getHeight()-top-textOffset,size,font,color:ink});
   };
   const lines = (address: string) => address.split(/\r?\n|,/).map(part => part.trim()).filter(Boolean).slice(0, 4);
   const purchaser1 = value(content, "customer_name"); const purchaser2 = value(content, "customer_name_2");
@@ -80,7 +80,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   if (purchaser2) write(0, `2. ${purchaser2}`, 180, 743, 9, true);
 
   // Page 2 financial clauses. These values always derive from the current purchase price.
-  fillLine(1, amountInWords(earnest), 88, 386, 9); fillLine(1, money(earnest), 315, 386, 9);
+  fillLine(1, amountInWords(earnest), 88, 386, 9, 0, 7); fillLine(1, money(earnest), 315, 386, 9, 0, 7);
   // The Balance Deposit number belongs in the (RM …) blank immediately below
   // the amount in words. Keeping it on that line avoids the clause heading.
   fillLine(1, amountInWords(balance), 335, 477, 9); fillLine(1, money(balance), 114, 489, 9);
