@@ -46,6 +46,17 @@ function setParagraphText(xml:string,paraId:string,text:string){
   });
 }
 
+function setDottedLine(xml:string,paraId:string,left:number){
+  const dotted="……………………………………………";
+  const withText=setParagraphText(xml,paraId,dotted);
+  return updateParagraph(withText,paraId,paragraph=>paragraph.replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/,(_match,properties:string)=>{
+    const indent=/<w:ind\b[^>]*\/>/.test(properties)
+      ? properties.replace(/<w:ind\b[^>]*\/>/,`<w:ind w:left="${left}"/>`)
+      : `${properties}<w:ind w:left="${left}"/>`;
+    return `<w:pPr>${indent}</w:pPr>`;
+  }));
+}
+
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
   let seen=0;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
@@ -76,15 +87,15 @@ export async function createBookingFormWord(content:Content){
 
   // Cover page fields and the two calculated deposit clauses.
   xml=setPlaceholder(xml,"2723075B",0,purchaser);
-  xml=setParagraphText(xml,"05DDE296","……………………………………………");
+  xml=setDottedLine(xml,"05DDE296",1020);
   xml=setPlaceholder(xml,"2C4A54A2",0,purchaser2);
-  xml=setParagraphText(xml,"3A9D90E9","……………………………………………");
+  xml=setDottedLine(xml,"3A9D90E9",1020);
   xml=setPlaceholder(xml,"190CE0CA",0,value(content,"customer_ic"));
-  xml=setParagraphText(xml,"1E186992","……………………………………………");
+  xml=setDottedLine(xml,"1E186992",1020);
   xml=setPlaceholder(xml,"2996C4C1",0,value(content,"customer_ic_2"));
-  xml=setParagraphText(xml,"1806FB3B","……………………………………………");
+  xml=setDottedLine(xml,"1806FB3B",1020);
   const addressSlots=[["15C5D840","6205DD40"],["1605BD77","75423034"],["07404104","470AEF53"],["5EB91CC6","3826AFAD"]] as const;
-  addressSlots.forEach(([slot,line],index)=>{xml=setPlaceholder(xml,slot,0,addresses[index]??"");if(addresses[index])xml=setParagraphText(xml,line,"……………………………………………");});
+  addressSlots.forEach(([slot,line],index)=>{xml=setPlaceholder(xml,slot,0,addresses[index]??"");if(addresses[index])xml=setDottedLine(xml,line,300);});
   xml=appendParagraphText(xml,"098C17D3",value(content,"sale_date"));
   xml=setPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
   xml=setPlaceholder(xml,"47A166A2",1,money(earnest));
