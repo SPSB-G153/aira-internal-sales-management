@@ -115,7 +115,7 @@ export async function createBookingFormWord(content:Content){
   // Dotted leaders remain in place after their values, therefore later
   // approved blanks retain their original positions in the paragraph.
   xml=setDottedPlaceholder(xml,"47A166A2",1,money(earnest),6);
-  xml=setDottedPlaceholder(xml,"47A166A2",3,value(content,"payment_reference"));
+  xml=setDottedPlaceholder(xml,"47A166A2",4,value(content,"payment_reference"));
   xml=setDottedPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
   xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance),6);
 
