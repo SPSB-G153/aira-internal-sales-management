@@ -33,7 +33,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const write = (pageIndex: number, text: string, x: number, top: number, size = 9, weight = false) => {
     const page = pdf.getPage(pageIndex); page.drawText(fit(text), { x, y: page.getHeight() - top, size, font: weight ? bold : font, color: ink });
   };
-  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0, rise = 0) => {
+  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0, rise = 0, clearTemplateLeader = false) => {
     if (!text) return;
     const page = pdf.getPage(pageIndex); const rendered=fit(text);
     if (fieldWidth) {
@@ -44,6 +44,12 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
       const dotWidth = font.widthOfTextAtSize(".", dotSize);
       const dotCount = Math.max(0, Math.floor(fieldWidth / dotWidth));
       if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top - 8, size: dotSize, font, color: ink });
+    }
+    if (clearTemplateLeader) {
+      const textWidth = font.widthOfTextAtSize(rendered, size);
+      // The printed leader is at the original baseline.  Remove only the
+      // portion that would run through the typed value.
+      page.drawRectangle({ x: x - 1, y: page.getHeight() - top - 1, width: textWidth + 2, height: 3, color: rgb(1, 1, 1) });
     }
     page.drawText(rendered,{x,y:page.getHeight()-top+rise,size,font,color:ink});
   };
@@ -78,10 +84,10 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   if (purchaser2) write(0, `2. ${purchaser2}`, 180, 743, 9, true);
 
   // Page 2 financial clauses. These values always derive from the current purchase price.
-  fillLine(1, amountInWords(earnest), 88, 386, 9, 0, 4); fillLine(1, money(earnest), 315, 386, 9, 0, 4);
+  fillLine(1, amountInWords(earnest), 88, 386, 9, 0, 2, true); fillLine(1, money(earnest), 315, 386, 9, 0, 2, true);
   // The Balance Deposit number belongs in the (RM …) blank immediately below
   // the amount in words. Keeping it on that line avoids the clause heading.
-  fillLine(1, amountInWords(balance), 335, 477, 9, 0, 4); fillLine(1, money(balance), 114, 489, 9, 0, 4);
+  fillLine(1, amountInWords(balance), 335, 477, 9, 0, 2, true); fillLine(1, money(balance), 114, 489, 9, 0, 2, true);
   const paymentReference = value(content, "payment_reference");
   if (paymentReference) {
     // Match the Date field: start with the saved value, then preserve a
