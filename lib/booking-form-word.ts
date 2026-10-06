@@ -48,7 +48,7 @@ function setParagraphText(xml:string,paraId:string,text:string){
 
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
   let seen=0;
-  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;){2,}\.?/g,match=>{
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
     if(seen++!==index)return match;
     return escapeXml(text);
   }));
