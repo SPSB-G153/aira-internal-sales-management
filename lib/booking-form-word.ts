@@ -47,10 +47,10 @@ function setParagraphText(xml:string,paraId:string,text:string){
 }
 
 function setPlaceholder(xml:string,paraId:string,index:number,text:string){
-  let seen=0;
+  let seen=0; const leader=(value:string)=>`${escapeXml(value)} ${".".repeat(Math.max(3,40-value.length))}`;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;){2,}\.?/g,match=>{
     if(seen++!==index)return match;
-    return escapeXml(text);
+    return leader(text);
   }));
 }
 
