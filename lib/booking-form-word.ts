@@ -57,14 +57,6 @@ function setDottedLine(xml:string,paraId:string,left:number){
   }));
 }
 
-function periodLeaderProps(baseProps:string){
-  if(!baseProps)return '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="12"/><w:szCs w:val="12"/></w:rPr>';
-  let props=baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"");
-  props=/<w:sz\b[^>]*\/>/.test(props)?props.replace(/<w:sz\b[^>]*\/>/g,'<w:sz w:val="12"/>'):props.replace("</w:rPr>",'<w:sz w:val="12"/></w:rPr>');
-  props=/<w:szCs\b[^>]*\/>/.test(props)?props.replace(/<w:szCs\b[^>]*\/>/g,'<w:szCs w:val="12"/>'):props.replace("</w:rPr>",'<w:szCs w:val="12"/></w:rPr>');
-  return props;
-}
-
 function underlineFieldRun(xml:string,paraId:string,text:string,pad:number){
   if(!text)return xml;
   const escaped=escapeXml(text);
@@ -76,15 +68,11 @@ function underlineFieldRun(xml:string,paraId:string,text:string,pad:number){
     const runClose=paragraph.indexOf("</w:r>",textAt);
     if(runStart<0||runClose<0)return paragraph;
     const runEnd=runClose+6;
-    const run=paragraph.slice(runStart,runEnd);
-    const attrs=run.match(/^<w:r\b([^>]*)>/)?.[1]??"";
-    const baseProps=run.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
-    const valueProps=baseProps
-      ? baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"").replace("</w:rPr>",'<w:position w:val="2"/></w:rPr>')
-      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:position w:val="2"/></w:rPr>';
-    const dotProps=periodLeaderProps(baseProps);
-    const replacement=`<w:r${attrs}>${valueProps}<w:t xml:space="preserve">${escaped}</w:t></w:r><w:r${attrs}>${dotProps}<w:t>${".".repeat(Math.ceil(pad*1.7))}</w:t></w:r>`;
-    return `${paragraph.slice(0,runStart)}${replacement}${paragraph.slice(runEnd)}`;
+    let run=paragraph.slice(runStart,runEnd).replace(token,`>${escaped}${"&#160;".repeat(pad)}</w:t>`);
+    run=run.includes("</w:rPr>")
+      ? run.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
+      : run.replace(/^(<w:r\b[^>]*>)/,'$1<w:rPr><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>');
+    return `${paragraph.slice(0,runStart)}${run}${paragraph.slice(runEnd)}`;
   });
 }
 
@@ -144,17 +132,16 @@ function raiseDottedValue(xml:string,paraId:string,text:string){
     const baseProps=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
     const plain=(value:string)=>value?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${value}</w:t></w:r>`:"";
     const raisedProps=baseProps
-      ? baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"").replace("</w:rPr>",'<w:position w:val="2"/></w:rPr>')
-      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:position w:val="2"/></w:rPr>';
+      ? baseProps.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>';
     return `${plain(prefix)}<w:r${attrs}>${raisedProps}<w:t xml:space="preserve">${escaped}</w:t></w:r>${plain(suffix)}`;
   }));
 }
 
-// The approved app/PDF prints period glyphs at 6pt rather than using Word's
-// built-in dotted underline. Keep those visible "........." leaders as real
-// characters so Word matches the approved output instead of drawing a fine,
-// tightly-spaced underline pattern.
-function standardizePeriodLeaders(xml:string,paraId:string){
+// Keep the approved layout geometry unchanged. Only use Word's heavier dotted
+// underline so the visible line reads as distinct "........." dots instead of
+// the very fine dotted rule produced by the default dotted underline.
+function standardizeDottedLeaders(xml:string,paraId:string){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:r\b([^>]*)>([\s\S]*?)<\/w:r>/g,(run,attrs:string,body:string)=>{
     if(!/\.{2,}/.test(body))return run;
     const baseProps=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
@@ -162,15 +149,14 @@ function standardizePeriodLeaders(xml:string,paraId:string){
     const tokens=[...content.matchAll(/<w:t([^>]*)>([\s\S]*?)<\/w:t>|<w:br\s*\/>/g)];
     if(!tokens.length)return run;
     const plain=(text:string)=>text?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${text}</w:t></w:r>`:"";
-    const periodProps=periodLeaderProps(baseProps);
-    // 6pt periods are narrower than the 10pt template spaces they replace.
-    // Repeat them proportionally so the approved wrapping and field widths do
-    // not change while the visible leader matches the PDF's period glyphs.
-    const periods=(text:string)=>`<w:r${attrs}>${periodProps}<w:t>${".".repeat(Math.ceil(text.length*1.7))}</w:t></w:r>`;
+    const dottedProps=(baseProps
+      ? baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"").replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>');
+    const dotted=(length:number)=>`<w:r${attrs}>${dottedProps}<w:t xml:space="preserve">${"&#160;".repeat(length)}</w:t></w:r>`;
     let result="";
     for(const token of tokens){
       if(token[0].startsWith("<w:br")){result+=`<w:r${attrs}>${baseProps}<w:br/></w:r>`;continue;}
-      for(const part of token[2].split(/(\.{2,})/))result+=/^\.{2,}$/.test(part)?periods(part):plain(part);
+      for(const part of token[2].split(/(\.{2,})/))result+=/^\.{2,}$/.test(part)?dotted(part.length):plain(part);
     }
     return result;
   }));
@@ -229,8 +215,8 @@ export async function createBookingFormWord(content:Content){
   xml=breakBeforeText(xml,"47A166A2","....................................");
   xml=addSpaceBeforeText(xml,"7B9320A6",amountInWords(balance));
   xml=breakBeforeText(xml,"7B9320A6","(RM");
-  xml=standardizePeriodLeaders(xml,"47A166A2");
-  xml=standardizePeriodLeaders(xml,"7B9320A6");
+  xml=standardizeDottedLeaders(xml,"47A166A2");
+  xml=standardizeDottedLeaders(xml,"7B9320A6");
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
