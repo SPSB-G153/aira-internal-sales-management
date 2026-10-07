@@ -37,7 +37,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const write = (pageIndex: number, text: string, x: number, top: number, size = 9, weight = false) => {
     const page = pdf.getPage(pageIndex); page.drawText(fit(text), { x, y: page.getHeight() - top, size, font: weight ? bold : font, color: ink });
   };
-  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0, rise = 0) => {
+  const fillLine = (pageIndex: number, text: string, x: number, top: number, size = 10, fieldWidth = 0, rise = 0, clearLeaderBehindText = false) => {
     if (!text) return;
     const page = pdf.getPage(pageIndex); const rendered=fit(text);
     if (fieldWidth) {
@@ -48,6 +48,13 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
       const dotWidth = font.widthOfTextAtSize(".", dotSize);
       const dotCount = Math.max(0, Math.floor(fieldWidth / dotWidth));
       if (dotCount) page.drawText(".".repeat(dotCount), { x, y: page.getHeight() - top - 8, size: dotSize, font, color: ink });
+    }
+    if (clearLeaderBehindText) {
+      // Keep the approved template and its dotted leaders intact. Clear only
+      // the few pixels directly behind the overlaid value so dots never cut
+      // through its letters; the surrounding leader remains unchanged.
+      const textWidth = font.widthOfTextAtSize(rendered, size);
+      page.drawRectangle({ x: x - 1, y: page.getHeight() - top - 1, width: textWidth + 2, height: 3, color: rgb(1, 1, 1) });
     }
     page.drawText(rendered,{x,y:page.getHeight()-top+rise,size,font,color:ink});
   };
@@ -84,15 +91,16 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   if (purchaser2) write(0, `2. ${purchaser2}`, 180, 743, 9, true);
 
   // Page 2 financial clauses. These values always derive from the current purchase price.
-  fillLine(1, amountInWords(earnest), 88, 386, 9, 0, 2); fillLine(1, money(earnest), 315, 386, 9, 0, 2);
+  fillLine(1, amountInWords(earnest), 88, 386, 9, 0, 2, true); fillLine(1, money(earnest), 315, 386, 9, 0, 2, true);
   // The Balance Deposit number belongs in the (RM …) blank immediately below
   // the amount in words. Keeping it on that line avoids the clause heading.
-  fillLine(1, amountInWords(balance), 359, 477, 9); fillLine(1, money(balance), 114, 489, 9, 0, 2);
+  fillLine(1, amountInWords(balance), 359, 477, 9, 0, 2, true); fillLine(1, money(balance), 114, 489, 9, 0, 2, true);
   const paymentReference = value(content, "payment_reference");
   if (paymentReference) {
-    // Match the Date field: start with the saved value, then preserve a
-    // continuous dotted leader across the rest of the approved blank.
-    fillLine(1, paymentReference, 233, 408, 8, 116, -4);
+    // Use the approved template's own leader. Only clear the dots directly
+    // behind the saved reference, so "cheque no." and the original spacing
+    // remain exactly as supplied by the lawyer's PDF.
+    fillLine(1, paymentReference, 239, 408, 8, 0, 2, true);
   }
 
   // Page 3 signature slots remain deliberately blank for signing.
