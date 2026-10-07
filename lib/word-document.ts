@@ -15,7 +15,7 @@ const pageNumberFooter=()=>new Footer({children:[new Table({
   rows:[new TableRow({children:[new TableCell({
     width:{size:540,type:WidthType.DXA},
     margins:{top:45,bottom:0,left:0,right:0},
-    borders:{top:{style:BorderStyle.SINGLE,size:4,color:"8A8A8A"},bottom:noBorder,left:noBorder,right:noBorder},
+    borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
     children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:20})]})]
   }),new TableCell({
     width:{size:360,type:WidthType.DXA},
