@@ -182,6 +182,18 @@ function appendParagraphText(xml:string,paraId:string,text:string){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\"> ${escapeXml(text)}</w:t></w:r></w:p>`));
 }
 
+function matchParagraphFormatting(xml:string,targetId:string,sourceId:string){
+  const sourcePattern=new RegExp(`(<w:p(?=[^>]*w14:paraId="${sourceId}")[\\s\\S]*?</w:p>)`);
+  const source=xml.match(sourcePattern)?.[1];
+  if(!source)return xml;
+  const sourcePPr=source.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0];
+  const sourceRPr=sourcePPr?.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0];
+  if(!sourcePPr||!sourceRPr)return xml;
+  return updateParagraph(xml,targetId,paragraph=>paragraph
+    .replace(/<w:pPr>[\s\S]*?<\/w:pPr>/,sourcePPr)
+    .replace(/<w:rPr>[\s\S]*?<\/w:rPr>/g,sourceRPr));
+}
+
 const firstAddressLines=(address:string)=>address.split(/\r?\n|,/).map(part=>part.trim()).filter(Boolean).slice(0,4);
 
 /** Creates a DOCX by changing only data slots inside the user-approved Booking Form template. */
@@ -244,6 +256,7 @@ export async function createBookingFormWord(content:Content){
   xml=appendParagraphText(xml,"34783BAC",value(content,"storey_number"));
   xml=appendParagraphText(xml,"3F6D2D7F",value(content,"unit_type"));
   xml=setParagraphText(xml,"2F912A77",`${value(content,"floor_area_sqm")} square metres / ${value(content,"floor_area")} square feet`);
+  xml=matchParagraphFormatting(xml,"2F912A77","3F6D2D7F");
   xml=setParagraphText(xml,"528CAA50",`RM ${money(price)}`);
   xml=appendParagraphText(xml,"22A46ABA",value(content,"car_parking_bay"));
 
