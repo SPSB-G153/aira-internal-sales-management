@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
@@ -31,235 +31,6 @@ const letterHeader=(image:Uint8Array,emblem=false)=>new Header({children:[new Pa
   spacing:{before:0,after:0},
   children:[new ImageRun({type:"png",data:image,transformation:emblem?{width:40,height:31}:{width:195,height:58},altText:{title:emblem?"SPB emblem":"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:emblem?"SPB emblem":"Selangor Properties Berhad"}})]
 })]});
-
-const acceptanceFirstFooter=()=>new Footer({children:[new Table({
-  width:{size:100,type:WidthType.PERCENTAGE},
-  rows:[new TableRow({children:[
-    new TableCell({
-      width:{size:86,type:WidthType.PERCENTAGE},
-      margins:{top:100,bottom:0,left:0,right:80},
-      borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
-      children:[new Paragraph({spacing:{before:0,after:0,line:210},children:[
-        new TextRun({text:"SELANGOR PROPERTIES SDN. BHD.   ",bold:true,size:13}),
-        new TextRun({text:"Registration No. 196301000340 (5199-X)",size:12}),
-        new TextRun({text:"Level 3, Block D, The FIVE @ KPD, Kompleks Pejabat Damansara, Jalan Dungun, Damansara Heights, 50490 Kuala Lumpur,",break:1,size:12}),
-        new TextRun({text:"Malaysia. (P.O. Box 12267, 50772 Kuala Lumpur, Malaysia)        t +603 2094 1122        f +603 2095 0150",break:1,size:12}),
-      ]})]
-    }),
-    new TableCell({
-      width:{size:8,type:WidthType.PERCENTAGE},
-      margins:{top:260,bottom:0,left:0,right:0},
-      borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
-      children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:20})]})]
-    }),
-    new TableCell({
-      width:{size:6,type:WidthType.PERCENTAGE},
-      margins:{top:0,bottom:0,left:0,right:0},
-      borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
-      children:[new Paragraph({spacing:{before:0,after:0}})]
-    })
-  ]})]
-})]});
-
-const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
-  spacing:{before:0,after:120,line:341},
-  alignment:AlignmentType.JUSTIFIED,
-  ...options,
-  children:typeof children==="string"?[new TextRun(children)]:children,
-});
-
-const acceptanceFactTable=(content:Record<string,unknown>)=>{
-  const purchaser=text(content,"customer_name");
-  const unit=text(content,"unit_number");
-  const tower=unit.split("-")[0]?.toUpperCase();
-  const property=`Parcel No. ${unit}${tower==="A"||tower==="B"?`, Tower ${tower}`:""}`;
-  const rows:[string,string][]=[
-    ["Project",text(content,"project_name")],
-    ["Property",property],
-    ["Developer","Selangor Properties Berhad"],
-    ["Proprietor",text(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd.")],
-    ["Purchaser",`1. ${purchaser}`],
-    ["Purchase Price",amount(content.purchase_price)],
-  ];
-  return new Table({
-    width:{size:100,type:WidthType.PERCENTAGE},
-    borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:4,color:"777777"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
-    rows:rows.map(([label,value])=>new TableRow({children:[
-      new TableCell({width:{size:20,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:20,line:240},children:[new TextRun({text:label,bold:true})]})]}),
-      new TableCell({width:{size:4,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:20,line:240},children:[new TextRun({text:":",bold:true})]})]}),
-      new TableCell({width:{size:76,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:20,line:240},children:[new TextRun({text:value,bold:true})]})]}),
-    ]}))
-  });
-};
-
-const acceptanceSignature=(content:Record<string,unknown>)=>new Table({
-  width:{size:3500,type:WidthType.DXA},
-  borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
-  rows:[new TableRow({children:[new TableCell({
-    width:{size:3500,type:WidthType.DXA},
-    margins:{top:70,bottom:0,left:0,right:0},
-    borders:{top:{style:BorderStyle.DOTTED,size:4,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},
-    children:[new Paragraph({spacing:{before:0,after:0,line:240},children:[
-      new TextRun({text:"Authorized Signatory"}),
-      new TextRun({text:`Name : ${text(content,"authorised_signatory_name","")}`,break:1}),
-      new TextRun({text:`Position : ${text(content,"authorised_signatory_position","")}`,break:1}),
-    ]})]
-  })]})]
-});
-
-async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
-  const purchaser=text(content,"customer_name");
-  const salutation=text(content,"customer_salutation","Purchaser");
-  const contact=text(content,"salesperson_name","Booking contact");
-  const agency=text(content,"agent_company","");
-  const price=typeof content.purchase_price==="number"?content.purchase_price:0;
-  const deposit=price*.1;
-  const pageOne=[
-    acceptanceParagraph(currentLetterDate(),{alignment:AlignmentType.LEFT}),
-    acceptanceParagraph([new TextRun({text:purchaser,bold:true}),new TextRun({text:text(content,"customer_address"),break:1})],{alignment:AlignmentType.LEFT,spacing:{before:0,after:360,line:300}}),
-    acceptanceParagraph(`Dear ${salutation} ${purchaser.split(" ")[0]},`,{alignment:AlignmentType.LEFT}),
-    acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:120,after:120,line:300}}),
-    acceptanceFactTable(content),
-    acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun(`We thank you for your Offer to Purchase the Property described above which is dated ${date(content.sale_date)} (“`),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
-    acceptanceParagraph([new TextRun("You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“"),new TextRun({text:"SPA",bold:true}),new TextRun("”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “"),new TextRun({text:"Sale Documents",bold:true}),new TextRun("”) in the manner described below.")]),
-    acceptanceParagraph(`Firstly we ask that you kindly contact our sales and marketing agent ${contact}${agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer – your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.`),
-  ];
-  const pageTwo=[
-    new Paragraph({children:[new PageBreak()]}),
-    acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:",{alignment:AlignmentType.JUSTIFIED}),
-    acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Berhad",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{indent:{left:420,hanging:420}}),
-    acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are an individual",italics:true}),new TextRun(", your identity card / passport;")],{indent:{left:420,hanging:420}}),
-    acceptanceParagraph("or",{alignment:AlignmentType.LEFT,indent:{left:420}}),
-    acceptanceParagraph([new TextRun({text:"if you are a corporation",italics:true}),new TextRun(":")],{alignment:AlignmentType.LEFT,indent:{left:420}}),
-    acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the memorandum of transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
-    acceptanceParagraph("(b)   a certified true copy of the latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and",{indent:{left:900,hanging:450}}),
-    acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
-    acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase and henceforth keeping you apprised of the construction progress of your new home in the months and years ahead.",{spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Berhad",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:0,after:620,line:300}}),
-    acceptanceSignature(content),
-    acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
-  ];
-  const document=new Document({
-    features:{updateFields:true},
-    styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:341,after:0}}}}},
-    sections:[{
-      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:850,right:850,bottom:1000,left:850,header:360,footer:360}}},
-      headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
-      footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
-      children:[...pageOne,...pageTwo],
-    }]
-  });
-  return new Uint8Array(await Packer.toBuffer(document));
-}
-
-const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array,twoPages=false)=>new Document({
-  features:{updateFields:true},
-  styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
-  sections:[{
-    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:850,right:850,bottom:1000,left:850,header:360,footer:360}}},
-    headers:twoPages?{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)}:{default:letterHeader(fullLogo)},
-    footers:twoPages?{first:acceptanceFirstFooter(),default:pageNumberFooter()}:{default:acceptanceFirstFooter()},
-    children,
-  }]
-});
-
-const exactParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
-  spacing:{before:0,after:120,line:300},
-  alignment:AlignmentType.LEFT,
-  ...options,
-  children:typeof children==="string"?[new TextRun(children)]:children,
-});
-
-const exactRecipient=(content:Record<string,unknown>)=>exactParagraph([
-  new TextRun({text:text(content,"customer_name").toUpperCase(),bold:true}),
-  new TextRun({text:text(content,"customer_address"),break:1}),
-],{spacing:{before:0,after:300,line:300}});
-
-async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
-  const purchaser=text(content,"customer_name");
-  const unit=text(content,"unit_number");
-  const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate()),
-    exactRecipient(content),
-    exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
-    exactParagraph([new TextRun("Re:      "),new TextRun({text:"AIRA RESIDENCE",bold:true,break:0}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:240,line:300}}),
-    exactParagraph("Greetings from AIRA Residence…"),
-    exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
-    exactParagraph([new TextRun("As agreed, a rebate of "),new TextRun({text:amount(content.rebate_amount),bold:true}),new TextRun(" has been approved and will be offset directly from the payment of your Balance Purchase Price that follows the signing of the Sale and Purchase Agreement (SPA) and payment of Balance Deposit under the Sixth Schedule.")],{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
-    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true})],{spacing:{before:120,after:720,line:300}}),
-    new Table({width:{size:3300,type:WidthType.DXA},borders:{top:{style:BorderStyle.SINGLE,size:6,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun({text:"Brian Newman",bold:true}),new TextRun({text:"Director of Property",break:1})],{spacing:{before:0,after:0,line:240}})]})]})]}),
-  ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo)));
-}
-
-async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
-  const purchaser=text(content,"customer_name");
-  const unit=text(content,"unit_number");
-  const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate()),exactRecipient(content),
-    exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
-    exactParagraph([new TextRun({text:"RE:      AIRA RESIDENCE",bold:true,underline:{type:UnderlineType.SINGLE}}),new TextRun({text:`CONFIRMATION OF INVENTORIES FOR UNIT ${unit}`,bold:true,underline:{type:UnderlineType.SINGLE},break:1})],{spacing:{before:120,after:240,line:300}}),
-    exactParagraph("Greetings from AIRA Residence."),
-    exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
-    exactParagraph([new TextRun(`As agreed, Unit ${unit} comes with a Schedule of Inventories (refer Attachment) which are included in the sale on an “as is where is” basis at a selling price of `),new TextRun({text:amount(content.quoted_id_net_selling_price),bold:true}),new TextRun(".")],{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("As a result, we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories on an “as is where is” basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("We kindly ask that you sign the acknowledgement and acceptance below."),
-    exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
-    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of Selangor Properties Sdn. Bhd.",break:1})],{spacing:{before:120,after:620,line:300}}),
-    acceptanceSignature(content),
-    new Paragraph({children:[new PageBreak()]}),
-    exactParagraph([new TextRun({text:"ACKNOWLEDGEMENT & ACCEPTANCE",bold:true,underline:{type:UnderlineType.SINGLE},size:22})],{alignment:AlignmentType.CENTER,spacing:{before:120,after:420,line:300}}),
-    exactParagraph(`I, ${purchaser}, ${text(content,"customer_ic","")} hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:900,line:341}}),
-    new Table({width:{size:3900,type:WidthType.DXA},borders:{top:{style:BorderStyle.SINGLE,size:6,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:80,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun("Name:"),new TextRun({text:"IC / Passport No.:",break:1}),new TextRun({text:"Date:",break:1})],{spacing:{before:0,after:0,line:300}})]})]})]}),
-  ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
-}
-
-const blankFieldTable=(rows:string[],width=4300)=>new Table({
-  width:{size:width,type:WidthType.DXA},
-  borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
-  rows:rows.map(label=>new TableRow({children:[
-    new TableCell({width:{size:1650,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:180,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:2470,type:WidthType.DXA},borders:{top:noBorder,bottom:{style:BorderStyle.DOTTED,size:4,color:"666666"},left:noBorder,right:noBorder},children:[exactParagraph("",{spacing:{before:0,after:80,line:260}})]}),
-  ]}))
-});
-
-async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
-  const purchaser=text(content,"customer_name");
-  const unit=text(content,"unit_number");
-  const handover=text(content,"hovp_date","To be confirmed");
-  const heading=(value:string)=>exactParagraph([new TextRun({text:value,bold:true})],{spacing:{before:80,after:40,line:280}});
-  const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate()),exactRecipient(content),exactParagraph("Dear Sir or Madam,"),
-    exactParagraph([new TextRun({text:"RE:   AIRA RESIDENCE - HANDOVER OF VACANT POSSESSION",bold:true,underline:{type:UnderlineType.SINGLE}})],{spacing:{before:100,after:180,line:300}}),
-    exactParagraph([new TextRun("We refer to your purchase of Unit "),new TextRun({text:unit,bold:true}),new TextRun(", AIRA Residence (“Unit”).")]),
-    exactParagraph([new TextRun("We are pleased to inform you that vacant possession of the Unit is available for handover on "),new TextRun({text:handover,bold:true}),new TextRun(".")]),
-    exactParagraph("The handover of the Unit shall be on the following basis:"),
-    heading("As-Is, Where-Is Basis and No DLP"),
-    exactParagraph("The Unit, including all fixtures, fittings, furniture, appliances and other items within the Unit, is handed over and accepted on an “as-is, where-is” basis in its existing condition at the time of handover, in accordance with the SPA.",{alignment:AlignmentType.JUSTIFIED}),
-    heading("Handover Items"),exactParagraph("The applicable keys, access cards, remote controls and other handover items relating to the Unit will be handed over upon completion of handover formalities.",{alignment:AlignmentType.JUSTIFIED}),
-    heading("Renovation and Alteration"),exactParagraph("Following handover, any renovation, alteration or modification carried out within the Unit shall be at your own cost and responsibility.",{alignment:AlignmentType.JUSTIFIED}),
-    heading("Building Management"),exactParagraph("Following handover, matters relating to the building, common areas, facilities and building management shall be referred to AIRA Building Management.",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph([new TextRun("AIRA Building Management"),new TextRun({text:"Tel: 03-2011 5908",break:1}),new TextRun({text:"Email: airaresidencemgmt@gmail.com",break:1})],{spacing:{before:0,after:120,line:260}}),
-    exactParagraph("For matters relating to the HOVP and handover arrangements, please contact:"),
-    exactParagraph([new TextRun("Name: [Sales Personnel]"),new TextRun({text:"Designation: [Designation]",break:1}),new TextRun({text:"Mobile: [Mobile No.]",break:1}),new TextRun({text:"Email: [Email Address]",break:1})],{spacing:{before:0,after:120,line:260}}),
-    exactParagraph("Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession."),exactParagraph("Thank you."),
-    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:520,line:300}}),acceptanceSignature(content),
-    new Paragraph({children:[new PageBreak()]}),
-    exactParagraph([new TextRun({text:"HOVP HANDOVER ACKNOWLEDGEMENT",bold:true,underline:{type:UnderlineType.SINGLE},size:22})],{alignment:AlignmentType.CENTER,spacing:{before:120,after:260,line:300}}),
-    exactParagraph([new TextRun({text:"AIRA Residence",bold:true})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:240,line:300}}),
-    blankFieldTable(["Tower","Unit No.","HOVP Date"]),
-    exactParagraph("I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an “as-is, where-is” basis.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:420,line:341}}),
-    new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[heading("Purchaser"),blankFieldTable(["Signature","Purchaser’s Name","NRIC/Passport No.","Date"],3800)]}),
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[heading("For Selangor Properties Sdn Bhd"),blankFieldTable(["Signature","Name","Designation","Date"],3800)]}),
-    ]})]}),
-  ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
-}
 
 const popMoney=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{maximumFractionDigits:2}).format(value):"0";
 const popCell=(value:string,bold=false)=>new TableCell({children:[new Paragraph({children:[new TextRun({text:value,bold})]})]});
@@ -298,14 +69,6 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
     readFile(path.join(process.cwd(),"public","selangor-properties-berhad-letterhead.png")),
     readFile(path.join(process.cwd(),"public","selangor-properties-emblem.png")),
   ]);
-  if(type==="acceptance_letter")return createAcceptanceWord(content,fullLogo,emblemLogo);
-  const exactLetterGenerators:Partial<Record<DocumentType,(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array)=>Promise<Uint8Array>>>={
-    rebate_letter:createRebateWord,
-    inventory_confirmation_letter:createInventoryWord,
-    hovp_letter:createHovpWord,
-  };
-  const exactGenerator=exactLetterGenerators[type];
-  if(exactGenerator)return exactGenerator(content,fullLogo,emblemLogo);
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const signer=text(content,"authorised_signatory_name","");
@@ -315,6 +78,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
     line(purchaser),line(text(content,"customer_address")),
   ];
   let title="";let body:string[]=[];
+  if(type==="acceptance_letter"){const balance=Math.max((typeof content.purchase_price==="number"?content.purchase_price:0)*.1-(typeof content.booking_fee==="number"?content.booking_fee:0),0);const agent=[text(content,"salesperson_name","your sales and marketing agent"),text(content,"agent_company","")].filter(Boolean).join(" from ");title="NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE";body=[`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`,`Project: ${text(content,"project_name")}`,`Property: Parcel No. ${unit}${text(content,"storey_number","")?`, Tower ${text(content,"storey_number","")}`:""}`,`Developer: Selangor Properties Sdn Bhd`,`Proprietor: ${text(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd.")}`,`Purchaser: ${purchaser}`,`Purchase Price: ${amount(content.purchase_price)}`,`Greetings from Selangor Properties and the AIRA Residence team.`,`We thank you for your Offer to Purchase the Property described above, dated ${date(content.sale_date)} (“Offer”). We are pleased that you have made such a discerning decision to purchase a unit in this award-winning development. We encourage you to discover more of the hidden treasures that only living in the exclusive enclave of Damansara Heights can offer.`,`You are just a few steps away from owning the Property and to help you to progress the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“SPA”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “Sale Documents”) in the manner described below.`,`As a first step, we kindly ask that you to contact your sales and marketing agents, ${agent}, to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter.`,`Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:`,`(1) a cheque or bank draft made in favour of “Selangor Properties Sdn Bhd” for a sum equivalent to ${amount(balance)}, being payment of the Balance Deposit of the Purchase Price as prescribed in the Sixth Schedule of the SPA; and`,`(2) if you are an individual, your identity card or passport; or, if you are a corporation: (a) the certified board and shareholder resolution; (b) certified Authorised Signatory NRIC, Certificate of Incorporation, Change of Name Form, Memorandum and Articles of Association, and Forms 24, 44 and 49; and (c) the company’s rubber stamp.`,`Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase.`,`c.c. ${text(content,"solicitor_name","")}`];}
   if(type==="rebate_letter"){title=`AIRA RESIDENCE : UNIT ${unit} — CONFIRMATION OF REBATE OFFER`;body=[`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`,`Greetings from AIRA Residence.`,`Thank you for taking the next step towards culminating your purchase of the abovementioned unit.`,`As agreed, a rebate of ${amount(content.rebate_amount)} has been approved and will be offset directly from the payment of your Balance Purchase Price that follows the signing of the Sale and Purchase Agreement (SPA) and payment of Balance Deposit under the Sixth Schedule.`,`Once again, congratulations for becoming part of the AIRA family.`];}
   if(type==="inventory_confirmation_letter"){title=`AIRA RESIDENCE — CONFIRMATION OF INVENTORIES FOR UNIT ${unit}`;body=[`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`,`Greetings from AIRA Residence.`,`Thank you for taking the next step towards culminating your purchase of the abovementioned unit.`,`As agreed, Unit ${unit} comes with a Schedule of Inventories (refer Attachment) which are included in the sale on an “as is where is” basis at a selling price of ${amount(content.quoted_id_net_selling_price)}.`,`As a result, we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories on an “as is where is” basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.`,`We kindly ask that you sign the acknowledgement and acceptance below.`,`Once again, congratulations for becoming part of the AIRA family.`,`ACKNOWLEDGEMENT & ACCEPTANCE`,`I, ${purchaser}, ${text(content,"customer_ic","")} hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.`,`______________________________`,`Name:`,`IC / Passport No.:`,`Date:`];}
   if(type==="hovp_letter"){const handover=text(content,"hovp_date","To be confirmed");title="AIRA RESIDENCE — HANDOVER OF VACANT POSSESSION";body=[`Dear Sir or Madam,`,`We refer to your purchase of Unit ${unit}, AIRA Residence (“Unit”).`,`We are pleased to inform you that vacant possession of the Unit is available for handover on ${handover}.`,`The handover of the Unit shall be on the following basis:`,`As-Is, Where-Is Basis and No DLP`,`The Unit, including all fixtures, fittings, furniture, appliances and other items within the Unit, is handed over and accepted on an “as-is, where-is” basis in its existing condition at the time of handover, in accordance with the terms of the Sale and Purchase Agreement (“SPA”).`,`Handover Items`,`The applicable keys, access cards, remote controls and other handover items relating to the Unit will be handed over upon completion of the handover formalities.`,`Renovation and Alteration`,`Following handover, any renovation, alteration or modification carried out within the Unit shall be at your own cost and responsibility.`,`Building Management`,`Following handover, matters relating to the building, common areas, facilities and building management shall be referred to AIRA Building Management.`,`AIRA Building Management`,`Tel: 03-2011 5908`,`Email: airaresidencemgmt@gmail.com`,`For matters relating to the HOVP and handover arrangements, please contact:`,`Name: ${text(content,"salesperson_name","")}`,`Designation: `,`Mobile: `,`Email: `,`Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession.`,`Thank you.`];}
