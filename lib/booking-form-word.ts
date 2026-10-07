@@ -178,8 +178,8 @@ function standardizeDottedLeaders(xml:string,paraId:string){
   }));
 }
 
-function appendParagraphText(xml:string,paraId:string,text:string){
-  return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\"> ${escapeXml(text)}</w:t></w:r></w:p>`));
+function appendParagraphText(xml:string,paraId:string,text:string,leadingSpace=true){
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\">${leadingSpace?" ":""}${escapeXml(text)}</w:t></w:r></w:p>`));
 }
 
 function alignParagraphLeft(xml:string,paraId:string,left=109){
@@ -279,9 +279,9 @@ export async function createBookingFormWord(content:Content){
     {name:purchaser,salutation:value(content,"customer_salutation"),tin:value(content,"customer_tin"),nationality:value(content,"customer_nationality"),sex:value(content,"customer_sex"),race:value(content,"customer_race"),ic:value(content,"customer_ic"),bumi:value(content,"bumi_status")==="true"?"Yes":value(content,"bumi_status")==="false"?"No":"",occupation:value(content,"customer_occupation"),contact:value(content,"contact_person"),phone:value(content,"customer_phone"),email:value(content,"customer_email"),address:value(content,"customer_address"),ids:{name:"0656C9C0",salutation:"4A8690F5",tin:"2773E86A",nationality:"24A7E315",sex:"637B35D4",race:"57BF556C",ic:"5E1E1474",bumi:"73FAC868",occupation:"214472A8",contact:"173C1AE5",phone:"77E09037",email:"710E04ED",address:"4F402883"}},
     {name:purchaser2,salutation:value(content,"customer_salutation_2"),tin:value(content,"customer_tin_2"),nationality:value(content,"customer_nationality_2"),sex:value(content,"customer_sex_2"),race:value(content,"customer_race_2"),ic:value(content,"customer_ic_2"),bumi:value(content,"bumi_status_2")==="true"?"Yes":value(content,"bumi_status_2")==="false"?"No":"",occupation:value(content,"customer_occupation_2"),contact:value(content,"contact_person_2"),phone:value(content,"customer_phone_2"),email:value(content,"customer_email_2"),address:value(content,"customer_address_2"),ids:{name:"37EA2286",salutation:"2C3B4CF1",tin:"7A03805B",nationality:"736015D9",sex:"16C4BA9A",race:"48330A29",ic:"173AC7E5",bumi:"73FAC868",occupation:"214472A8",contact:"24561E60",phone:"16D81514",email:"7D0983B0",address:"50582536"}},
   ];
-  for(const row of rows){for(const [key,id] of Object.entries(row.ids)){const field=key as keyof typeof row;const entry=row[field];if(typeof entry==="string"&&entry)xml=appendParagraphText(xml,id,entry);}}
-  xml=alignParagraphLeft(xml,"0656C9C0",0);
-  xml=alignParagraphLeft(xml,"37EA2286",0);
+  for(const row of rows){for(const [key,id] of Object.entries(row.ids)){const field=key as keyof typeof row;const entry=row[field];if(typeof entry==="string"&&entry)xml=appendParagraphText(xml,id,entry,key!=="name");}}
+  xml=alignParagraphLeft(xml,"0656C9C0");
+  xml=alignParagraphLeft(xml,"37EA2286");
   xml=centerTableRow(xml,"0656C9C0");
   xml=centerTableRow(xml,"37EA2286");
 
