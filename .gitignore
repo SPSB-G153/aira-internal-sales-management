@@ -12,3 +12,5 @@ npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*
+tools/local-booking-ocr/.venv/
+tools/local-booking-ocr/__pycache__/
