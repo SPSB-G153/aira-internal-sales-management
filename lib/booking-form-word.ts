@@ -208,6 +208,21 @@ function centerTableRow(xml:string,paraId:string){
   return `${xml.slice(0,rowStart)}${row}${xml.slice(rowEnd)}`;
 }
 
+function collapseEmptyParagraph(xml:string,paraId:string){
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/,(_match,properties:string)=>{
+    let next=properties.replace(/<w:spacing\b[^>]*\/>/g,"");
+    next=`${next}<w:spacing w:before="0" w:after="0" w:line="20" w:lineRule="exact"/>`;
+    return `<w:pPr>${next}</w:pPr>`;
+  }));
+}
+
+function keepParagraphWithNext(xml:string,paraId:string){
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/,(_match,properties:string)=>{
+    const next=properties.replace(/<w:keepNext\b[^>]*\/>/g,"");
+    return `<w:pPr><w:keepNext/>${next}</w:pPr>`;
+  }));
+}
+
 const firstAddressLines=(address:string)=>address.split(/\r?\n|,/).map(part=>part.trim()).filter(Boolean).slice(0,4);
 
 /** Creates a DOCX by changing only data slots inside the user-approved Booking Form template. */
@@ -284,6 +299,13 @@ export async function createBookingFormWord(content:Content){
   xml=alignParagraphLeft(xml,"37EA2286");
   xml=centerTableRow(xml,"0656C9C0");
   xml=centerTableRow(xml,"37EA2286");
+
+  // Keep the lower pair of individual signature fields together on page 3,
+  // matching the approved PDF. One template spacer is collapsed slightly so
+  // the dotted line, Name and NRIC rows fit as a complete block.
+  xml=collapseEmptyParagraph(xml,"683A9DBF");
+  xml=keepParagraphWithNext(xml,"39208072");
+  xml=keepParagraphWithNext(xml,"2EEC6584");
 
   zip.file("word/document.xml",xml);
   return zip.generateAsync({type:"uint8array",compression:"DEFLATE"});
