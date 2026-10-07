@@ -118,6 +118,26 @@ function setDottedPlaceholder(xml:string,paraId:string,index:number,text:string,
   }));
 }
 
+// The approved form places typed values just above the printed dotted leader.
+// Keep the surrounding template run geometry, but split the value into its own
+// raised, dotted-underlined run so Word cannot pull the dots onto the text
+// baseline or reflow the rest of the legal clause around the value.
+function raiseDottedValue(xml:string,paraId:string,text:string){
+  if(!text)return xml;
+  const escaped=escapeXml(text);
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:r\b([^>]*)>([\s\S]*?)<\/w:r>/g,(run,attrs:string,body:string)=>{
+    const textMatch=body.match(/<w:t([^>]*)>([\s\S]*?)<\/w:t>/);
+    if(!textMatch||!textMatch[2].includes(escaped))return run;
+    const [prefix,suffix]=textMatch[2].split(escaped,2);
+    const baseProps=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
+    const plain=(value:string)=>value?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${value}</w:t></w:r>`:"";
+    const raisedProps=baseProps
+      ? baseProps.replace("</w:rPr>",'<w:u w:val="dotted"/><w:position w:val="2"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dotted"/><w:position w:val="2"/></w:rPr>';
+    return `${plain(prefix)}<w:r${attrs}>${raisedProps}<w:t xml:space="preserve">${escaped}</w:t></w:r>${plain(suffix)}`;
+  }));
+}
+
 function appendParagraphText(xml:string,paraId:string,text:string){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\"> ${escapeXml(text)}</w:t></w:r></w:p>`));
 }
@@ -161,6 +181,11 @@ export async function createBookingFormWord(content:Content){
   xml=setDottedPlaceholder(xml,"47A166A2",4,value(content,"payment_reference"));
   xml=setDottedPlaceholder(xml,"7B9320A6",0,amountInWords(balance));
   xml=setDottedPlaceholder(xml,"7B9320A6",1,money(balance),6);
+  xml=raiseDottedValue(xml,"47A166A2",amountInWords(earnest));
+  xml=raiseDottedValue(xml,"47A166A2",money(earnest));
+  xml=raiseDottedValue(xml,"47A166A2",value(content,"payment_reference"));
+  xml=raiseDottedValue(xml,"7B9320A6",amountInWords(balance));
+  xml=raiseDottedValue(xml,"7B9320A6",money(balance));
   xml=breakBeforeText(xml,"47A166A2",amountInWords(earnest));
   xml=breakBeforeText(xml,"47A166A2","per centum (2%)");
   xml=breakBeforeText(xml,"47A166A2","....................................");
