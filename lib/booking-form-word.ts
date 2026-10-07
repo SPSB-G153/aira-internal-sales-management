@@ -193,6 +193,21 @@ function alignParagraphLeft(xml:string,paraId:string,left=109){
   }));
 }
 
+function centerTableRow(xml:string,paraId:string){
+  const marker=`w14:paraId="${paraId}"`;
+  const paragraphAt=xml.indexOf(marker);
+  if(paragraphAt<0)return xml;
+  const rowStart=xml.lastIndexOf("<w:tr",paragraphAt);
+  const rowClose=xml.indexOf("</w:tr>",paragraphAt);
+  if(rowStart<0||rowClose<0)return xml;
+  const rowEnd=rowClose+7;
+  const row=xml.slice(rowStart,rowEnd).replace(/<w:tcPr>([\s\S]*?)<\/w:tcPr>/g,(_match,properties:string)=>{
+    const next=properties.replace(/<w:vAlign\b[^>]*\/>/g,"");
+    return `<w:tcPr>${next}<w:vAlign w:val="center"/></w:tcPr>`;
+  });
+  return `${xml.slice(0,rowStart)}${row}${xml.slice(rowEnd)}`;
+}
+
 const firstAddressLines=(address:string)=>address.split(/\r?\n|,/).map(part=>part.trim()).filter(Boolean).slice(0,4);
 
 /** Creates a DOCX by changing only data slots inside the user-approved Booking Form template. */
@@ -267,6 +282,8 @@ export async function createBookingFormWord(content:Content){
   for(const row of rows){for(const [key,id] of Object.entries(row.ids)){const field=key as keyof typeof row;const entry=row[field];if(typeof entry==="string"&&entry)xml=appendParagraphText(xml,id,entry);}}
   xml=alignParagraphLeft(xml,"0656C9C0");
   xml=alignParagraphLeft(xml,"37EA2286");
+  xml=centerTableRow(xml,"0656C9C0");
+  xml=centerTableRow(xml,"37EA2286");
 
   zip.file("word/document.xml",xml);
   return zip.generateAsync({type:"uint8array",compression:"DEFLATE"});
