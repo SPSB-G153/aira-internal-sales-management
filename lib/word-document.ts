@@ -6,6 +6,7 @@ import type { DocumentType } from "@/lib/types";
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
 const amount=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(value):"—";
 const date=(value:unknown)=>{if(typeof value!=="string"||!value)return "—";return new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric"}).format(new Date(`${value}T00:00:00`));};
+const currentLetterDate=()=>new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
 const line=(value:string)=>new Paragraph({children:[new TextRun(value)]});
 
 const noBorder={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
@@ -73,7 +74,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
   const signer=text(content,"authorised_signatory_name","");
   const designation=text(content,"authorised_signatory_position","");
   const common=[
-    new Paragraph({children:[new TextRun(date(content.sale_date))]}),
+    new Paragraph({children:[new TextRun(type==="booking_form"?date(content.sale_date):currentLetterDate())]}),
     line(purchaser),line(text(content,"customer_address")),
   ];
   let title="";let body:string[]=[];
