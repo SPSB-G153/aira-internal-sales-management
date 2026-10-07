@@ -20,6 +20,10 @@ export function BookingFormUpload({documentId}:{documentId:string}){
   const[message,setMessage]=useState("");
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
 
+  function updateField(key:string,value:string){
+    setResult(current=>current?{...current,fields:{...current.fields,[key]:value}}:current);
+  }
+
   async function extract(file:File){
     setBusy(true);setMessage("Reading handwriting…");setResult(null);
     try{
@@ -47,7 +51,7 @@ export function BookingFormUpload({documentId}:{documentId:string}){
       let localSaveFailed=false;
       try{
         for(const item of files){
-          const exports=[{url:`/api/documents/${item.id}/word?layout=2026-10-07-j`,filename:item.wordFilename}];
+          const exports=[{url:`/api/documents/${item.id}/word?layout=2026-10-07-k`,filename:item.wordFilename}];
           if(item.pdfFilename)exports.push({url:item.type==="booking_form"?`/api/documents/${item.id}/booking-pdf`:`/api/documents/${item.id}/pop-pdf`,filename:item.pdfFilename});
           for(const exported of exports){
             const download=await fetch(exported.url,{cache:"no-store"});
@@ -69,9 +73,9 @@ export function BookingFormUpload({documentId}:{documentId:string}){
     {result&&<div className="upload-modal" role="dialog" aria-modal="true" aria-label="Review extracted Booking Form information">
       <div className="card upload-review">
         <h2>Review extracted information</h2>
-        <p className="subtle">Check the handwriting results before saving them to the sale and refreshing the letters.</p>
+        <p className="subtle">Check the handwriting results and fill in any missing items before saving them to the sale and refreshing the letters.</p>
         {result.saved_path&&<p className="upload-saved-path">Saved locally: <strong>{result.saved_path}</strong></p>}
-        {entries.length?<dl>{entries.map(([key,value])=><div key={key}><dt>{labels[key]||key}</dt><dd>{value}</dd></div>)}</dl>:<p>No handwritten information was found.</p>}
+        <div className="upload-review-fields">{Object.keys(labels).map(key=><label key={key}><span>{labels[key]}</span>{key.includes("address")?<textarea rows={2} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>)}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>Save information</button></div>
       </div>
