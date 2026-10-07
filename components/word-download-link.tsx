@@ -7,7 +7,7 @@ export function WordDownloadLink({href}:{href:string}){
   const[downloading,setDownloading]=useState(false);
   const storageKey=`word-downloaded:${href}`;
   useEffect(()=>{
-    if(window.sessionStorage.getItem(storageKey)==="1"){
+    if(window.localStorage.getItem(storageKey)==="1"){
       started.current=true;
       setDownloading(true);
     }
@@ -20,7 +20,7 @@ export function WordDownloadLink({href}:{href:string}){
       if(started.current){event.preventDefault();return;}
       started.current=true;
       setDownloading(true);
-      window.sessionStorage.setItem(storageKey,"1");
+      window.localStorage.setItem(storageKey,"1");
     }}
   >{downloading?"Word downloaded":"Download Word"}</a>;
 }
