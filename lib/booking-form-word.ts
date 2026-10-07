@@ -148,8 +148,8 @@ function raiseDottedValue(xml:string,paraId:string,text:string){
     const baseProps=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
     const plain=(value:string)=>value?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${value}</w:t></w:r>`:"";
     const raisedProps=baseProps
-      ? baseProps.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="4"/></w:rPr>')
-      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="4"/></w:rPr>';
+      ? baseProps.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>';
     return `${plain(prefix)}<w:r${attrs}>${raisedProps}<w:t xml:space="preserve">${escaped}</w:t></w:r>${plain(suffix)}`;
   }));
 }
