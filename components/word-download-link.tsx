@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 let downloadLocked=false;
 
 export function WordDownloadLink({href}:{href:string}){
+  const started=useRef(false);
   const[downloading,setDownloading]=useState(false);
-  return <a
-    href={href}
-    download
+  return <button
+    type="button"
     className={`button secondary${downloading?" disabled":""}`}
-    aria-disabled={downloading}
-    onClick={event=>{
-      if(downloadLocked){event.preventDefault();return;}
+    disabled={downloading}
+    onClick={()=>{
+      if(started.current||downloadLocked)return;
+      started.current=true;
       downloadLocked=true;
       setDownloading(true);
+      window.location.assign(href);
       window.setTimeout(()=>{
+        started.current=false;
         downloadLocked=false;
         setDownloading(false);
-      },4000);
+      },8000);
     }}
-  >{downloading?"Downloading Word…":"Download Word"}</a>;
+  >{downloading?"Downloading Word…":"Download Word"}</button>;
 }

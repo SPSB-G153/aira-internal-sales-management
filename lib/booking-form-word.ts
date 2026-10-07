@@ -295,8 +295,8 @@ export async function createBookingFormWord(content:Content){
     {name:purchaser2,salutation:value(content,"customer_salutation_2"),tin:value(content,"customer_tin_2"),nationality:value(content,"customer_nationality_2"),sex:value(content,"customer_sex_2"),race:value(content,"customer_race_2"),ic:value(content,"customer_ic_2"),bumi:value(content,"bumi_status_2")==="true"?"Yes":value(content,"bumi_status_2")==="false"?"No":"",occupation:value(content,"customer_occupation_2"),contact:value(content,"contact_person_2"),phone:value(content,"customer_phone_2"),email:value(content,"customer_email_2"),address:value(content,"customer_address_2"),ids:{name:"37EA2286",salutation:"2C3B4CF1",tin:"7A03805B",nationality:"736015D9",sex:"16C4BA9A",race:"48330A29",ic:"173AC7E5",bumi:"73FAC868",occupation:"214472A8",contact:"24561E60",phone:"16D81514",email:"7D0983B0",address:"50582536"}},
   ];
   for(const row of rows){for(const [key,id] of Object.entries(row.ids)){const field=key as keyof typeof row;const entry=row[field];if(typeof entry==="string"&&entry)xml=appendParagraphText(xml,id,entry,key!=="name");}}
-  xml=alignParagraphLeft(xml,"0656C9C0");
-  xml=alignParagraphLeft(xml,"37EA2286");
+  xml=alignParagraphLeft(xml,"0656C9C0",105);
+  xml=alignParagraphLeft(xml,"37EA2286",105);
   xml=centerTableRow(xml,"0656C9C0");
   xml=centerTableRow(xml,"37EA2286");
 
