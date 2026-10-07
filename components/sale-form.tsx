@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { saveSale, type FormState } from "@/lib/actions/sales";
+import { solicitorForUnit } from "@/lib/unit-solicitor";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale> };
 const Field = ({
@@ -77,39 +78,6 @@ const salutation: [
   ["Dr", "Dr"],
   ["Company", "Company"],
 ];
-const solicitorByUnit: Record<string, string> = {
-  "A-15-03": "Jeff Leong, Poon & Wong",
-  "A-07-05": "Zaid Ibrahim & Co",
-  "A-05-03": "Jeff Leong, Poon & Wong",
-  "A-03-05": "Zaid Ibrahim & Co",
-  "A-03-3A": "Zaid Ibrahim & Co",
-  "A-03-03": "Jeff Leong, Poon & Wong",
-  "A-03-01": "Jeff Leong, Poon & Wong",
-  "A-02-05": "Zaid Ibrahim & Co",
-  "A-02-3A": "Zaid Ibrahim & Co",
-  "A-02-03": "Jeff Leong, Poon & Wong",
-  "A-01-3A": "Zaid Ibrahim & Co",
-  "A-01-03": "Jeff Leong, Poon & Wong",
-  "A-G-03": "Zaid Ibrahim & Co",
-  "A-G-02": "Jeff Leong, Poon & Wong",
-  "A-G-01": "Jeff Leong, Poon & Wong",
-  "B-15-01": "Zaid Ibrahim & Co",
-  "B-13A-03": "Zaid Ibrahim & Co",
-  "B-13-04": "Zaid Ibrahim & Co",
-  "B-08-01": "Zaid Ibrahim & Co",
-  "B-06-03": "Zaid Ibrahim & Co",
-  "B-05-04": "Zaid Ibrahim & Co",
-  "B-3A-04": "Zaid Ibrahim & Co",
-  "B-3A-03": "Zaid Ibrahim & Co",
-  "B-03-04": "Zaid Ibrahim & Co",
-  "B-02-04": "Zaid Ibrahim & Co",
-  "B-02-02": "Zaid Ibrahim & Co",
-  "B-01-04": "Zaid Ibrahim & Co",
-  "B-01-03": "Zaid Ibrahim & Co",
-  "B-01-02": "Zaid Ibrahim & Co",
-  "B-01-01": "Zaid Ibrahim & Co",
-};
-const solicitorForUnit = (unit: string) => solicitorByUnit[unit.trim().toUpperCase()] ?? "";
 const detailsByUnit: Record<string, { floorArea: number; unitType: string; parkingBay?: string }> = {
   "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 7, 8, 9" },
   "A-01-3A": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 33, 34, 35" },

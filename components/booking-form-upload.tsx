@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { solicitorForUnit } from "@/lib/unit-solicitor";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
@@ -9,7 +10,7 @@ type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string
 const labels:Record<string,string>={
   customer_name:"Purchaser 1 name",customer_ic:"Purchaser 1 NRIC / passport",customer_salutation:"Purchaser 1 salutation",customer_tin:"Purchaser 1 TIN",customer_nationality:"Purchaser 1 nationality",customer_sex:"Purchaser 1 sex",customer_race:"Purchaser 1 race",bumi_status:"Purchaser 1 Bumi status",customer_occupation:"Purchaser 1 occupation",contact_person:"Contact person 1",customer_phone:"Mobile number 1",customer_email:"Email 1",customer_address:"Correspondence address 1",
   customer_name_2:"Purchaser 2 name",customer_ic_2:"Purchaser 2 NRIC / passport",customer_salutation_2:"Purchaser 2 salutation",customer_tin_2:"Purchaser 2 TIN",customer_nationality_2:"Purchaser 2 nationality",customer_sex_2:"Purchaser 2 sex",customer_race_2:"Purchaser 2 race",bumi_status_2:"Purchaser 2 Bumi status",customer_occupation_2:"Purchaser 2 occupation",contact_person_2:"Contact person 2",customer_phone_2:"Mobile number 2",customer_email_2:"Email 2",customer_address_2:"Correspondence address 2",
-  sale_date:"Booking date",unit_number:"Parcel / unit number",storey_number:"Storey",unit_type:"Type",floor_area_sqm:"Area (square metres)",floor_area:"Area (square feet)",purchase_price:"Purchase price",car_parking_bay:"Car parking bay",payment_method:"Payment method",payment_reference:"Cheque / payment reference",purchaser_type:"Purchaser type",
+  sale_date:"Booking date",unit_number:"Parcel / unit number",solicitor_name:"Handling lawyer",storey_number:"Storey",unit_type:"Type",floor_area_sqm:"Area (square metres)",floor_area:"Area (square feet)",purchase_price:"Purchase price",car_parking_bay:"Car parking bay",payment_method:"Payment method",payment_reference:"Cheque / payment reference",purchaser_type:"Purchaser type",
 };
 
 export function BookingFormUpload({documentId}:{documentId:string}){
@@ -32,7 +33,7 @@ export function BookingFormUpload({documentId}:{documentId:string}){
       const response=await fetch(`${localUrl}/extract`,{method:"POST",body});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"The Booking Form could not be read.");
-      setResult(data);setMessage("");
+      const unit=String(data.fields?.unit_number||"");const solicitor=solicitorForUnit(unit);setResult({...data,fields:{...data.fields,solicitor_name:data.fields?.solicitor_name||solicitor}});setMessage("");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}
     finally{setBusy(false);if(input.current)input.current.value="";}
   }
@@ -51,7 +52,7 @@ export function BookingFormUpload({documentId}:{documentId:string}){
       let localSaveFailed=false;
       try{
         for(const item of files){
-          const exports=[{url:`/api/documents/${item.id}/word?layout=2026-10-07-k`,filename:item.wordFilename}];
+          const exports=[{url:`/api/documents/${item.id}/word?layout=2026-10-07-l`,filename:item.wordFilename}];
           if(item.pdfFilename)exports.push({url:item.type==="booking_form"?`/api/documents/${item.id}/booking-pdf`:`/api/documents/${item.id}/pop-pdf`,filename:item.pdfFilename});
           for(const exported of exports){
             const download=await fetch(exported.url,{cache:"no-store"});
