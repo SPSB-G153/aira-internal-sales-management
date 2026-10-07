@@ -70,8 +70,8 @@ function underlineFieldRun(xml:string,paraId:string,text:string,pad:number){
     const runEnd=runClose+6;
     let run=paragraph.slice(runStart,runEnd).replace(token,`>${escaped}${"&#160;".repeat(pad)}</w:t>`);
     run=run.includes("</w:rPr>")
-      ? run.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
-      : run.replace(/^(<w:r\b[^>]*>)/,'$1<w:rPr><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>');
+      ? run.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="3"/></w:rPr>')
+      : run.replace(/^(<w:r\b[^>]*>)/,'$1<w:rPr><w:u w:val="dottedHeavy"/><w:position w:val="3"/></w:rPr>');
     return `${paragraph.slice(0,runStart)}${run}${paragraph.slice(runEnd)}`;
   });
 }
@@ -132,8 +132,8 @@ function raiseDottedValue(xml:string,paraId:string,text:string){
     const baseProps=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
     const plain=(value:string)=>value?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${value}</w:t></w:r>`:"";
     const raisedProps=baseProps
-      ? baseProps.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
-      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>';
+      ? baseProps.replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="3"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="3"/></w:rPr>';
     return `${plain(prefix)}<w:r${attrs}>${raisedProps}<w:t xml:space="preserve">${escaped}</w:t></w:r>${plain(suffix)}`;
   }));
 }
@@ -150,8 +150,8 @@ function standardizeDottedLeaders(xml:string,paraId:string){
     if(!tokens.length)return run;
     const plain=(text:string)=>text?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${text}</w:t></w:r>`:"";
     const dottedProps=(baseProps
-      ? baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"").replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>')
-      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="2"/></w:rPr>');
+      ? baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"").replace("</w:rPr>",'<w:u w:val="dottedHeavy"/><w:position w:val="3"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dottedHeavy"/><w:position w:val="3"/></w:rPr>');
     const dotted=(length:number)=>`<w:r${attrs}>${dottedProps}<w:t xml:space="preserve">${"&#160;".repeat(length)}</w:t></w:r>`;
     let result="";
     for(const token of tokens){
