@@ -112,9 +112,9 @@ function setDottedPlaceholder(xml:string,paraId:string,index:number,text:string,
   let seen=0;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
     if(seen++!==index)return match;
-    const originalWidth=[...match].reduce((width,char)=>width+(char==="."?1:3),0);
-    const remaining=Math.max(3,originalWidth-leadingDots-text.length*2);
-    return `${".".repeat(leadingDots)}${escapeXml(text)}${".".repeat(remaining)}`;
+    const leader=match.includes("…")?"…":".";
+    const remaining=Math.max(3,[...match].length-leadingDots-Math.ceil(text.length/2));
+    return `${leader.repeat(leadingDots)}${escapeXml(text)}${leader.repeat(remaining)}`;
   }));
 }
 

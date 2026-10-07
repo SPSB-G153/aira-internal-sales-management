@@ -1,10 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function WordDownloadLink({href}:{href:string}){
   const started=useRef(false);
   const[downloading,setDownloading]=useState(false);
+  const storageKey=`word-downloaded:${href}`;
+  useEffect(()=>{
+    if(window.sessionStorage.getItem(storageKey)==="1"){
+      started.current=true;
+      setDownloading(true);
+    }
+  },[storageKey]);
   return <a
     href={href}
     className={`button secondary${downloading?" disabled":""}`}
@@ -13,7 +20,7 @@ export function WordDownloadLink({href}:{href:string}){
       if(started.current){event.preventDefault();return;}
       started.current=true;
       setDownloading(true);
-      window.setTimeout(()=>{started.current=false;setDownloading(false);},5000);
+      window.sessionStorage.setItem(storageKey,"1");
     }}
-  >{downloading?"Downloading…":"Download Word"}</a>;
+  >{downloading?"Word downloaded":"Download Word"}</a>;
 }
