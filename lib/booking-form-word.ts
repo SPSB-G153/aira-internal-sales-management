@@ -182,16 +182,15 @@ function appendParagraphText(xml:string,paraId:string,text:string){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\"> ${escapeXml(text)}</w:t></w:r></w:p>`));
 }
 
-function matchParagraphFormatting(xml:string,targetId:string,sourceId:string){
-  const sourcePattern=new RegExp(`(<w:p(?=[^>]*w14:paraId="${sourceId}")[\\s\\S]*?</w:p>)`);
-  const source=xml.match(sourcePattern)?.[1];
-  if(!source)return xml;
-  const sourcePPr=source.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0];
-  const sourceRPr=sourcePPr?.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0];
-  if(!sourcePPr||!sourceRPr)return xml;
-  return updateParagraph(xml,targetId,paragraph=>paragraph
-    .replace(/<w:pPr>[\s\S]*?<\/w:pPr>/,sourcePPr)
-    .replace(/<w:rPr>[\s\S]*?<\/w:rPr>/g,sourceRPr));
+function alignParagraphLeft(xml:string,paraId:string,left=109){
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/,(_match,properties:string)=>{
+    let next=properties
+      .replace(/<w:tabs>[\s\S]*?<\/w:tabs>/g,"")
+      .replace(/<w:ind\b[^>]*\/>/g,"")
+      .replace(/<w:jc\b[^>]*\/>/g,"");
+    next=next.includes("<w:rPr>")?next.replace("<w:rPr>",`<w:ind w:left="${left}"/><w:rPr>`):`${next}<w:ind w:left="${left}"/>`;
+    return `<w:pPr>${next}</w:pPr>`;
+  }));
 }
 
 const firstAddressLines=(address:string)=>address.split(/\r?\n|,/).map(part=>part.trim()).filter(Boolean).slice(0,4);
@@ -256,7 +255,7 @@ export async function createBookingFormWord(content:Content){
   xml=appendParagraphText(xml,"34783BAC",value(content,"storey_number"));
   xml=appendParagraphText(xml,"3F6D2D7F",value(content,"unit_type"));
   xml=setParagraphText(xml,"2F912A77",`${value(content,"floor_area_sqm")} square metres / ${value(content,"floor_area")} square feet`);
-  xml=matchParagraphFormatting(xml,"2F912A77","3F6D2D7F");
+  xml=alignParagraphLeft(xml,"2F912A77");
   xml=setParagraphText(xml,"528CAA50",`RM ${money(price)}`);
   xml=appendParagraphText(xml,"22A46ABA",value(content,"car_parking_bay"));
 
@@ -266,6 +265,8 @@ export async function createBookingFormWord(content:Content){
     {name:purchaser2,salutation:value(content,"customer_salutation_2"),tin:value(content,"customer_tin_2"),nationality:value(content,"customer_nationality_2"),sex:value(content,"customer_sex_2"),race:value(content,"customer_race_2"),ic:value(content,"customer_ic_2"),bumi:value(content,"bumi_status_2")==="true"?"Yes":value(content,"bumi_status_2")==="false"?"No":"",occupation:value(content,"customer_occupation_2"),contact:value(content,"contact_person_2"),phone:value(content,"customer_phone_2"),email:value(content,"customer_email_2"),address:value(content,"customer_address_2"),ids:{name:"37EA2286",salutation:"2C3B4CF1",tin:"7A03805B",nationality:"736015D9",sex:"16C4BA9A",race:"48330A29",ic:"173AC7E5",bumi:"73FAC868",occupation:"214472A8",contact:"24561E60",phone:"16D81514",email:"7D0983B0",address:"50582536"}},
   ];
   for(const row of rows){for(const [key,id] of Object.entries(row.ids)){const field=key as keyof typeof row;const entry=row[field];if(typeof entry==="string"&&entry)xml=appendParagraphText(xml,id,entry);}}
+  xml=alignParagraphLeft(xml,"0656C9C0");
+  xml=alignParagraphLeft(xml,"37EA2286");
 
   zip.file("word/document.xml",xml);
   return zip.generateAsync({type:"uint8array",compression:"DEFLATE"});
