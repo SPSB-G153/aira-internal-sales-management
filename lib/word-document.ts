@@ -85,9 +85,9 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
     width:{size:100,type:WidthType.PERCENTAGE},
     borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:4,color:"777777"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
     rows:rows.map(([label,value])=>new TableRow({children:[
-      new TableCell({width:{size:20,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
-      new TableCell({width:{size:4,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
-      new TableCell({width:{size:76,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:value,bold:true})]})]}),
+      new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
+      new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
+      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:value,bold:true})]})]}),
     ]}))
   });
 };
@@ -144,7 +144,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     features:{updateFields:true},
     styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:341,after:0}}}}},
     sections:[{
-      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:1050,footer:360}}},
+      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
       footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
       children:[...pageOne,...pageTwo],
@@ -157,7 +157,7 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
   sections:[{
-    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:1050,footer:360}}},
+    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
     headers:twoPages?{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)}:{default:letterHeader(fullLogo)},
     footers:twoPages?{first:acceptanceFirstFooter(),default:pageNumberFooter()}:{default:acceptanceFirstFooter()},
     children,
