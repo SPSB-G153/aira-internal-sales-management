@@ -342,7 +342,7 @@ h3 { margin:0; font-size:16px; }
 
 /* A Notice of Acceptance always consists of two independent A4 sheets. */
 @media print {
-  .notice-sheet { position:relative; box-sizing:border-box; width:210mm; height:297mm; padding:15mm!important; overflow:hidden; break-after:page!important; page-break-after:always!important; }
+  .notice-sheet { position:relative; box-sizing:border-box; width:210mm; height:297mm; padding:15mm!important; overflow:hidden; break-inside:avoid-page!important; page-break-inside:avoid!important; break-after:page!important; page-break-after:always!important; }
   .notice-sheet:last-of-type { break-after:auto!important; page-break-after:auto!important; }
   .notice-sheet + .notice-sheet { break-before:page!important; page-break-before:always!important; }
   .notice-sheet .notice-page { box-sizing:border-box; height:100%; min-height:0!important; display:flex!important; flex-direction:column; break-after:auto!important; page-break-after:auto!important; }
