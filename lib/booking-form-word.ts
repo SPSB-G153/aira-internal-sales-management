@@ -112,7 +112,7 @@ function setDottedPlaceholder(xml:string,paraId:string,index:number,text:string,
   let seen=0;
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/(?:…|�|&#65533;|\.){2,}/g,match=>{
     if(seen++!==index)return match;
-    const leader=match.includes("…")?"…":".";
+    const leader=".";
     const remaining=Math.max(3,[...match].length-leadingDots-Math.ceil(text.length/2));
     return `${leader.repeat(leadingDots)}${escapeXml(text)}${leader.repeat(remaining)}`;
   }));
