@@ -353,8 +353,8 @@ h3 { margin:0; font-size:16px; }
   .notice-sheet .source-letter-head-emblem { min-height:31px; flex-basis:31px; }
   .notice-sheet .source-letter-head-emblem img { width:40px; max-width:none; }
   .notice-sheet .notice-page .source-footer { margin-top:auto!important; }
-  .notice-sheet .notice-page-number { position:absolute!important; right:8mm; bottom:0; margin:0!important; text-align:center!important; }
-  .hovp-sheet .notice-page-number,.rebate-exact .notice-page-number { position:absolute!important; right:23mm; bottom:9mm; margin:0!important; text-align:center!important; }
+  .notice-sheet .notice-page-number { position:absolute!important; right:0; bottom:0; margin:0!important; text-align:center!important; }
+  .hovp-sheet .notice-page-number,.rebate-exact .notice-page-number { position:absolute!important; right:15mm; bottom:9mm; margin:0!important; text-align:center!important; }
 }
 
 
