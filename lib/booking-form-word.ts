@@ -138,6 +138,32 @@ function raiseDottedValue(xml:string,paraId:string,text:string){
   }));
 }
 
+// The approved PDF uses one continuous dotted underline: entered text sits
+// slightly above it and the unused part of the field continues with the same
+// dots. Word otherwise renders literal full stops and dotted underlines at
+// different heights, so convert every remaining run of template full stops to
+// the exact underline treatment used by the populated cover-page fields.
+function standardizeDottedLeaders(xml:string,paraId:string){
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:r\b([^>]*)>([\s\S]*?)<\/w:r>/g,(run,attrs:string,body:string)=>{
+    if(!/\.{2,}/.test(body))return run;
+    const baseProps=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
+    const content=body.replace(/<w:rPr>[\s\S]*?<\/w:rPr>/," ");
+    const tokens=[...content.matchAll(/<w:t([^>]*)>([\s\S]*?)<\/w:t>|<w:br\s*\/>/g)];
+    if(!tokens.length)return run;
+    const plain=(text:string)=>text?`<w:r${attrs}>${baseProps}<w:t xml:space="preserve">${text}</w:t></w:r>`:"";
+    const dottedProps=(baseProps
+      ? baseProps.replace(/<w:u\b[^>]*\/>/g,"").replace(/<w:position\b[^>]*\/>/g,"").replace("</w:rPr>",'<w:u w:val="dotted"/><w:position w:val="2"/></w:rPr>')
+      : '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:u w:val="dotted"/><w:position w:val="2"/></w:rPr>');
+    const dotted=(length:number)=>`<w:r${attrs}>${dottedProps}<w:t xml:space="preserve">${"&#160;".repeat(length)}</w:t></w:r>`;
+    let result="";
+    for(const token of tokens){
+      if(token[0].startsWith("<w:br")){result+=`<w:r${attrs}>${baseProps}<w:br/></w:r>`;continue;}
+      for(const part of token[2].split(/(\.{2,})/))result+=/^\.{2,}$/.test(part)?dotted(part.length):plain(part);
+    }
+    return result;
+  }));
+}
+
 function appendParagraphText(xml:string,paraId:string,text:string){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\"> ${escapeXml(text)}</w:t></w:r></w:p>`));
 }
@@ -191,6 +217,8 @@ export async function createBookingFormWord(content:Content){
   xml=breakBeforeText(xml,"47A166A2","....................................");
   xml=addSpaceBeforeText(xml,"7B9320A6",amountInWords(balance));
   xml=breakBeforeText(xml,"7B9320A6","(RM");
+  xml=standardizeDottedLeaders(xml,"47A166A2");
+  xml=standardizeDottedLeaders(xml,"7B9320A6");
 
   // Appendix overview and property details.
   xml=setParagraphText(xml,"41CAA764",value(content,"project_name")||"Residensi Aira Damansara (Aira Residence Damansara)");
