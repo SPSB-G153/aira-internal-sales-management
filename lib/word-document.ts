@@ -36,7 +36,7 @@ const acceptanceFirstFooter=()=>new Footer({children:[new Table({
   width:{size:100,type:WidthType.PERCENTAGE},
   rows:[new TableRow({children:[
     new TableCell({
-      width:{size:89,type:WidthType.PERCENTAGE},
+      width:{size:86,type:WidthType.PERCENTAGE},
       margins:{top:100,bottom:0,left:0,right:80},
       borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
       children:[new Paragraph({spacing:{before:0,after:0,line:210},children:[
@@ -49,20 +49,20 @@ const acceptanceFirstFooter=()=>new Footer({children:[new Table({
     new TableCell({
       width:{size:8,type:WidthType.PERCENTAGE},
       margins:{top:260,bottom:0,left:0,right:0},
-      borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
+      borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
       children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:20})]})]
     }),
     new TableCell({
-      width:{size:3,type:WidthType.PERCENTAGE},
+      width:{size:6,type:WidthType.PERCENTAGE},
       margins:{top:0,bottom:0,left:0,right:0},
-      borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
+      borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
       children:[new Paragraph({spacing:{before:0,after:0}})]
     })
   ]})]
 })]});
 
 const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
-  spacing:{before:0,after:200,line:341},
+  spacing:{before:0,after:120,line:341},
   alignment:AlignmentType.JUSTIFIED,
   ...options,
   children:typeof children==="string"?[new TextRun(children)]:children,
@@ -85,9 +85,9 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
     width:{size:100,type:WidthType.PERCENTAGE},
     borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:4,color:"777777"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
     rows:rows.map(([label,value])=>new TableRow({children:[
-      new TableCell({width:{size:20,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
-      new TableCell({width:{size:4,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
-      new TableCell({width:{size:76,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:value,bold:true})]})]}),
+      new TableCell({width:{size:20,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:20,line:240},children:[new TextRun({text:label,bold:true})]})]}),
+      new TableCell({width:{size:4,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:20,line:240},children:[new TextRun({text:":",bold:true})]})]}),
+      new TableCell({width:{size:76,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:20,line:240},children:[new TextRun({text:value,bold:true})]})]}),
     ]}))
   });
 };
@@ -115,19 +115,19 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const price=typeof content.purchase_price==="number"?content.purchase_price:0;
   const deposit=price*.1;
   const pageOne=[
-    acceptanceParagraph(currentLetterDate(),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
-    acceptanceParagraph([new TextRun({text:purchaser,bold:true}),new TextRun({text:text(content,"customer_address"),break:1})],{alignment:AlignmentType.LEFT,spacing:{before:0,after:760,line:300}}),
+    acceptanceParagraph(currentLetterDate(),{alignment:AlignmentType.LEFT}),
+    acceptanceParagraph([new TextRun({text:purchaser,bold:true}),new TextRun({text:text(content,"customer_address"),break:1})],{alignment:AlignmentType.LEFT,spacing:{before:0,after:360,line:300}}),
     acceptanceParagraph(`Dear ${salutation} ${purchaser.split(" ")[0]},`,{alignment:AlignmentType.LEFT}),
-    acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:600,after:240,line:300}}),
+    acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:120,after:120,line:300}}),
     acceptanceFactTable(content),
-    acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:600,after:200,line:341}}),
-    acceptanceParagraph([new TextRun("We thank you for your Offer to Purchase the Property described above which is dated — (“"),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
+    acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:120,after:120,line:341}}),
+    acceptanceParagraph([new TextRun(`We thank you for your Offer to Purchase the Property described above which is dated ${date(content.sale_date)} (“`),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
     acceptanceParagraph([new TextRun("You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“"),new TextRun({text:"SPA",bold:true}),new TextRun("”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “"),new TextRun({text:"Sale Documents",bold:true}),new TextRun("”) in the manner described below.")]),
     acceptanceParagraph(`Firstly we ask that you kindly contact our sales and marketing agent ${contact}${agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer – your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.`),
   ];
   const pageTwo=[
     new Paragraph({children:[new PageBreak()]}),
-    acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:",{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:200,line:341}}),
+    acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:",{alignment:AlignmentType.JUSTIFIED}),
     acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Berhad",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{indent:{left:420,hanging:420}}),
     acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are an individual",italics:true}),new TextRun(", your identity card / passport;")],{indent:{left:420,hanging:420}}),
     acceptanceParagraph("or",{alignment:AlignmentType.LEFT,indent:{left:420}}),
@@ -144,7 +144,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     features:{updateFields:true},
     styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:341,after:0}}}}},
     sections:[{
-      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:1050,footer:360}}},
+      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:850,right:850,bottom:1000,left:850,header:360,footer:360}}},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
       footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
       children:[...pageOne,...pageTwo],
@@ -157,7 +157,7 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
   sections:[{
-    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:1050,footer:360}}},
+    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:850,right:850,bottom:1000,left:850,header:360,footer:360}}},
     headers:twoPages?{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)}:{default:letterHeader(fullLogo)},
     footers:twoPages?{first:acceptanceFirstFooter(),default:pageNumberFooter()}:{default:acceptanceFirstFooter()},
     children,
@@ -165,7 +165,7 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
 });
 
 const exactParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
-  spacing:{before:0,after:200,line:300},
+  spacing:{before:0,after:120,line:300},
   alignment:AlignmentType.LEFT,
   ...options,
   children:typeof children==="string"?[new TextRun(children)]:children,
@@ -180,7 +180,7 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),
+    exactParagraph(currentLetterDate()),
     exactRecipient(content),
     exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
     exactParagraph([new TextRun("Re:      "),new TextRun({text:"AIRA RESIDENCE",bold:true,break:0}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:240,line:300}}),
@@ -198,7 +198,7 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),exactRecipient(content),
+    exactParagraph(currentLetterDate()),exactRecipient(content),
     exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
     exactParagraph([new TextRun({text:"RE:      AIRA RESIDENCE",bold:true,underline:{type:UnderlineType.SINGLE}}),new TextRun({text:`CONFIRMATION OF INVENTORIES FOR UNIT ${unit}`,bold:true,underline:{type:UnderlineType.SINGLE},break:1})],{spacing:{before:120,after:240,line:300}}),
     exactParagraph("Greetings from AIRA Residence."),
@@ -233,7 +233,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const handover=text(content,"hovp_date","To be confirmed");
   const heading=(value:string)=>exactParagraph([new TextRun({text:value,bold:true})],{spacing:{before:80,after:40,line:280}});
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),exactRecipient(content),exactParagraph("Dear Sir or Madam,"),
+    exactParagraph(currentLetterDate()),exactRecipient(content),exactParagraph("Dear Sir or Madam,"),
     exactParagraph([new TextRun({text:"RE:   AIRA RESIDENCE - HANDOVER OF VACANT POSSESSION",bold:true,underline:{type:UnderlineType.SINGLE}})],{spacing:{before:100,after:180,line:300}}),
     exactParagraph([new TextRun("We refer to your purchase of Unit "),new TextRun({text:unit,bold:true}),new TextRun(", AIRA Residence (“Unit”).")]),
     exactParagraph([new TextRun("We are pleased to inform you that vacant possession of the Unit is available for handover on "),new TextRun({text:handover,bold:true}),new TextRun(".")]),
