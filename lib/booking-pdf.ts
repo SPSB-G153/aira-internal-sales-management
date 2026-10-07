@@ -94,7 +94,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   fillLine(1, amountInWords(earnest), 88, 386, 9, 0, 2, true); fillLine(1, money(earnest), 315, 386, 9, 0, 2, true);
   // The Balance Deposit number belongs in the (RM …) blank immediately below
   // the amount in words. Keeping it on that line avoids the clause heading.
-  fillLine(1, amountInWords(balance), 359, 477, 9, 0, 2, true); fillLine(1, money(balance), 114, 489, 9, 0, 2, true);
+  fillLine(1, amountInWords(balance), 359, 477, 9, 0, 0, true); fillLine(1, money(balance), 114, 489, 9, 0, 2, true);
   const paymentReference = value(content, "payment_reference");
   if (paymentReference) {
     // Use the approved template's own leader. Only clear the dots directly
