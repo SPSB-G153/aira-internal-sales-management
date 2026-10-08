@@ -28,13 +28,19 @@ const letterHeader=(image:Uint8Array,emblem=false)=>new Header({children:[new Pa
   children:[new ImageRun({type:"png",data:image,transformation:emblem?{width:40,height:31}:{width:195,height:58},altText:{title:emblem?"SPB emblem":"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:emblem?"SPB emblem":"Selangor Properties Berhad"}})]
 })]});
 
+const hovpLetterHeader=(image:Uint8Array)=>new Header({children:[new Paragraph({
+  alignment:AlignmentType.RIGHT,
+  spacing:{before:0,after:0},
+  children:[new ImageRun({type:"png",data:image,transformation:{width:158,height:47},altText:{title:"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:"Selangor Properties Berhad"}})]
+})]});
+
 const hovpAcknowledgementHeader=(image:Uint8Array)=>new Header({children:[new Table({
   width:{size:100,type:WidthType.PERCENTAGE},
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
   rows:[new TableRow({children:[
     new TableCell({width:{size:55,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:0,line:210},children:[
-      new TextRun({text:"AIRA",color:"D89A9A",size:42}),
-      new TextRun({text:"RESIDENCE",color:"D89A9A",size:18,break:1,characterSpacing:30}),
+      new TextRun({text:"AIRA",color:"B84E4E",size:42}),
+      new TextRun({text:"RESIDENCE",color:"B84E4E",size:18,break:1,characterSpacing:30}),
     ]})]}),
     new TableCell({width:{size:45,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({alignment:AlignmentType.RIGHT,spacing:{before:0,after:0},children:[new ImageRun({type:"png",data:image,transformation:{width:158,height:47},altText:{title:"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:"Selangor Properties Berhad"}})]})]})
   ]})]
@@ -177,7 +183,7 @@ const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array)=>new Docum
   styles:{default:{document:{run:{font:"Helvetica",size:20},paragraph:{spacing:{line:260,after:0}}}}},
   sections:[{
     properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1440,right:1440,bottom:700,left:1440,header:720,footer:360}}},
-    headers:{first:letterHeader(fullLogo),default:hovpAcknowledgementHeader(fullLogo)},
+    headers:{first:hovpLetterHeader(fullLogo),default:hovpAcknowledgementHeader(fullLogo)},
     footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
     children,
   }]
