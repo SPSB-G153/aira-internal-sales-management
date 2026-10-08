@@ -148,11 +148,11 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   return new Uint8Array(await Packer.toBuffer(document));
 }
 
-const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array,twoPages=false)=>new Document({
+const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array,twoPages=false,footerDistance=360)=>new Document({
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
   sections:[{
-    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
+    properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:footerDistance}}},
     headers:twoPages?{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)}:{default:letterHeader(fullLogo)},
     footers:twoPages?{first:acceptanceFirstFooter(),default:pageNumberFooter()}:{default:acceptanceFirstFooter()},
     children,
@@ -175,14 +175,17 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),
-    exactRecipient(content),
-    exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
+    exactParagraph(currentLetterDate(),{spacing:{before:420,after:540,line:300}}),
+    exactParagraph([
+      new TextRun({text:text(content,"customer_name").toUpperCase(),bold:true}),
+      new TextRun({text:text(content,"customer_address"),break:1}),
+    ],{spacing:{before:0,after:1020,line:300}}),
+    exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`,{spacing:{before:0,after:340,line:300}}),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[
-      new TableCell({width:{size:5,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("Re:",{spacing:{before:120,after:0,line:300}})]}),
-      new TableCell({width:{size:95,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"AIRA RESIDENCE",bold:true}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:0,line:300}})]}),
+      new TableCell({width:{size:5,type:WidthType.PERCENTAGE},margins:{top:0,bottom:10,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("Re:",{spacing:{before:120,after:0,line:300}})]}),
+      new TableCell({width:{size:95,type:WidthType.PERCENTAGE},margins:{top:0,bottom:10,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"AIRA RESIDENCE",bold:true}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:0,line:300}})]}),
     ]})]}),
-    exactParagraph("Greetings from AIRA Residence…"),
+    exactParagraph("Greetings from AIRA Residence…",{spacing:{before:280,after:200,line:300}}),
     exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
     exactParagraph([new TextRun("As agreed, a rebate of "),new TextRun({text:amount(content.rebate_amount),bold:true}),new TextRun(" has been approved and will be offset directly from the payment of your Balance Purchase Price that follows the signing of the Sale and Purchase Agreement (SPA) and payment of Balance Deposit under the Sixth Schedule.")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
@@ -190,10 +193,10 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
       new TextRun("Yours sincerely,"),
       new TextRun({text:"For and on behalf of ",italics:true,break:1}),
       new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true}),
-    ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:620,line:300}}),
+    ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:1560,line:300}}),
     acceptanceSignature(content),
   ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo)));
+  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,false,720)));
 }
 
 async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
