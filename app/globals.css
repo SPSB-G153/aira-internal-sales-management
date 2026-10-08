@@ -362,7 +362,35 @@ h3 { margin:0; font-size:16px; }
 
 /* Keep the HOVP letter and acknowledgement on separate A4 sheets. */
 @media screen { .hovp-exact { display:grid; gap:34px; } .hovp-exact .hovp-sheet { margin:0 auto; max-width:760px; } }
-@media print { .hovp-exact .hovp-sheet { break-after:page; page-break-after:always; } .hovp-exact .hovp-sheet:last-child { break-after:auto; page-break-after:auto; } }
+@media print {
+  .hovp-exact .hovp-sheet {
+    position:relative!important;
+    box-sizing:border-box!important;
+    width:210mm!important;
+    height:297mm!important;
+    min-height:297mm!important;
+    overflow:hidden!important;
+    break-inside:avoid-page!important;
+    page-break-inside:avoid!important;
+    break-after:page!important;
+    page-break-after:always!important;
+  }
+  .hovp-exact .hovp-sheet:last-child { break-after:auto!important; page-break-after:auto!important; }
+  .hovp-exact .hovp-letter .source-footer {
+    position:absolute!important;
+    right:58px!important;
+    bottom:42px!important;
+    left:58px!important;
+    margin:0!important;
+  }
+  .hovp-exact .hovp-sheet .notice-page-number {
+    position:absolute!important;
+    right:23mm!important;
+    bottom:9mm!important;
+    margin:0!important;
+    text-align:center!important;
+  }
+}
 
 /* Match the approved HOVP source document without changing the other letters. */
 .hovp-letter { position:relative; box-sizing:border-box; min-height:1000px; padding:48px 58px 42px!important; display:flex; flex-direction:column; color:#111; font-family:Helvetica,Arial,sans-serif; font-size:13.333px!important; line-height:1.25; }
