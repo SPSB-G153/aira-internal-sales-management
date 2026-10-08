@@ -397,7 +397,9 @@ h3 { margin:0; font-size:16px; }
 
 
 /* Keep each HOVP signature field on its own row. */
-.hovp-ack-signatures dl { display:block!important; } .hovp-ack-signatures dl>div { grid-template-columns:145px 18px minmax(0,1fr); }
+.hovp-ack-signatures dl { display:block!important; }
+.hovp-ack-signatures section:first-child dl>div { grid-template-columns:130px 14px minmax(0,1fr); }
+.hovp-ack-signatures section:last-child dl>div { grid-template-columns:92px 14px minmax(0,1fr); }
 .hovp-ack-signatures dl>div { align-items:end; margin-bottom:12px; }
 .hovp-ack-signatures dt,.hovp-ack-signatures i { align-self:end; padding-bottom:3px; }
 .hovp-ack-signatures dd { box-sizing:border-box; height:auto!important; min-height:21px; padding:0 3px 3px; line-height:1.25; overflow-wrap:anywhere; }
