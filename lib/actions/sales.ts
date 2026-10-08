@@ -27,7 +27,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {
     const sale=await getSale(id); const db=await createClient(); const [{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const types=["booking_form","acceptance_letter",...(sale.rebate_amount&&sale.rebate_amount>0?["rebate_letter"]:[]),...(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0?["inventory_confirmation_letter"]:[])] as const;
+    const types=["booking_form","acceptance_letter",...(sale.rebate_amount&&sale.rebate_amount>0?["rebate_letter"]:[]),...(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0?["inventory_confirmation_letter"]:[]),"hovp_letter"] as const;
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:new Date().toISOString()}));
     const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw new Error(error.message);
     await updateSale(id,{status:"confirmed"});
@@ -48,4 +48,12 @@ export async function generateHovp(id:string,_:ConfirmState,__form:FormData):Pro
     await updateSale(id,{status:"hovp_ready"});
   } catch { return {error:"Could not issue the HOVP letter."}; }
   revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");return {};
+}
+export async function generateMissingHovp(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
+  try {
+    const sale=await getSale(id);if(sale.status==="draft")return{error:"Create the booking before generating the HOVP letter."};
+    const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"hovp_letter",content:buildDocumentSnapshot(sale,"hovp_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(error)throw error;
+  } catch { return {error:"Could not create the HOVP letter."}; }
+  revalidatePath(`/sales/${id}`);revalidatePath("/documents");revalidatePath("/dashboard");return {};
 }
