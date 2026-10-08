@@ -354,6 +354,8 @@ h3 { margin:0; font-size:16px; }
   .notice-sheet .source-letter-head-emblem img { width:40px; max-width:none; }
   .notice-sheet .notice-page .source-footer { margin-top:auto!important; }
   .notice-sheet .notice-page-number { position:absolute!important; right:8mm; bottom:0; margin:0!important; text-align:center!important; }
+  .rebate-exact { position:relative!important; box-sizing:border-box!important; width:210mm!important; height:297mm!important; min-height:297mm!important; padding:15mm!important; overflow:hidden!important; display:flex!important; flex-direction:column!important; }
+  .rebate-exact .source-footer { position:static!important; margin-top:auto!important; }
   .hovp-sheet .notice-page-number,.rebate-exact .notice-page-number { position:absolute!important; right:23mm; bottom:9mm; margin:0!important; text-align:center!important; }
 }
 
@@ -383,7 +385,7 @@ h3 { margin:0; font-size:16px; }
 
 
 /* Rebate offer follows the supplied one-page letter layout. */
-.rebate-exact { min-height:1000px; padding:50px 62px 42px!important; font-size:12px; line-height:1.43; } .rebate-exact .source-letter-head { margin-bottom:48px; } .rebate-exact .rebate-date { margin:0 0 36px!important; } .rebate-exact .rebate-recipient { min-height:103px; margin:0!important; } .rebate-exact .rebate-subject { display:grid; grid-template-columns:45px minmax(0,1fr); margin:16px 0 18px!important; padding-bottom:5px; border-bottom:1px solid #333; font-size:14px; line-height:1.18; text-align:left!important; } .rebate-exact .rebate-closing { margin-top:64px!important; } .rebate-exact .approval-signature { margin-top:28px; } .rebate-exact .source-footer { margin-top:auto; }
+.rebate-exact { position:relative; box-sizing:border-box; min-height:1000px; padding:50px 62px 42px!important; display:flex; flex-direction:column; font-size:12px; line-height:1.43; } .rebate-exact .source-letter-head { margin-bottom:48px; } .rebate-exact .rebate-date { margin:0 0 36px!important; } .rebate-exact .rebate-recipient { min-height:103px; margin:0!important; } .rebate-exact .rebate-subject { display:grid; grid-template-columns:45px minmax(0,1fr); margin:16px 0 18px!important; padding-bottom:5px; border-bottom:1px solid #333; font-size:14px; line-height:1.18; text-align:left!important; } .rebate-exact .rebate-closing { margin-top:64px!important; } .rebate-exact .approval-signature { margin-top:28px; } .rebate-exact .source-footer { margin-top:auto; }
 .rebate-signatory { margin-top:24px; width:290px; color:#222; display:flex; flex-direction:column; align-items:flex-start; }
 .rebate-signature-space { height:92px; }
 .rebate-signature-rule { width:100%; border-top:2px dotted #555; margin-top:-12px; }
