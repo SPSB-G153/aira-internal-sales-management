@@ -179,17 +179,22 @@ const exactRecipient=(content:Record<string,unknown>)=>exactParagraph([
 async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
+  const approverName=text(content,"authorised_signatory_name","");
+  const approverPosition=text(content,"authorised_signatory_position","");
   const children:(Paragraph|Table)[]=[
     exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),
     exactRecipient(content),
     exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
-    exactParagraph([new TextRun("Re:      "),new TextRun({text:"AIRA RESIDENCE",bold:true,break:0}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:240,line:300}}),
+    new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[
+      new TableCell({width:{size:8,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("Re:",{spacing:{before:120,after:0,line:300}})]}),
+      new TableCell({width:{size:92,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"AIRA RESIDENCE",bold:true}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:0,line:300}})]}),
+    ]})]}),
     exactParagraph("Greetings from AIRA Residence…"),
     exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
     exactParagraph([new TextRun("As agreed, a rebate of "),new TextRun({text:amount(content.rebate_amount),bold:true}),new TextRun(" has been approved and will be offset directly from the payment of your Balance Purchase Price that follows the signing of the Sale and Purchase Agreement (SPA) and payment of Balance Deposit under the Sixth Schedule.")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
     exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true})],{spacing:{before:120,after:720,line:300}}),
-    new Table({width:{size:3300,type:WidthType.DXA},borders:{top:{style:BorderStyle.SINGLE,size:6,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun({text:"Brian Newman",bold:true}),new TextRun({text:"Director of Property",break:1})],{spacing:{before:0,after:0,line:240}})]})]})]}),
+    new Table({width:{size:3300,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.DOTTED,size:4,color:"555555"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun({text:approverName,bold:true}),new TextRun({text:approverPosition,break:1})],{spacing:{before:0,after:0,line:240}})]})]})]}),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo)));
 }
