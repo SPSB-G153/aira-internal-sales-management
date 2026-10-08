@@ -180,7 +180,7 @@ function HovpLetterExact({content}:{content:Content}){
       <p>Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession.</p>
       <p>Thank you.</p>
       <p>Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p>
-      <div className="hovp-signatory"><span/><b>{approver.toUpperCase()}</b><small>{designation}</small></div>
+      <ApprovalSignature content={content} hideCopy/>
       <CompanyFooter/><LetterPageNumber page={1}/>
     </article>
     <article className="letter source-letter hovp-sheet hovp-ack-sheet">

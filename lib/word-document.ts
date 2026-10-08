@@ -176,7 +176,7 @@ const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array)=>new Docum
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Helvetica",size:20},paragraph:{spacing:{line:260,after:0}}}}},
   sections:[{
-    properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1440,right:1440,bottom:1440,left:1440,header:720,footer:360}}},
+    properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1440,right:1440,bottom:700,left:1440,header:720,footer:360}}},
     headers:{first:letterHeader(fullLogo),default:hovpAcknowledgementHeader(fullLogo)},
     footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
     children,
@@ -265,7 +265,6 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const designation=text(content,"authorised_signatory_position","");
   const heading=(number:number,value:string)=>exactParagraph(`${number}.    ${value}`,{spacing:{before:60,after:30,line:260}});
   const term=(value:string)=>exactParagraph(value,{alignment:AlignmentType.JUSTIFIED,indent:{left:430},spacing:{before:0,after:90,line:260}});
-  const signatory=new Table({width:{size:3200,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({margins:{top:70,bottom:0,left:0,right:0},borders:{top:{style:BorderStyle.SINGLE,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:approver.toUpperCase(),bold:true,size:18}),new TextRun({text:designation,break:1,size:18})],{spacing:{before:0,after:0,line:240}})]})]})]});
   const children:(Paragraph|Table)[]=[
     exactParagraph(currentLetterDate(),{spacing:{before:120,after:200,line:260}}),exactRecipient(content),exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:180,line:260}}),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({margins:{top:0,bottom:50,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"RE:  AIRA RESIDENCE – HANDOVER OF VACANT POSSESSION",bold:true})],{spacing:{before:0,after:0,line:260}})]})]})]}),
@@ -281,7 +280,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     exactParagraph("For matters relating to the HOVP and handover arrangements, please contact:"),
     exactParagraph([new TextRun(`Name: ${salesperson}`),new TextRun({text:"Designation: ",break:1}),new TextRun({text:"Mobile: ",break:1}),new TextRun({text:"Email: ",break:1})],{spacing:{before:0,after:100,line:240}}),
     exactParagraph("Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession."),exactParagraph("Thank you."),
-    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:560,line:260}}),signatory,
+    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:240,line:260}}),acceptanceSignature(content),
     new Paragraph({children:[new PageBreak()]}),
     exactParagraph([new TextRun({text:"HOVP HANDOVER ACKNOWLEDGEMENT",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:240,after:120,line:300}}),
     exactParagraph([new TextRun({text:"AIRA Residence",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:720,line:300}}),

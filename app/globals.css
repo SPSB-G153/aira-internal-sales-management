@@ -376,10 +376,8 @@ h3 { margin:0; font-size:16px; }
 .hovp-terms>li>p { margin-bottom:0; text-align:justify; }
 .hovp-letter .management-contact { margin-left:34px; }
 .hovp-letter .management-contact a { color:inherit; text-decoration:underline; }
-.hovp-signatory { width:280px; margin-top:36px; display:flex; flex-direction:column; color:#111; font-size:12px; line-height:1.25; }
-.hovp-signatory>span { height:42px; margin-bottom:5px; border-bottom:1px solid #333; }
-.hovp-signatory>b { font-size:12px; }
-.hovp-signatory>small { font-size:12px; }
+.hovp-letter>.approval-signature { flex:0 0 auto; margin-top:24px; margin-bottom:28px; color:#111; }
+.hovp-letter>.approval-signature .signature-space { height:44px; }
 .hovp-letter .source-footer { margin-top:auto; }
 
 
