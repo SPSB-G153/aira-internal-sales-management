@@ -267,9 +267,12 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const unit=text(content,"unit_number");
   const handover=currentLetterDate();
   const salesperson=text(content,"salesperson_name","");
+  const salespersonDesignation=text(content,"salesperson_designation","");
+  const salespersonMobile=text(content,"salesperson_mobile","");
+  const salespersonEmail=text(content,"salesperson_email","");
   const approver=text(content,"authorised_signatory_name","");
   const designation=text(content,"authorised_signatory_position","");
-  const heading=(number:number,value:string)=>exactParagraph(`${number}.    ${value}`,{spacing:{before:60,after:30,line:260}});
+  const heading=(number:number,value:string)=>exactParagraph([new TextRun(`${number}.    `),new TextRun({text:value,underline:{type:UnderlineType.SINGLE}})],{spacing:{before:60,after:30,line:260}});
   const term=(value:string)=>exactParagraph(value,{alignment:AlignmentType.JUSTIFIED,indent:{left:430},spacing:{before:0,after:90,line:260}});
   const children:(Paragraph|Table)[]=[
     exactParagraph(currentLetterDate(),{spacing:{before:120,after:200,line:260}}),exactRecipient(content),exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:180,line:260}}),
@@ -283,8 +286,9 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     heading(3,"Renovation and Alteration"),term("Following handover, any renovation, alteration or modification carried out within the Unit shall be at your own cost and responsibility."),
     heading(4,"Building Management"),term("Following handover, matters relating to the building, common areas, facilities and building management shall be referred to AIRA Building Management."),
     exactParagraph([new TextRun({text:"AIRA Building Management",bold:true}),new TextRun({text:"Tel: 03-2011 5908",break:1}),new TextRun({text:"Email: airaresidencemgmt@gmail.com",break:1,underline:{type:UnderlineType.SINGLE}})],{indent:{left:430},spacing:{before:0,after:100,line:240}}),
-    exactParagraph("For matters relating to the HOVP and handover arrangements, please contact:"),
-    exactParagraph([new TextRun(`Name: ${salesperson}`),new TextRun({text:"Designation: ",break:1}),new TextRun({text:"Mobile: ",break:1}),new TextRun({text:"Email: ",break:1})],{spacing:{before:0,after:100,line:240}}),
+    heading(5,"Handover Coordination"),
+    term("For matters relating to the HOVP and handover arrangements, please contact:"),
+    exactParagraph([new TextRun(`Name: ${salesperson}`),new TextRun({text:`Designation: ${salespersonDesignation}`,break:1}),new TextRun({text:`Mobile: ${salespersonMobile}`,break:1}),new TextRun({text:`Email: ${salespersonEmail}`,break:1})],{indent:{left:430},spacing:{before:0,after:100,line:240}}),
     exactParagraph("Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession."),exactParagraph("Thank you."),
     exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:240,line:260}}),acceptanceSignature(content),
     new Paragraph({children:[new PageBreak()]}),

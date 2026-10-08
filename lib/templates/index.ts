@@ -11,7 +11,8 @@ const common=(s:Sale)=>({
   storey_number:s.storey_number,unit_type:s.unit_type,floor_area:s.floor_area,floor_area_sqm:s.floor_area_sqm,
   car_parking_bay:s.car_parking_bay,purchase_price:s.purchase_price,booking_fee:s.booking_fee,rebate_amount:s.rebate_amount,quoted_id_net_selling_price:s.quoted_id_net_selling_price,
   payment_method:s.payment_method,payment_reference:s.payment_reference,
-  salesperson_name:s.salesperson_name,agent_company:s.agent_company,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
+  salesperson_name:s.salesperson_name,salesperson_designation:s.salesperson_designation,salesperson_mobile:s.salesperson_mobile,salesperson_email:s.salesperson_email,
+  agent_company:s.agent_company,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
   authorised_signatory_name:s.authorised_signatory_name,authorised_signatory_position:s.authorised_signatory_position,
   pop_proposal_note:s.pop_proposal_note,pop_recommendation_note:s.pop_recommendation_note,pop_feasibility_note:s.pop_feasibility_note,pop_comments_note:s.pop_comments_note,
 });

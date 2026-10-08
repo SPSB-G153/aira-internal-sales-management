@@ -401,10 +401,12 @@ h3 { margin:0; font-size:16px; }
 .hovp-terms { margin:0 0 5px; padding:0; list-style:none; counter-reset:hovp-term; }
 .hovp-terms>li { position:relative; margin:0 0 8px; padding-left:34px; counter-increment:hovp-term; }
 .hovp-terms>li::before { position:absolute; left:0; width:24px; content:counter(hovp-term) "."; text-align:right; }
-.hovp-terms>li>span { display:block; margin-bottom:5px; }
+.hovp-terms>li>span { display:block; margin-bottom:5px; text-decoration:underline; }
 .hovp-terms>li>p { margin-bottom:0; text-align:justify; }
 .hovp-letter .management-contact { margin-left:34px; }
 .hovp-letter .management-contact a { color:inherit; text-decoration:underline; }
+.hovp-contact-term { counter-reset:hovp-term 4; }
+.hovp-contact-term .hovp-contact { margin-top:5px!important; text-align:left!important; }
 .hovp-letter>.approval-signature { flex:0 0 auto; margin-top:24px; margin-bottom:28px; color:#111; }
 .hovp-letter>.approval-signature .signature-space { height:44px; }
 .hovp-letter .source-footer { margin-top:auto; }

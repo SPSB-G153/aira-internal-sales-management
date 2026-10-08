@@ -156,6 +156,9 @@ function HovpLetterExact({content}:{content:Content}){
   const unit=value(content,"unit_number");
   const tower=towerFromUnit(unit);
   const salesperson=value(content,"salesperson_name","");
+  const salespersonDesignation=value(content,"salesperson_designation","");
+  const salespersonMobile=value(content,"salesperson_mobile","");
+  const salespersonEmail=value(content,"salesperson_email","");
   const approver=value(content,"authorised_signatory_name","");
   const designation=value(content,"authorised_signatory_position","");
   return <div className="hovp-exact">
@@ -175,8 +178,9 @@ function HovpLetterExact({content}:{content:Content}){
         <li><span>Building Management</span><p>Following handover, matters relating to the building, common areas, facilities and building management shall be referred to AIRA Building Management.</p></li>
       </ol>
       <p className="management-contact"><b>AIRA Building Management</b><br/>Tel: 03-2011 5908<br/>Email: <a href="mailto:airaresidencemgmt@gmail.com">airaresidencemgmt@gmail.com</a></p>
-      <p>For matters relating to the HOVP and handover arrangements, please contact:</p>
-      <p className="hovp-contact">Name: {salesperson}<br/>Designation: <br/>Mobile: <br/>Email: </p>
+      <ol className="hovp-terms hovp-contact-term" start={5}>
+        <li><span>Handover Coordination</span><p>For matters relating to the HOVP and handover arrangements, please contact:</p><p className="hovp-contact">Name: {salesperson}<br/>Designation: {salespersonDesignation}<br/>Mobile: {salespersonMobile}<br/>Email: {salespersonEmail}</p></li>
+      </ol>
       <p>Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession.</p>
       <p>Thank you.</p>
       <p>Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p>

@@ -539,8 +539,25 @@ export function SaleForm({ sale, initialValues }: Props) {
           />
           <Field
             name="salesperson_name"
-            label="Booking contact person"
+            label="Sales personnel name"
             defaultValue={v("salesperson_name")}
+          />
+          <Field
+            name="salesperson_designation"
+            label="Sales personnel designation"
+            defaultValue={v("salesperson_designation")}
+          />
+          <Field
+            name="salesperson_mobile"
+            label="Sales personnel mobile no."
+            type="tel"
+            defaultValue={v("salesperson_mobile")}
+          />
+          <Field
+            name="salesperson_email"
+            label="Sales personnel email"
+            type="email"
+            defaultValue={v("salesperson_email")}
           />
           <Field
             name="agent_company"
