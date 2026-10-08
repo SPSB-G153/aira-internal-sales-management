@@ -193,7 +193,7 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
       new TextRun("Yours sincerely,"),
       new TextRun({text:"For and on behalf of ",italics:true,break:1}),
       new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true}),
-    ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:1560,line:300}}),
+    ],{alignment:AlignmentType.LEFT,spacing:{before:300,after:1560,line:300}}),
     acceptanceSignature(content),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,false,720)));
