@@ -186,8 +186,8 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
     exactRecipient(content),
     exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[
-      new TableCell({width:{size:8,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("Re:",{spacing:{before:120,after:0,line:300}})]}),
-      new TableCell({width:{size:92,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"AIRA RESIDENCE",bold:true}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:0,line:300}})]}),
+      new TableCell({width:{size:5,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("Re:",{spacing:{before:120,after:0,line:300}})]}),
+      new TableCell({width:{size:95,type:WidthType.PERCENTAGE},margins:{top:0,bottom:70,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"AIRA RESIDENCE",bold:true}),new TextRun({text:`UNIT ${unit} – CONFIRMATION OF REBATE OFFER`,bold:true,break:1})],{spacing:{before:120,after:0,line:300}})]}),
     ]})]}),
     exactParagraph("Greetings from AIRA Residence…"),
     exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
