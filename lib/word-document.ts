@@ -83,12 +83,12 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
   ];
   return new Table({
     width:{size:100,type:WidthType.PERCENTAGE},
-    borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:4,color:"777777"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
-    rows:rows.map(([label,value])=>new TableRow({children:[
-      new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
-      new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
-      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:value,bold:true})]})]}),
-    ]}))
+    borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
+    rows:rows.map(([label,value],index)=>{const bottom=index===rows.length-1?{style:BorderStyle.SINGLE,size:4,color:"777777"}:noBorder;return new TableRow({children:[
+      new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
+      new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
+      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:value,bold:true})]})]}),
+    ]});})
   });
 };
 
@@ -121,7 +121,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:600,after:240,line:300}}),
     acceptanceFactTable(content),
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:600,after:200,line:341}}),
-    acceptanceParagraph([new TextRun("We thank you for your Offer to Purchase the Property described above which is dated — (“"),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
+    acceptanceParagraph([new TextRun(`We thank you for your Offer to Purchase the Property described above which is dated ${date(content.sale_date)} (“`),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
     acceptanceParagraph([new TextRun("You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“"),new TextRun({text:"SPA",bold:true}),new TextRun("”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “"),new TextRun({text:"Sale Documents",bold:true}),new TextRun("”) in the manner described below.")]),
     acceptanceParagraph(`Firstly we ask that you kindly contact our sales and marketing agent ${contact}${agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer – your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.`),
   ];
