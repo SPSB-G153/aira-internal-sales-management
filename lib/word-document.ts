@@ -14,15 +14,10 @@ const pageNumberFooter=()=>new Footer({children:[new Table({
   alignment:AlignmentType.RIGHT,
   width:{size:900,type:WidthType.DXA},
   rows:[new TableRow({children:[new TableCell({
-    width:{size:540,type:WidthType.DXA},
+    width:{size:900,type:WidthType.DXA},
     margins:{top:45,bottom:0,left:0,right:0},
     borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
-    children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:20})]})]
-  }),new TableCell({
-    width:{size:360,type:WidthType.DXA},
-    margins:{top:0,bottom:0,left:0,right:0},
-    borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
-    children:[new Paragraph({spacing:{before:0,after:0}})]
+    children:[new Paragraph({alignment:AlignmentType.RIGHT,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:16})]})]
   })]})]
 })]});
 
@@ -36,24 +31,24 @@ const acceptanceFirstFooter=()=>new Footer({children:[new Table({
   width:{size:100,type:WidthType.PERCENTAGE},
   rows:[new TableRow({children:[
     new TableCell({
-      width:{size:89,type:WidthType.PERCENTAGE},
+      width:{size:91,type:WidthType.PERCENTAGE},
       margins:{top:100,bottom:0,left:0,right:80},
       borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
       children:[new Paragraph({spacing:{before:0,after:0,line:210},children:[
-        new TextRun({text:"SELANGOR PROPERTIES SDN. BHD.   ",bold:true,size:13}),
+        new TextRun({text:"SELANGOR PROPERTIES SDN. BHD.   ",bold:true,size:14}),
         new TextRun({text:"Registration No. 196301000340 (5199-X)",size:12}),
-        new TextRun({text:"Level 3, Block D, The FIVE @ KPD, Kompleks Pejabat Damansara, Jalan Dungun, Damansara Heights, 50490 Kuala Lumpur,",break:1,size:12}),
-        new TextRun({text:"Malaysia. (P.O. Box 12267, 50772 Kuala Lumpur, Malaysia)        t +603 2094 1122        f +603 2095 0150",break:1,size:12}),
+        new TextRun({text:"Level 3, Block D, The FIVE @ KPD, Kompleks Pejabat Damansara, Jalan Dungun, Damansara Heights, 50490 Kuala Lumpur,",break:1,size:14}),
+        new TextRun({text:"Malaysia. (P.O. Box 12267, 50772 Kuala Lumpur, Malaysia)        t +603 2094 1122        f +603 2095 0150",break:1,size:14}),
       ]})]
     }),
     new TableCell({
       width:{size:8,type:WidthType.PERCENTAGE},
       margins:{top:260,bottom:0,left:0,right:0},
       borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
-      children:[new Paragraph({alignment:AlignmentType.CENTER,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:20})]})]
+      children:[new Paragraph({alignment:AlignmentType.RIGHT,spacing:{before:0,after:0},children:[new TextRun({children:[PageNumber.CURRENT],size:16})]})]
     }),
     new TableCell({
-      width:{size:3,type:WidthType.PERCENTAGE},
+      width:{size:1,type:WidthType.PERCENTAGE},
       margins:{top:0,bottom:0,left:0,right:0},
       borders:{top:{style:BorderStyle.SINGLE,size:4,color:"BDBDBD"},bottom:noBorder,left:noBorder,right:noBorder},
       children:[new Paragraph({spacing:{before:0,after:0}})]
