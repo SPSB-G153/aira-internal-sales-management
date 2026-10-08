@@ -395,10 +395,13 @@ h3 { margin:0; font-size:16px; }
     margin-bottom:0!important;
   }
   .hovp-exact .hovp-letter>.approval-signature .signature-space {
-    height:22px!important;
+    height:38px!important;
   }
   .hovp-exact .hovp-letter .source-letter-head {
-    margin-bottom:8px!important;
+    margin-bottom:0!important;
+  }
+  .hovp-exact .hovp-letter {
+    padding-top:40px!important;
   }
 }
 
