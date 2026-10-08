@@ -290,7 +290,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     term("For matters relating to the HOVP and handover arrangements, please contact:"),
     exactParagraph([new TextRun(`Name: ${salesperson}`),new TextRun({text:`Designation: ${salespersonDesignation}`,break:1}),new TextRun({text:`Mobile: ${salespersonMobile}`,break:1}),new TextRun({text:`Email: ${salespersonEmail}`,break:1})],{indent:{left:430},spacing:{before:0,after:100,line:240}}),
     exactParagraph("Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession."),exactParagraph("Thank you."),
-    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:460,line:260}}),acceptanceSignature(content),
+    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:900,line:260}}),acceptanceSignature(content),
     new Paragraph({children:[new PageBreak()]}),
     exactParagraph([new TextRun({text:"HOVP HANDOVER ACKNOWLEDGEMENT",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:460,after:120,line:300}}),
     exactParagraph([new TextRun({text:"AIRA Residence",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:720,line:300}}),
