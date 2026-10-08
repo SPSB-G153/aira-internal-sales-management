@@ -186,7 +186,11 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
     exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
     exactParagraph([new TextRun("As agreed, a rebate of "),new TextRun({text:amount(content.rebate_amount),bold:true}),new TextRun(" has been approved and will be offset directly from the payment of your Balance Purchase Price that follows the signing of the Sale and Purchase Agreement (SPA) and payment of Balance Deposit under the Sixth Schedule.")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
-    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Berhad",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:620,line:300}}),
+    exactParagraph([
+      new TextRun("Yours sincerely,"),
+      new TextRun({text:"For and on behalf of ",italics:true,break:1}),
+      new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true}),
+    ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:620,line:300}}),
     acceptanceSignature(content),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo)));
