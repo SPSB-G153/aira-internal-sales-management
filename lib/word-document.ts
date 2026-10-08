@@ -27,6 +27,18 @@ const letterHeader=(image:Uint8Array,emblem=false)=>new Header({children:[new Pa
   children:[new ImageRun({type:"png",data:image,transformation:emblem?{width:40,height:31}:{width:195,height:58},altText:{title:emblem?"SPB emblem":"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:emblem?"SPB emblem":"Selangor Properties Berhad"}})]
 })]});
 
+const hovpAcknowledgementHeader=(image:Uint8Array)=>new Header({children:[new Table({
+  width:{size:100,type:WidthType.PERCENTAGE},
+  borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
+  rows:[new TableRow({children:[
+    new TableCell({width:{size:55,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:0,line:210},children:[
+      new TextRun({text:"AIRA",color:"D89A9A",size:42}),
+      new TextRun({text:"RESIDENCE",color:"D89A9A",size:18,break:1,characterSpacing:30}),
+    ]})]}),
+    new TableCell({width:{size:45,type:WidthType.PERCENTAGE},margins:{top:0,bottom:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({alignment:AlignmentType.RIGHT,spacing:{before:0,after:0},children:[new ImageRun({type:"png",data:image,transformation:{width:158,height:47},altText:{title:"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:"Selangor Properties Berhad"}})]})]})
+  ]})]
+})]});
+
 const acceptanceFirstFooter=()=>new Footer({children:[new Table({
   width:{size:100,type:WidthType.PERCENTAGE},
   rows:[new TableRow({children:[
@@ -159,6 +171,17 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
   }]
 });
 
+const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array)=>new Document({
+  features:{updateFields:true},
+  styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
+  sections:[{
+    properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
+    headers:{first:letterHeader(fullLogo),default:hovpAcknowledgementHeader(fullLogo)},
+    footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
+    children,
+  }]
+});
+
 const exactParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
   spacing:{before:0,after:200,line:300},
   alignment:AlignmentType.LEFT,
@@ -232,7 +255,7 @@ const blankFieldTable=(rows:string[],width=4300)=>new Table({
   ]}))
 });
 
-async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
+async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array,_emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const handover=text(content,"hovp_date","To be confirmed");
@@ -263,7 +286,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
       new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[heading("For Selangor Properties Sdn Bhd"),blankFieldTable(["Signature","Name","Designation","Date"],3800)]}),
     ]})]}),
   ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
+  return new Uint8Array(await Packer.toBuffer(hovpDocument(children,fullLogo)));
 }
 
 const popMoney=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{maximumFractionDigits:2}).format(value):"0";
