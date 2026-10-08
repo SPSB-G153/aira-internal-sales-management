@@ -394,7 +394,7 @@ h3 { margin:0; font-size:16px; }
 
 /* Match the approved HOVP source document without changing the other letters. */
 .hovp-letter { position:relative; box-sizing:border-box; min-height:1000px; padding:48px 58px 42px!important; display:flex; flex-direction:column; color:#111; font-family:Helvetica,Arial,sans-serif; font-size:13.333px!important; line-height:1.25; }
-.hovp-letter .source-letter-head { min-height:56px; margin-bottom:28px; }
+.hovp-letter .source-letter-head { min-height:56px; margin-bottom:20px; }
 .hovp-letter .source-letter-head img { width:158px; max-width:none; }
 .hovp-letter p { margin:0 0 12px; text-align:left; }
 .hovp-letter .source-subject { margin:6px 0 14px; padding-bottom:4px; border-bottom:1px solid #333; font-size:13.333px; font-weight:700; line-height:1.25; text-decoration:none; }

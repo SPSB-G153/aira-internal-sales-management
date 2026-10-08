@@ -275,7 +275,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const heading=(number:number,value:string)=>exactParagraph([new TextRun(`${number}.    `),new TextRun({text:value,underline:{type:UnderlineType.SINGLE}})],{spacing:{before:60,after:30,line:260}});
   const term=(value:string)=>exactParagraph(value,{alignment:AlignmentType.JUSTIFIED,indent:{left:430},spacing:{before:0,after:90,line:260}});
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:120,after:200,line:260}}),exactRecipient(content),exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:180,line:260}}),
+    exactParagraph(currentLetterDate(),{spacing:{before:0,after:200,line:260}}),exactRecipient(content),exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:180,line:260}}),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({margins:{top:0,bottom:50,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"RE:  AIRA RESIDENCE – HANDOVER OF VACANT POSSESSION",bold:true})],{spacing:{before:0,after:0,line:260}})]})]})]}),
     exactParagraph([new TextRun("We refer to your purchase of Unit "),new TextRun({text:unit,bold:true}),new TextRun(", AIRA Residence (“Unit”).")]),
     exactParagraph([new TextRun("We are pleased to inform you that vacant possession of the Unit is available for handover on "),new TextRun({text:handover,bold:true}),new TextRun(".")]),
