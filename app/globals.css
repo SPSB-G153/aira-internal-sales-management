@@ -385,10 +385,17 @@ h3 { margin:0; font-size:16px; }
   }
   .hovp-exact .hovp-sheet .notice-page-number {
     position:absolute!important;
-    right:23mm!important;
+    right:8mm!important;
     bottom:9mm!important;
     margin:0!important;
     text-align:center!important;
+  }
+  .hovp-exact .hovp-letter>.approval-signature {
+    margin-top:8px!important;
+    margin-bottom:0!important;
+  }
+  .hovp-exact .hovp-letter>.approval-signature .signature-space {
+    height:10px!important;
   }
 }
 
