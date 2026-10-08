@@ -179,8 +179,6 @@ const exactRecipient=(content:Record<string,unknown>)=>exactParagraph([
 async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
-  const approverName=text(content,"authorised_signatory_name","");
-  const approverPosition=text(content,"authorised_signatory_position","");
   const children:(Paragraph|Table)[]=[
     exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),
     exactRecipient(content),
@@ -193,8 +191,8 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
     exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
     exactParagraph([new TextRun("As agreed, a rebate of "),new TextRun({text:amount(content.rebate_amount),bold:true}),new TextRun(" has been approved and will be offset directly from the payment of your Balance Purchase Price that follows the signing of the Sale and Purchase Agreement (SPA) and payment of Balance Deposit under the Sixth Schedule.")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
-    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true})],{spacing:{before:120,after:720,line:300}}),
-    new Table({width:{size:3300,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.DOTTED,size:4,color:"555555"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun({text:approverName,bold:true}),new TextRun({text:approverPosition,break:1})],{spacing:{before:0,after:0,line:240}})]})]})]}),
+    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"SELANGOR PROPERTIES SDN BHD",bold:true,italics:true})],{spacing:{before:120,after:420,line:300}}),
+    acceptanceSignature(content),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo)));
 }
