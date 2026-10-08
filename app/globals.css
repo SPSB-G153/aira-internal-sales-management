@@ -364,20 +364,38 @@ h3 { margin:0; font-size:16px; }
 @media screen { .hovp-exact { display:grid; gap:34px; } .hovp-exact .hovp-sheet { margin:0 auto; max-width:760px; } }
 @media print { .hovp-exact .hovp-sheet { break-after:page; page-break-after:always; } .hovp-exact .hovp-sheet:last-child { break-after:auto; page-break-after:auto; } }
 
+/* Match the approved HOVP source document without changing the other letters. */
+.hovp-letter { position:relative; box-sizing:border-box; min-height:1000px; padding:48px 58px 42px!important; display:flex; flex-direction:column; color:#111; font-family:Helvetica,Arial,sans-serif; font-size:13.333px!important; line-height:1.25; }
+.hovp-letter .source-letter-head { margin-bottom:28px; }
+.hovp-letter p { margin:0 0 12px; text-align:left; }
+.hovp-letter .source-subject { margin:6px 0 14px; padding-bottom:4px; border-bottom:1px solid #333; font-size:13.333px; font-weight:700; line-height:1.25; text-decoration:none; }
+.hovp-terms { margin:0 0 5px; padding:0; list-style:none; counter-reset:hovp-term; }
+.hovp-terms>li { position:relative; margin:0 0 8px; padding-left:34px; counter-increment:hovp-term; }
+.hovp-terms>li::before { position:absolute; left:0; width:24px; content:counter(hovp-term) "."; text-align:right; }
+.hovp-terms>li>span { display:block; margin-bottom:5px; }
+.hovp-terms>li>p { margin-bottom:0; text-align:justify; }
+.hovp-letter .management-contact { margin-left:34px; }
+.hovp-letter .management-contact a { color:inherit; text-decoration:underline; }
+.hovp-signatory { width:280px; margin-top:36px; display:flex; flex-direction:column; color:#111; font-size:12px; line-height:1.25; }
+.hovp-signatory>span { height:42px; margin-bottom:5px; border-bottom:1px solid #333; }
+.hovp-signatory>b { font-size:12px; }
+.hovp-signatory>small { font-size:12px; }
+.hovp-letter .source-footer { margin-top:auto; }
+
 
 /* HOVP acknowledgement follows the supplied printed template. */
 .hovp-ack-sheet { max-width:760px; min-height:940px; padding:48px 58px 54px!important; font-size:12px; line-height:1.36; }
 .hovp-ack-head { display:flex; align-items:flex-start; justify-content:space-between; min-height:56px; } .hovp-ack-head img { width:158px; height:auto; object-fit:contain; }
 .aira-wordmark { color:#d89a9a; font:300 29px/.78 Arial,sans-serif; letter-spacing:.06em; } .aira-wordmark span { display:block; margin-top:6px; font-size:14px; letter-spacing:.16em; }
 .hovp-ack-title { margin:8px 0 16px; text-align:center; font-size:16px; font-weight:800; letter-spacing:.015em; } .hovp-ack-project { margin:0 0 66px!important; text-align:center!important; font-size:16px; }
-.hovp-ack-fields { width:362px; margin:0 0 52px; padding:0; } .hovp-ack-fields>div { display:grid; grid-template-columns:105px 18px 1fr; align-items:end; margin:0 0 8px; } .hovp-ack-fields dt,.hovp-ack-fields dd { margin:0; } .hovp-ack-fields dt::after { content:":"; float:right; } .hovp-ack-fields dd { height:15px; border-bottom:1px solid #222; }
+.hovp-ack-fields { width:430px; margin:0 0 52px; padding:0; } .hovp-ack-fields>div { display:grid; grid-template-columns:105px 18px 1fr; align-items:end; margin:0 0 8px; } .hovp-ack-fields dt,.hovp-ack-fields dd { margin:0; } .hovp-ack-fields dt::after { content:":"; float:right; } .hovp-ack-fields dd { min-height:15px; padding:0 4px 2px; border-bottom:1px solid #222; }
 .hovp-ack-text { margin:0 0 27px!important; text-align:left!important; } .hovp-ack-signatures { display:grid; grid-template-columns:1fr 1fr; gap:53px; } .hovp-ack-signatures dl { display:grid; grid-template-columns:auto 16px minmax(0,1fr); align-items:end; margin:0; } .hovp-ack-signatures dt,.hovp-ack-signatures dd { margin:0 0 10px; } .hovp-ack-signatures dt::after { content:":"; justify-self:end; } .hovp-ack-signatures dl>dt:first-child { grid-column:1 / -1; margin-bottom:12px; text-decoration:underline; } .hovp-ack-signatures dl>dt:first-child::after { content:""; } .hovp-ack-signatures dd { height:15px; border-bottom:1px solid #222; }
 @media(max-width:640px){.hovp-ack-sheet{padding:30px 24px!important}.hovp-ack-head img{width:130px}.aira-wordmark{font-size:23px}.hovp-ack-fields{width:100%;margin-bottom:38px}.hovp-ack-signatures{gap:25px;font-size:11px}}
 
 
 /* Precise HOVP acknowledgement field and signature alignment. */
 .hovp-ack-project { margin-bottom:52px!important; } .hovp-ack-fields { margin-bottom:46px; } .hovp-ack-fields dt,.hovp-ack-fields dd,.hovp-ack-fields i { margin:0; } .hovp-ack-fields i { font-style:normal; text-align:center; } .hovp-ack-fields dd { height:15px; border-bottom:1px solid #222; } .hovp-ack-fields dt::after { content:none; }
-.hovp-ack-signatures section>p { margin:0 0 11px!important; text-align:left!important; text-decoration:underline; } .hovp-ack-signatures dl { margin:0; } .hovp-ack-signatures dl>div { display:grid; grid-template-columns:max-content 18px minmax(0,1fr); align-items:end; margin:0 0 10px; } .hovp-ack-signatures dt,.hovp-ack-signatures dd,.hovp-ack-signatures i { margin:0; } .hovp-ack-signatures i { font-style:normal; text-align:center; } .hovp-ack-signatures dd { height:15px; border-bottom:1px solid #222; } .hovp-ack-signatures dt::after { content:none; }
+.hovp-ack-signatures section>p { margin:0 0 11px!important; text-align:left!important; text-decoration:underline; } .hovp-ack-signatures dl { margin:0; } .hovp-ack-signatures dl>div { display:grid; grid-template-columns:max-content 18px minmax(0,1fr); align-items:end; margin:0 0 10px; } .hovp-ack-signatures dt,.hovp-ack-signatures dd,.hovp-ack-signatures i { margin:0; } .hovp-ack-signatures i { font-style:normal; text-align:center; } .hovp-ack-signatures dd { min-height:15px; padding:0 3px 2px; border-bottom:1px solid #222; } .hovp-ack-signatures dt::after { content:none; }
 
 
 /* Keep each HOVP signature field on its own row. */
