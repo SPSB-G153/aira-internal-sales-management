@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, HeightRule, ImageRun, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
@@ -252,14 +252,29 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
 }
 
-const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,rowHeights?:number[])=>new Table({
+const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650)=>new Table({
   width:{size:width,type:WidthType.DXA},
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
-  rows:rows.map(([label,value],index)=>new TableRow({height:rowHeights?{value:rowHeights[index],rule:HeightRule.ATLEAST}:undefined,children:[
-    new TableCell({width:{size:labelWidth,type:WidthType.DXA},verticalAlign:rowHeights?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:180,type:WidthType.DXA},verticalAlign:rowHeights?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:width-labelWidth-180,type:WidthType.DXA},verticalAlign:rowHeights?VerticalAlign.CENTER:undefined,margins:{top:0,bottom:0,left:45,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:0,after:80,line:260}})]}),
+  rows:rows.map(([label,value])=>new TableRow({children:[
+    new TableCell({width:{size:labelWidth,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:180,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:width-labelWidth-180,type:WidthType.DXA},margins:{top:0,bottom:0,left:45,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:0,after:80,line:260}})]}),
   ]}))
+});
+
+const hovpAcknowledgementTable=(leftRows:[string,string][],rightRows:[string,string][])=>new Table({
+  width:{size:100,type:WidthType.PERCENTAGE},
+  borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
+  rows:[
+    new TableRow({children:[
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[exactParagraph([new TextRun({text:"Purchaser",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
+    ]}),
+    ...leftRows.map((leftRow,index)=>new TableRow({children:[
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[hovpFieldTable([leftRow],3900,1700)]}),
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[hovpFieldTable([rightRows[index]],3900,1700)]}),
+    ]})),
+  ],
 });
 
 async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array,_emblemLogo:Uint8Array){
@@ -296,10 +311,10 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     exactParagraph([new TextRun({text:"AIRA Residence",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:720,line:300}}),
     hovpFieldTable([["Tower",towerFromUnit(unit)],["Unit No.",unit],["HOVP Date",handover]],5000),
     exactParagraph("I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an “as-is, where-is” basis.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:420,line:341}}),
-    new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[exactParagraph([new TextRun({text:"Purchaser",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}}),hovpFieldTable([["Signature",""],["Purchaser’s Name",purchaser],["NRIC/Passport No.",text(content,"customer_ic","")],["Date",""]],3900,1700,[320,520,520,320])]}),
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}}),hovpFieldTable([["Signature",""],["Name",approver],["Designation",designation],["Date",""]],3900,1700,[320,520,520,320])]}),
-    ]})]}),
+    hovpAcknowledgementTable(
+      [["Signature",""],["Purchaser’s Name",purchaser],["NRIC/Passport No.",text(content,"customer_ic","")],["Date",""]],
+      [["Signature",""],["Name",approver],["Designation",designation],["Date",""]],
+    ),
   ];
   return new Uint8Array(await Packer.toBuffer(hovpDocument(children,fullLogo)));
 }
