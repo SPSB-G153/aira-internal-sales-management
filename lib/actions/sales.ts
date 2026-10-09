@@ -69,7 +69,16 @@ export async function deleteSale(id:string,_:DeleteSaleState,form:FormData):Prom
     if(saleError||!sale)return{error:"This booking could not be found in your workspace."};
     if(confirmationReference!==sale.sale_reference)return{error:`Type ${sale.sale_reference} exactly to confirm deletion.`};
     const{error}=await db.rpc("delete_sale_with_documents",{target_sale_id:id,confirmation_reference:confirmationReference});
-    if(error)throw new Error(error.message);
+    if(error&&!["PGRST202","42883"].includes(error.code))throw new Error(error.message);
+    // During a rolling deploy the UI can arrive just before the migration.
+    // Keep the same server-side owner check and use the existing scoped RLS
+    // until the transactional RPC is visible in PostgREST's schema cache.
+    if(error){
+      const{error:documentsError}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",id);
+      if(documentsError)throw new Error(documentsError.message);
+      const{data:deletedSale,error:saleDeleteError}=await db.from("sales").delete().eq("team_id",team.id).eq("id",id).select("id").single();
+      if(saleDeleteError||!deletedSale)throw new Error(saleDeleteError?.message??"Booking was not deleted.");
+    }
   }catch{
     return{error:"The booking was not deleted. Please check that you are signed in as the owner and try again."};
   }
