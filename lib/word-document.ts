@@ -252,13 +252,13 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
 }
 
-const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650)=>new Table({
+const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,colonWidth=180,alignWrapped=false,valueLeft=45)=>new Table({
   width:{size:width,type:WidthType.DXA},
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
   rows:rows.map(([label,value])=>new TableRow({children:[
-    new TableCell({width:{size:labelWidth,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:180,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:width-labelWidth-180,type:WidthType.DXA},margins:{top:0,bottom:0,left:45,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:labelWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:colonWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:width-labelWidth-colonWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,margins:{top:0,bottom:0,left:valueLeft,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:0,after:80,line:260}})]}),
   ]}))
 });
 
@@ -271,8 +271,8 @@ const hovpAcknowledgementTable=(leftRows:[string,string][],rightRows:[string,str
       new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
     ]}),
     ...leftRows.map((leftRow,index)=>new TableRow({children:[
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[hovpFieldTable([leftRow],3900,1700)]}),
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[hovpFieldTable([rightRows[index]],3900,1700)]}),
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[hovpFieldTable([leftRow],3900,1450,120,true,20)]}),
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[hovpFieldTable([rightRows[index]],3900,1450,120,true,20)]}),
     ]})),
   ],
 });
