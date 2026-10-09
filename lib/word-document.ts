@@ -256,7 +256,7 @@ const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,colonWid
   width:{size:width,type:WidthType.DXA},
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
   rows:rows.map(([label,value])=>new TableRow({children:[
-    new TableCell({width:{size:labelWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:labelWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label==="NRIC/Passport No."?[new TextRun({text:label,scale:80})]:label,{spacing:{before:0,after:80,line:260}})]}),
     new TableCell({width:{size:colonWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
     new TableCell({width:{size:width-labelWidth-colonWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,margins:{top:0,bottom:0,left:valueLeft,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:0,after:80,line:260}})]}),
   ]}))
@@ -271,8 +271,8 @@ const hovpAcknowledgementTable=(leftRows:[string,string][],rightRows:[string,str
       new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
     ]}),
     ...leftRows.map((leftRow,index)=>new TableRow({children:[
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[hovpFieldTable([leftRow],3900,1450,120,true,20)]}),
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[hovpFieldTable([rightRows[index]],3900,1450,120,true,20)]}),
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[hovpFieldTable([leftRow],4200,1450,120,true,20)]}),
+      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[hovpFieldTable([rightRows[index]],4200,1450,120,true,20)]}),
     ]})),
   ],
 });
@@ -310,7 +310,9 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     paragraph("Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession."),paragraph("Thank you."),
     exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:0,after:900,line:260}}),acceptanceSignature(content),
     new Paragraph({children:[new PageBreak()]}),
-    exactParagraph([new TextRun({text:"HOVP HANDOVER ACKNOWLEDGEMENT",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:460,after:120,line:300}}),
+    exactParagraph("",{spacing:{before:0,after:0,line:300}}),
+    exactParagraph("",{spacing:{before:0,after:0,line:300}}),
+    exactParagraph([new TextRun({text:"HOVP HANDOVER ACKNOWLEDGEMENT",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:120,line:300}}),
     exactParagraph([new TextRun({text:"AIRA Residence",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:720,line:300}}),
     hovpFieldTable([["Tower",towerFromUnit(unit)],["Unit No.",unit],["HOVP Date",handover]],5000),
     exactParagraph("I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an “as-is, where-is” basis.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:420,line:341}}),
