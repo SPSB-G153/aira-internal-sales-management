@@ -69,6 +69,17 @@ h3 { margin:0; font-size:16px; }
 .readiness p { margin:5px 0 0; line-height:1.45; }
 .confirm-form { display:grid; justify-items:end; gap:6px; }
 .action-error { max-width:340px; margin:0; color:var(--red); font-size:12px; line-height:1.4; text-align:right; }
+.danger-zone { border-color:#6a5521; }
+.danger-zone>h3 { margin-bottom:6px; }
+.delete-sale-panel { margin-top:16px; }
+.delete-sale-panel>summary { width:max-content; list-style:none; }
+.delete-sale-panel>summary::-webkit-details-marker { display:none; }
+.delete-sale-confirmation { display:grid; gap:12px; margin-top:14px; padding-top:14px; border-top:1px solid #6a5521; }
+.delete-sale-confirmation p { margin:0; color:var(--muted); font-size:13px; line-height:1.5; }
+.delete-sale-confirmation label { font-size:12px; font-weight:750; }
+.delete-sale-confirmation input { width:100%; min-height:42px; border:1px solid #6a5521; border-radius:8px; padding:9px 11px; background:#101218; color:var(--ink); outline:none; }
+.delete-sale-confirmation input:focus { border-color:var(--gold); box-shadow:0 0 0 3px #d4af3720; }
+.delete-sale-confirmation .action-error { max-width:none; text-align:left; }
 .completion-label { color:var(--muted); font-size:13px; font-weight:800; }
 .results-summary { margin:-6px 0 12px; color:var(--muted); font-size:13px; }
 .form-actions { display:flex; justify-content:flex-end; gap:12px; }

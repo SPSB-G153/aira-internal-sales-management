@@ -8,6 +8,7 @@ import { getTeamContext } from "@/lib/tenancy";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
+export type DeleteSaleState={error?:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
 const numeric=(f:FormData,k:string)=>{const v=text(f,k);return v===""?null:Number(v)};
 const optionalBoolean=(f:FormData,k:string)=>{const v=text(f,k);return v==="true"?true:v==="false"?false:null};
@@ -56,4 +57,21 @@ export async function generateMissingHovp(id:string,_:ConfirmState,__form:FormDa
     const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"hovp_letter",content:buildDocumentSnapshot(sale,"hovp_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(error)throw error;
   } catch { return {error:"Could not create the HOVP letter."}; }
   revalidatePath(`/sales/${id}`);revalidatePath("/documents");revalidatePath("/dashboard");return {};
+}
+
+export async function deleteSale(id:string,_:DeleteSaleState,form:FormData):Promise<DeleteSaleState>{
+  const confirmationReference=text(form,"confirmation_reference");
+  try {
+    const db=await createClient();
+    const [{team,role},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    if(!user||role!=="owner")return{error:"Only the signed-in workspace owner can delete a booking."};
+    const{data:sale,error:saleError}=await db.from("sales").select("id,sale_reference").eq("team_id",team.id).eq("id",id).single();
+    if(saleError||!sale)return{error:"This booking could not be found in your workspace."};
+    if(confirmationReference!==sale.sale_reference)return{error:`Type ${sale.sale_reference} exactly to confirm deletion.`};
+    const{error}=await db.rpc("delete_sale_with_documents",{target_sale_id:id,confirmation_reference:confirmationReference});
+    if(error)throw new Error(error.message);
+  }catch{
+    return{error:"The booking was not deleted. Please check that you are signed in as the owner and try again."};
+  }
+  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect("/sales?deleted=1");
 }
