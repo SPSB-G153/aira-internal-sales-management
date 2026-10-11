@@ -3,7 +3,7 @@ import { useActionState, useState } from "react";
 import { saveSale, type FormState } from "@/lib/actions/sales";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import type { Sale } from "@/lib/types";
-type Props = { sale?: Sale; initialValues?: Partial<Sale> };
+type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop" };
 const Field = ({
   name,
   label,
@@ -144,12 +144,16 @@ const keepSecondPurchaser = (form: HTMLFormElement) =>
     form.appendChild(hidden);
   });
 
-export function SaleForm({ sale, initialValues }: Props) {
+export function SaleForm({ sale, initialValues, mode }: Props) {
   const [state, action, pending] = useActionState<FormState, FormData>(
     saveSale,
     {},
   );
-  const v = (key: keyof Sale) => state.fields?.[key] ?? sale?.[key] ?? initialValues?.[key] ?? "";
+  const v = (key: keyof Sale) => {
+    const value = state.fields?.[key] ?? sale?.[key] ?? initialValues?.[key] ?? "";
+    return typeof value === "boolean" ? String(value) : value;
+  };
+  const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
   const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
@@ -186,14 +190,15 @@ export function SaleForm({ sale, initialValues }: Props) {
   return (
     <form action={action} className="card form-card">
       {sale && <input type="hidden" name="id" value={sale.id} />}{" "}
+      <input type="hidden" name="entry_mode" value={entryMode} />
       {state.error && <div className="alert">{state.error}</div>}
       <section className="form-section">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">POP form</p>
+            <p className="eyebrow">{entryMode === "booking" ? "Booking Form" : "POP form"}</p>
             <h2>Purchaser particulars</h2>
           </div>
-          <span className="template-step">Editable proposal</span>
+          <span className="template-step">{entryMode === "booking" ? "Verified booking" : "Editable proposal"}</span>
         </div>
         <div className="form-grid">
           <div className="field full purchaser-type-field">
@@ -424,7 +429,7 @@ export function SaleForm({ sale, initialValues }: Props) {
           </div>
         </div>
       )}
-      <section className="form-section">
+      {entryMode === "pop" && <section className="form-section">
         <h2>Property details</h2>
         <div className="form-grid">
           <Field
@@ -478,7 +483,7 @@ export function SaleForm({ sale, initialValues }: Props) {
             <input id="car_parking_bay" name="car_parking_bay" value={parkingBay} onChange={(event) => setParkingBay(event.target.value)} />
           </div>
         </div>
-      </section>
+      </section>}
       <section className="form-section">
         <div className="section-heading">
           <div>
@@ -530,11 +535,11 @@ export function SaleForm({ sale, initialValues }: Props) {
         </div>
       </section>
       <section className="form-section">
-        <h2>{sale ? "Booking administration" : "POP administration"}</h2>
+        <h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2>
         <div className="form-grid">
           <Field
             name="sale_reference"
-            label="POP reference (auto if blank)"
+            label={`${entryMode === "booking" ? "Booking" : "POP"} reference (auto if blank)`}
             defaultValue={v("sale_reference")}
           />
           <Field
@@ -574,7 +579,7 @@ export function SaleForm({ sale, initialValues }: Props) {
           </div>
           <Field
             name="sale_date"
-            label="Proposal date"
+            label={entryMode === "booking" ? "Booking date" : "Proposal date"}
             type="date"
             defaultValue={v("sale_date")}
           />
@@ -621,7 +626,7 @@ export function SaleForm({ sale, initialValues }: Props) {
       </section>
       <div className="form-actions">
         <button className="button" disabled={pending}>
-          {pending ? "Saving…" : sale ? "Save POP changes" : "Save POP"}
+          {pending ? "Saving…" : entryMode === "booking" ? (sale ? "Save booking changes" : "Create booking") : (sale ? "Save POP changes" : "Save POP")}
         </button>
       </div>
     </form>

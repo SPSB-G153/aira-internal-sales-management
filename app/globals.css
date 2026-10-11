@@ -104,6 +104,18 @@ h3 { margin:0; font-size:16px; }
 .upload-review dd { margin:4px 0 0; overflow-wrap:anywhere; font-weight:750; }
 .upload-review .alert ul { margin:7px 0 0; padding-left:20px; }
 .upload-review-actions { display:flex; justify-content:flex-end; gap:10px; }
+.new-sale-intake { padding:26px 28px; }
+.new-sale-intake-copy { max-width:720px; }
+.new-sale-intake-copy .subtle { margin:8px 0 0; }
+.new-sale-intake-actions { display:flex; flex-wrap:wrap; align-items:flex-start; gap:10px; margin-top:20px; }
+.new-sale-intake-actions .booking-upload { flex-wrap:wrap; gap:8px; }
+.new-sale-intake-actions .upload-button { min-width:210px; }
+.optional-pop-action { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+.optional-pop-action strong,.optional-pop-action span { display:block; }
+.optional-pop-action strong { font-size:13px; }
+.optional-pop-action span { margin-top:4px; color:var(--muted); font-size:12px; line-height:1.45; }
+.new-sale-entry { margin-top:24px; }
+.new-sale-entry-heading { margin-bottom:12px; }
 .detail-grid { display:grid; grid-template-columns:1fr 330px; gap:24px; }
 .detail-card { padding:24px; }
 .kv { display:grid; grid-template-columns:repeat(2,1fr); gap:20px; margin-top:22px; }
@@ -332,6 +344,9 @@ h3 { margin:0; font-size:16px; }
   .confirm-form { justify-items:stretch; width:100%; }
   .action-error { max-width:none; text-align:left; }
   .upload-review-fields { grid-template-columns:1fr; }
+  .new-sale-intake { padding:20px 16px; }
+  .new-sale-intake-actions,.optional-pop-action { align-items:stretch; flex-direction:column; }
+  .new-sale-intake-actions .booking-upload,.new-sale-intake-actions .upload-button,.optional-pop-action .button { width:100%; }
   .doc-card { min-height:86px; padding:16px; }
   .letter-wrap { width:100%; min-width:0; }
   .letter { min-height:0; padding:30px 20px; font-size:15px; line-height:1.65; overflow-wrap:anywhere; box-shadow:0 7px 24px rgba(24,51,45,.07); }

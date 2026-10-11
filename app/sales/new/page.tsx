@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SaleForm } from "@/components/sale-form";
+import { NewSaleIntake } from "@/components/new-sale-intake";
 import type { Sale } from "@/lib/types";
 
 const testSale: Partial<Sale> = {
@@ -22,5 +22,5 @@ const testAg01: Partial<Sale> = {
 export default async function NewSale({ searchParams }: { searchParams: Promise<{ prefill?: string }> }) {
   const { prefill } = await searchParams;
   const initialValues = prefill === "ag01" ? testAg01 : prefill === "test" ? testSale : undefined;
-  return <div className="page"><div className="page-header"><div><p className="eyebrow">New sale</p><h1>Record verified sale details.</h1><p className="subtle">Required fields are marked. Optional gaps will not prevent confirmation.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><SaleForm initialValues={initialValues}/></div>;
+  return <div className="page"><div className="page-header"><div><p className="eyebrow">New sale</p><h1>Create a booking from the Booking Form.</h1><p className="subtle">Upload the completed Booking Form, review the extracted details, then create the booking.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
 }

@@ -6,6 +6,7 @@ import { solicitorForUnit } from "@/lib/unit-solicitor";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
+export type BookingUploadFields=Record<string,string>;
 
 const labels:Record<string,string>={
   customer_name:"Purchaser 1 name",customer_ic:"Purchaser 1 NRIC / passport",customer_salutation:"Purchaser 1 salutation",customer_tin:"Purchaser 1 TIN",customer_nationality:"Purchaser 1 nationality",customer_sex:"Purchaser 1 sex",customer_race:"Purchaser 1 race",bumi_status:"Purchaser 1 Bumi status",customer_occupation:"Purchaser 1 occupation",contact_person:"Contact person 1",customer_phone:"Mobile number 1",customer_email:"Email 1",customer_address:"Correspondence address 1",
@@ -13,7 +14,7 @@ const labels:Record<string,string>={
   sale_date:"Booking date",unit_number:"Parcel / unit number",solicitor_name:"Handling lawyer",storey_number:"Storey",unit_type:"Type",floor_area_sqm:"Area (square metres)",floor_area:"Area (square feet)",purchase_price:"Purchase price",car_parking_bay:"Car parking bay",payment_method:"Payment method",payment_reference:"Cheque / payment reference",purchaser_type:"Purchaser type",
 };
 
-export function BookingFormUpload({documentId}:{documentId:string}){
+export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
   const input=useRef<HTMLInputElement>(null);
   const router=useRouter();
   const[busy,setBusy]=useState(false);
@@ -40,6 +41,12 @@ export function BookingFormUpload({documentId}:{documentId:string}){
 
   async function apply(){
     if(!result)return;
+    if(!documentId){
+      onUseFields?.(result.fields);
+      setResult(null);
+      setMessage("Booking Form details loaded. Review them below before creating the booking.");
+      return;
+    }
     setBusy(true);setMessage("Saving extracted information…");
     try{
       const response=await fetch(`/api/documents/${documentId}/booking-upload`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:result.fields})});
@@ -69,7 +76,7 @@ export function BookingFormUpload({documentId}:{documentId:string}){
 
   return <div className="booking-upload">
     <input ref={input} hidden type="file" accept="application/pdf,.pdf" onChange={event=>{const file=event.target.files?.[0];if(file)void extract(file);}}/>
-    <button type="button" className="button secondary upload-button" disabled={busy} onClick={()=>input.current?.click()}>{busy?"Reading…":"Upload"}</button>
+    <button type="button" className="button accent upload-button" disabled={busy} onClick={()=>input.current?.click()}>{busy?"Reading…":buttonLabel}</button>
     {message&&<small className="upload-message" role="status">{message}</small>}
     {result&&<div className="upload-modal" role="dialog" aria-modal="true" aria-label="Review extracted Booking Form information">
       <div className="card upload-review">
@@ -78,7 +85,7 @@ export function BookingFormUpload({documentId}:{documentId:string}){
         {result.saved_path&&<p className="upload-saved-path">Saved locally: <strong>{result.saved_path}</strong></p>}
         <div className="upload-review-fields">{Object.keys(labels).map(key=><label key={key}><span>{labels[key]}</span>{key.includes("address")?<textarea rows={2} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>)}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}
-        <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>Save information</button></div>
+        <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>{documentId?"Save information":"Use these details"}</button></div>
       </div>
     </div>}
   </div>;
