@@ -136,7 +136,7 @@ async def extract(file: UploadFile = File(...)):
             "format": SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 1400},
+            "options": {"temperature": 0, "num_ctx": 12288, "num_predict": 1400},
         }
         result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=900)
         if not result.ok:
