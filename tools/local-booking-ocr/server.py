@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import os
 import re
@@ -70,6 +71,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
 
 Cross-check repeated details elsewhere in the form. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
+CACHE_VERSION = "booking-reader-2026-10-12-v1"
 
 
 @app.middleware("http")
@@ -84,20 +86,20 @@ def health():
     return {"ok": True, "private": True, "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b")}
 
 
-def page_png(page, clip=None):
+def page_png(page, clip=None, zoom=1.8):
     # Handwriting in the appendix sits inside narrow table cells. Rendering
     # enlarged page sections keeps those entries legible to the local model.
-    pixmap = page.get_pixmap(matrix=fitz.Matrix(1.8, 1.8), clip=clip, alpha=False)
+    pixmap = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), clip=clip, alpha=False)
     return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
 
 
-def page_sections(page):
+def page_sections(page, zoom=1.8):
     rect = page.rect
     # Two overlapping vertical sections retain the printed labels beside each
     # handwritten value while avoiding the down-sampling of a whole A4 page.
     upper = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.58)
     lower = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.42, rect.x1, rect.y1)
-    return [page_png(page, upper), page_png(page, lower)]
+    return [page_png(page, upper, zoom), page_png(page, lower, zoom)]
 
 
 def property_section(page):
@@ -122,6 +124,40 @@ def unit_folder(unit_number):
     folder = root / safe_part(unit_number, f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}")
     folder.mkdir(parents=True, exist_ok=True)
     return folder
+
+
+def cache_path(data):
+    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Booking")) / ".reader-cache"
+    root.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(CACHE_VERSION.encode("utf-8") + data).hexdigest()
+    return root / f"{digest}.json"
+
+
+def cached_extraction(data):
+    path = cache_path(data)
+    if not path.exists():
+        return None
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        fields = cached.get("fields", {})
+        if not isinstance(fields, dict):
+            return None
+        return {
+            "fields": {name: str(fields.get(name, "") or "").strip() for name in FIELD_NAMES},
+            "warnings": [str(item) for item in cached.get("warnings", []) if str(item).strip()],
+        }
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def save_cached_extraction(data, fields, warnings):
+    path = cache_path(data)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(
+        json.dumps({"fields": fields, "warnings": warnings}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    temporary.replace(path)
 
 
 @app.post("/save-file")
@@ -210,22 +246,34 @@ async def extract(file: UploadFile = File(...)):
     if len(data) > 20_000_000:
         raise HTTPException(status_code=400, detail="Please upload a PDF smaller than 20 MB.")
     try:
+        cached = cached_extraction(data)
+        if cached:
+            fields = cached["fields"]
+            warnings = cached["warnings"]
+            unit = safe_part(fields.get("unit_number", ""), "") or f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}"
+            output_dir = unit_folder(unit)
+            saved = output_dir / f"Booking_{unit}.pdf"
+            saved.write_bytes(data)
+            return {"fields": fields, "warnings": warnings, "saved_path": str(saved), "cached": True}
         pdf = fitz.open(stream=data, filetype="pdf")
         if not pdf.page_count:
             raise ValueError("The PDF has no pages.")
-        # The detailed purchaser/contact appendix is normally the final page,
-        # while unit and payment information appears on the opening pages.
-        # Include both and enlarge them in overlapping sections. This also
-        # supports older scans where the appendix was moved earlier.
-        indexes = list(dict.fromkeys([0, min(1, pdf.page_count - 1), pdf.page_count - 1]))
-        images = [image for index in indexes for image in page_sections(pdf[index])]
+        # The cover and final appendix contain the required purchaser, unit,
+        # price, date and contact details. Reading only these four enlarged
+        # sections avoids sending a redundant middle page through the local
+        # CPU-only vision model. Payment evidence is read separately by the
+        # dedicated booking-fee receipt upload.
+        last_index = pdf.page_count - 1
+        images = page_sections(pdf[0], 1.6)
+        if last_index:
+            images.extend(page_sections(pdf[last_index], 1.8))
         payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{"role": "user", "content": PROMPT, "images": images}],
             "format": SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 12288, "num_predict": 1400},
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 1000},
         }
         result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=900)
         if not result.ok:
@@ -269,7 +317,8 @@ async def extract(file: UploadFile = File(...)):
         output_dir = unit_folder(unit)
         path = output_dir / f"Booking_{unit}.pdf"
         path.write_bytes(data)
-        return {"fields": fields, "warnings": warnings, "saved_path": str(path)}
+        save_cached_extraction(data, fields, warnings)
+        return {"fields": fields, "warnings": warnings, "saved_path": str(path), "cached": False}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:

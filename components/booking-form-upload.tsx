@@ -6,7 +6,7 @@ import { BookingFeeUpload } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 
-type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string};
+type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string;cached?:boolean};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
 export type BookingUploadFields=Record<string,string>;
 const isMalayRace=(race:string)=>/\b(malay|melayu)\b/i.test(race.trim());
@@ -100,7 +100,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         if(unitDetails.parkingBay)fields.car_parking_bay=unitDetails.parkingBay;
         warnings.push(`Storey, area, unit type and parking were checked against the approved details for ${unit}.`);
       }
-      setResult({...data,fields,warnings});setMessage("");
+      setResult({...data,fields,warnings});setMessage(data.cached?"Previous private reading reused — no handwriting scan was needed.":"");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}
     finally{setBusy(false);if(input.current)input.current.value="";}
   }
