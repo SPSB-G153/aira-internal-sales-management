@@ -20,6 +20,7 @@ function numberValue(value:string){const parsed=Number(value.replace(/[^0-9.-]/g
 function booleanValue(value:string){const normalized=value.trim().toLowerCase();if(["yes","true","bumi"].includes(normalized))return true;if(["no","false","non-bumi","non bumi"].includes(normalized))return false;return null;}
 function isMalayRace(race:string){return /\b(malay|melayu)\b/i.test(race.trim());}
 function fullSex(value:string){const normalized=value.trim().toUpperCase();return normalized==="M"||normalized==="MALE"?"Male":normalized==="F"||normalized==="FEMALE"?"Female":value.trim();}
+function normalizeNationality(value:string){const trimmed=value.trim();return ["UK","US","USA","UAE","PRC"].includes(trimmed.toUpperCase())?trimmed.toUpperCase():trimmed;}
 function cleanFields(input:unknown){
   const source=input&&typeof input==="object"?input as Record<string,unknown>:{};
   return Object.fromEntries(fieldNames.map(name=>[name,typeof source[name]==="string"?source[name].trim():""])) as ExtractedFields;
@@ -39,6 +40,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
     const mappedSolicitor=solicitorForUnit(fields.unit_number);if(mappedSolicitor&&!fields.solicitor_name)updates.solicitor_name=mappedSolicitor;
     updates.bumi_status=isMalayRace(fields.customer_race);if(fields.customer_name_2||fields.customer_ic_2)updates.bumi_status_2=isMalayRace(fields.customer_race_2);
     updates.customer_sex=fullSex(fields.customer_sex)||null;if(fields.customer_name_2||fields.customer_ic_2)updates.customer_sex_2=fullSex(fields.customer_sex_2)||null;
+    updates.customer_nationality=normalizeNationality(fields.customer_nationality)||null;if(fields.customer_name_2||fields.customer_ic_2)updates.customer_nationality_2=normalizeNationality(fields.customer_nationality_2)||null;
     const approvedStorey=storeyForUnit(fields.unit_number);if(approvedStorey)updates.storey_number=approvedStorey;
     const unitDetails=detailsForUnit(fields.unit_number);if(unitDetails){updates.floor_area=unitDetails.floorAreaSquareFeet;updates.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);updates.unit_type=unitDetails.unitType;if(unitDetails.parkingBay)updates.car_parking_bay=unitDetails.parkingBay;}
     if(typeof updates.purchase_price==="number")updates.booking_fee=Math.round(updates.purchase_price*2)/100;
