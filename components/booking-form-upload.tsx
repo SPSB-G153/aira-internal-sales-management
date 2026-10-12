@@ -27,7 +27,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   const[result,setResult]=useState<Extraction|null>(null);
   const[message,setMessage]=useState("");
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
-  const hasPurchaser2=result?[...purchaser2Fields].some(key=>result.fields[key]?.trim()):false;
+  const hasPurchaser2=Boolean(result&&(result.fields.customer_name_2?.trim()||result.fields.customer_ic_2?.trim()));
   const reviewFields=Object.keys(labels).filter(key=>hasPurchaser2||!purchaser2Fields.has(key));
 
   function updateField(key:string,value:string){

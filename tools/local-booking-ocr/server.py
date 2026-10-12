@@ -46,7 +46,15 @@ SCHEMA = {
     },
     "required": ["fields", "warnings"],
 }
-PROMPT = """Read only handwritten or manually entered information from these scanned pages of an Aira Booking Form. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
+PROMPT = """Read only handwritten or manually entered information from these enlarged, overlapping sections of an Aira Booking Form. The sections are supplied in page order and may repeat content where they overlap. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
+
+For the Purchaser's Particulars appendix, follow the physical table rows carefully:
+- The first completed purchaser row is purchaser 1. Map its Contact Person's Name, Mobile No. and Email Address from the first contact row to contact_person, customer_phone and customer_email.
+- Populate purchaser 2 fields only when the second purchaser row in section A or B contains an actual purchaser name or identity number. A second contact-person row by itself is not a second purchaser.
+- Join all handwritten lines under Correspondence Address into one complete address.
+- Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
+
+Cross-check repeated details elsewhere in the form. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
 
 
 @app.middleware("http")
@@ -61,11 +69,20 @@ def health():
     return {"ok": True, "private": True, "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b")}
 
 
-def page_png(page):
-    # A smaller render is materially faster on the owner's CPU-only private
-    # reader while remaining clear enough for the Booking Form handwriting.
-    pixmap = page.get_pixmap(matrix=fitz.Matrix(1.3, 1.3), alpha=False)
+def page_png(page, clip=None):
+    # Handwriting in the appendix sits inside narrow table cells. Rendering
+    # enlarged page sections keeps those entries legible to the local model.
+    pixmap = page.get_pixmap(matrix=fitz.Matrix(1.8, 1.8), clip=clip, alpha=False)
     return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
+
+
+def page_sections(page):
+    rect = page.rect
+    # Two overlapping vertical sections retain the printed labels beside each
+    # handwritten value while avoiding the down-sampling of a whole A4 page.
+    upper = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.58)
+    lower = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.42, rect.x1, rect.y1)
+    return [page_png(page, upper), page_png(page, lower)]
 
 
 def safe_part(value, fallback):
@@ -107,18 +124,19 @@ async def extract(file: UploadFile = File(...)):
         pdf = fitz.open(stream=data, filetype="pdf")
         if not pdf.page_count:
             raise ValueError("The PDF has no pages.")
-        # Purchaser, unit and payment details are on the opening Booking Form
-        # pages. Signature-only closing pages are intentionally not sent to
-        # the model (signatures are never extracted).
-        indexes = list(range(min(2, pdf.page_count)))
-        images = [page_png(pdf[index]) for index in indexes]
+        # The detailed purchaser/contact appendix is normally the final page,
+        # while unit and payment information appears on the opening pages.
+        # Include both and enlarge them in overlapping sections. This also
+        # supports older scans where the appendix was moved earlier.
+        indexes = list(dict.fromkeys([0, min(1, pdf.page_count - 1), pdf.page_count - 1]))
+        images = [image for index in indexes for image in page_sections(pdf[index])]
         payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{"role": "user", "content": PROMPT, "images": images}],
             "format": SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1200},
+            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 1400},
         }
         result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=900)
         if not result.ok:
