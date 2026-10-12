@@ -62,7 +62,9 @@ def health():
 
 
 def page_png(page):
-    pixmap = page.get_pixmap(matrix=fitz.Matrix(1.7, 1.7), alpha=False)
+    # A smaller render is materially faster on the owner's CPU-only private
+    # reader while remaining clear enough for the Booking Form handwriting.
+    pixmap = page.get_pixmap(matrix=fitz.Matrix(1.3, 1.3), alpha=False)
     return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
 
 
@@ -95,7 +97,8 @@ async def save_file(
 
 @app.post("/extract")
 async def extract(file: UploadFile = File(...)):
-    if file.content_type != "application/pdf":
+    is_pdf = file.content_type == "application/pdf" or str(file.filename or "").lower().endswith(".pdf")
+    if not is_pdf:
         raise HTTPException(status_code=400, detail="Please select a PDF Booking Form.")
     data = await file.read()
     if len(data) > 20_000_000:
@@ -104,16 +107,20 @@ async def extract(file: UploadFile = File(...)):
         pdf = fitz.open(stream=data, filetype="pdf")
         if not pdf.page_count:
             raise ValueError("The PDF has no pages.")
-        indexes = sorted(set([0, min(1, pdf.page_count - 1), pdf.page_count - 1]))
+        # Purchaser, unit and payment details are on the opening Booking Form
+        # pages. Signature-only closing pages are intentionally not sent to
+        # the model (signatures are never extracted).
+        indexes = list(range(min(2, pdf.page_count)))
         images = [page_png(pdf[index]) for index in indexes]
         payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{"role": "user", "content": PROMPT, "images": images}],
             "format": SCHEMA,
             "stream": False,
-            "options": {"temperature": 0, "num_ctx": 8192},
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 1200},
         }
-        result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=300)
+        result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=900)
         if not result.ok:
             raise RuntimeError(f"Private model error: {result.text}")
         parsed = json.loads(result.json()["message"]["content"])

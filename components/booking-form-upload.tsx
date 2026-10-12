@@ -27,13 +27,13 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   }
 
   async function extract(file:File){
-    setBusy(true);setMessage("Reading handwriting…");setResult(null);
+    setBusy(true);setMessage("Reading privately on this computer… The first read may take a few minutes.");setResult(null);
     try{
       const body=new FormData();body.set("file",file);
       const localUrl=process.env.NEXT_PUBLIC_BOOKING_OCR_URL||"http://127.0.0.1:8765";
       const response=await fetch(`${localUrl}/extract`,{method:"POST",body});
       const data=await response.json();
-      if(!response.ok)throw new Error(data.error||"The Booking Form could not be read.");
+      if(!response.ok)throw new Error(data.error||data.detail||"The Booking Form could not be read.");
       const unit=String(data.fields?.unit_number||"");const solicitor=solicitorForUnit(unit);setResult({...data,fields:{...data.fields,solicitor_name:data.fields?.solicitor_name||solicitor}});setMessage("");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}
     finally{setBusy(false);if(input.current)input.current.value="";}
@@ -76,7 +76,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
 
   return <div className="booking-upload">
     <input ref={input} hidden type="file" accept="application/pdf,.pdf" onChange={event=>{const file=event.target.files?.[0];if(file)void extract(file);}}/>
-    <button type="button" className="button accent upload-button" disabled={busy} onClick={()=>input.current?.click()}>{busy?"Reading…":buttonLabel}</button>
+    <button type="button" className="button accent upload-button" disabled={busy} onClick={()=>input.current?.click()}>{busy?"Reading privately…":buttonLabel}</button>
     {message&&<small className="upload-message" role="status">{message}</small>}
     {result&&<div className="upload-modal" role="dialog" aria-modal="true" aria-label="Review extracted Booking Form information">
       <div className="card upload-review">
