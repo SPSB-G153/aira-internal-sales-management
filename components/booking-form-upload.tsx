@@ -30,6 +30,12 @@ const normalCaseFields=new Set([
   "bumi_status_2","customer_occupation_2","contact_person_2","customer_address_2",
 ]);
 const toNormalCase=(value:string)=>value.toLocaleLowerCase("en-MY").replace(/(^|[\s,./()'\-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`);
+const nationalityAbbreviations=new Set(["UK","US","USA","UAE","PRC"]);
+const reviewValue=(key:string,value:string)=>{
+  const trimmed=value.trim();
+  if((key==="customer_nationality"||key==="customer_nationality_2")&&nationalityAbbreviations.has(trimmed.toUpperCase()))return trimmed.toUpperCase();
+  return toNormalCase(value);
+};
 
 export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
   const input=useRef<HTMLInputElement>(null);
@@ -50,7 +56,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   function displayValue(key:string){
     if(Object.prototype.hasOwnProperty.call(displayValues,key))return displayValues[key];
     const value=result?.fields[key]||"";
-    return normalCaseFields.has(key)?toNormalCase(value):value;
+    return normalCaseFields.has(key)?reviewValue(key,value):value;
   }
 
   async function extract(file:File){
