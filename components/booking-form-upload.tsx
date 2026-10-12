@@ -23,6 +23,12 @@ const purchaser2Fields=new Set([
   "customer_occupation_2","contact_person_2","customer_phone_2","customer_email_2",
   "customer_address_2",
 ]);
+const normalCaseFields=new Set([
+  "customer_name","customer_salutation","customer_nationality","customer_race",
+  "bumi_status","customer_occupation","contact_person","customer_address",
+  "customer_name_2","customer_salutation_2","customer_nationality_2","customer_race_2",
+  "bumi_status_2","customer_occupation_2","contact_person_2","customer_address_2",
+]);
 
 export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
   const input=useRef<HTMLInputElement>(null);
@@ -112,7 +118,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         <p className="subtle">Check the handwriting results and fill in any missing items before saving them to the sale and refreshing the letters.</p>
         {result.saved_path&&<p className="upload-saved-path">Saved locally: <strong>{result.saved_path}</strong></p>}
         <div className="upload-saved-path"><strong>Booking fee receipt</strong><br/>Upload it here to auto-fill the fee, payment date, method and reference on this review.<BookingFeeUpload unitNumber={result.fields.unit_number||""} onUseFields={(fields)=>setResult(current=>current?{...current,fields:{...current.fields,...fields}}:current)}/></div>
-        <div className="upload-review-fields">{reviewFields.map(key=><label key={key}><span>{labels[key]}</span>{key.includes("address")?<textarea rows={2} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>)}</div>
+        <div className="upload-review-fields">{reviewFields.map(key=><label key={key}><span>{labels[key]}</span>{key.includes("address")?<textarea className={normalCaseFields.has(key)?"review-normal-case":undefined} rows={2} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input className={normalCaseFields.has(key)?"review-normal-case":undefined} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>)}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>{documentId?"Save information":"Use these details"}</button></div>
       </div>
