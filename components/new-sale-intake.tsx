@@ -9,6 +9,7 @@ import type { Sale } from "@/lib/types";
 
 const numericFields = new Set(["floor_area", "floor_area_sqm", "purchase_price"]);
 const isMalayRace = (race: unknown) => /\b(malay|melayu)\b/i.test(String(race || "").trim());
+const fullSex = (value: unknown) => { const normalized = String(value || "").trim().toUpperCase(); return normalized === "M" || normalized === "MALE" ? "Male" : normalized === "F" || normalized === "FEMALE" ? "Female" : String(value || "").trim(); };
 
 function bookingValues(fields: BookingUploadFields): Partial<Sale> {
   const values: Record<string, unknown> = { project_name: "Aira Residence" };
@@ -46,6 +47,8 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
     if (unitDetails.parkingBay) values.car_parking_bay = unitDetails.parkingBay;
   }
   values.bumi_status = isMalayRace(values.customer_race);
+  values.customer_sex = fullSex(values.customer_sex);
+  if (values.customer_name_2 || values.customer_ic_2) values.customer_sex_2 = fullSex(values.customer_sex_2);
   if (values.customer_name_2 || values.customer_ic_2) values.bumi_status_2 = isMalayRace(values.customer_race_2);
   return values as Partial<Sale>;
 }

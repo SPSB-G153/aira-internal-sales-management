@@ -9,6 +9,7 @@ type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:stri
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
 export type BookingUploadFields=Record<string,string>;
 const isMalayRace=(race:string)=>/\b(malay|melayu)\b/i.test(race.trim());
+const fullSex=(value:string)=>{const normalized=value.trim().toUpperCase();return normalized==="M"||normalized==="MALE"?"Male":normalized==="F"||normalized==="FEMALE"?"Female":value.trim();};
 
 const labels:Record<string,string>={
   customer_name:"Purchaser 1 name",customer_ic:"Purchaser 1 NRIC / passport",customer_salutation:"Purchaser 1 salutation",customer_tin:"Purchaser 1 TIN",customer_nationality:"Purchaser 1 nationality",customer_sex:"Purchaser 1 sex",customer_race:"Purchaser 1 race",bumi_status:"Purchaser 1 Bumi status",customer_occupation:"Purchaser 1 occupation",contact_person:"Contact person 1",customer_phone:"Mobile number 1",customer_email:"Email 1",customer_address:"Correspondence address 1",
@@ -47,6 +48,8 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const unit=String(data.fields?.unit_number||"");
       const solicitor=solicitorForUnit(unit);
       const fields={...data.fields,solicitor_name:data.fields?.solicitor_name||solicitor};
+      fields.customer_sex=fullSex(String(fields.customer_sex||""));
+      fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
       fields.bumi_status=isMalayRace(String(fields.customer_race||""))?"yes":"no";
       if(fields.customer_name_2?.trim()||fields.customer_ic_2?.trim())fields.bumi_status_2=isMalayRace(String(fields.customer_race_2||""))?"yes":"no";
       const unitDetails=detailsForUnit(unit);
