@@ -51,6 +51,16 @@ UNIT_SCHEMA = {
     "properties": {"unit_number": {"type": "string"}},
     "required": ["unit_number"],
 }
+BOOKING_FEE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "booking_fee": {"type": "string"},
+        "sale_date": {"type": "string"},
+        "payment_method": {"type": "string"},
+        "payment_reference": {"type": "string"},
+    },
+    "required": ["booking_fee", "sale_date", "payment_method", "payment_reference"],
+}
 PROMPT = """Read only handwritten or manually entered information from these enlarged, overlapping sections of an Aira Booking Form. The sections are supplied in page order and may repeat content where they overlap. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
@@ -127,6 +137,68 @@ async def save_file(
     path = folder / safe_part(Path(filename).name, "Document")
     path.write_bytes(data)
     return {"ok": True, "saved_path": str(path)}
+
+
+@app.post("/extract-booking-fee")
+async def extract_booking_fee(
+    file: UploadFile = File(...),
+    unit_number: str = Form(""),
+):
+    data = await file.read()
+    if len(data) > 20_000_000:
+        raise HTTPException(status_code=400, detail="Please upload a receipt smaller than 20 MB.")
+    filename = str(file.filename or "").lower()
+    is_pdf = file.content_type == "application/pdf" or filename.endswith(".pdf")
+    is_image = str(file.content_type or "").startswith("image/") or filename.endswith(
+        (".png", ".jpg", ".jpeg", ".webp")
+    )
+    if not is_pdf and not is_image:
+        raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP receipt.")
+    try:
+        if is_pdf:
+            receipt = fitz.open(stream=data, filetype="pdf")
+            if not receipt.page_count:
+                raise ValueError("The receipt PDF has no pages.")
+            images = [page_png(receipt[0])]
+        else:
+            images = [base64.b64encode(data).decode("ascii")]
+        payload = {
+            "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Read this booking-fee payment receipt privately. Extract only: the "
+                    "amount actually paid as booking_fee (digits and decimals only, without "
+                    "currency symbols or commas); the payment/transaction date as YYYY-MM-DD; "
+                    "payment_method as exactly bank_transfer or cheque; and the transaction, "
+                    "receipt or cheque number as payment_reference. Do not use the property "
+                    "purchase price, account balance or unrelated amounts. Return an empty "
+                    "string for anything not clearly shown. Return only the requested JSON."
+                ),
+                "images": images,
+            }],
+            "format": BOOKING_FEE_SCHEMA,
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+        }
+        result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
+        if not result.ok:
+            raise RuntimeError(f"Private model error: {result.text}")
+        parsed = json.loads(result.json()["message"]["content"])
+        fields = {
+            name: str(parsed.get(name, "") or "").strip()
+            for name in ("booking_fee", "sale_date", "payment_method", "payment_reference")
+        }
+        folder = unit_folder(unit_number)
+        suffix = Path(file.filename or "receipt.pdf").suffix or ".pdf"
+        path = folder / f"Booking_Fee_{safe_part(unit_number, 'Unidentified')}{suffix}"
+        path.write_bytes(data)
+        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+    except requests.ConnectionError as error:
+        raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"The booking-fee receipt could not be read: {error}") from error
 
 
 @app.post("/extract")

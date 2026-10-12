@@ -20,7 +20,8 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   const email=text(form,"customer_email");if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fieldErrors.customer_email="Enter a valid email address.";
   for(const key of ["floor_area","floor_area_sqm","rebate_amount","quoted_id_net_selling_price"]){const value=numeric(form,key);if(value!=null&&value<0)fieldErrors[key]="Enter zero or a positive amount."}
   if(Object.keys(fieldErrors).length)return{fields,fieldErrors};
-  const bookingFee=Math.round(price!*2)/100;
+  const uploadedBookingFee=numeric(form,"booking_fee");
+  const bookingFee=uploadedBookingFee??Math.round(price!*2)/100;
   const purchaserType:"company"|"individual"=text(form,"purchaser_type")==="company"?"company":"individual";
   const paymentMethodValue=text(form,"payment_method");
   const paymentMethod:"cheque"|"bank_transfer"|null=paymentMethodValue==="cheque"||paymentMethodValue==="bank_transfer"?paymentMethodValue:null;

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BookingFormUpload, type BookingUploadFields } from "@/components/booking-form-upload";
+import { BookingFeeUpload, type BookingFeeFields } from "@/components/booking-fee-upload";
 import { SaleForm } from "@/components/sale-form";
 import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 import type { Sale } from "@/lib/types";
@@ -46,6 +47,18 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
   return values as Partial<Sale>;
 }
 
+function bookingFeeValues(fields: BookingFeeFields): Partial<Sale> {
+  const rawAmount = String(fields.booking_fee || "").replace(/[^0-9.-]/g, "");
+  const amount = rawAmount === "" ? null : Number(rawAmount);
+  const method = fields.payment_method === "cheque" || fields.payment_method === "bank_transfer" ? fields.payment_method : null;
+  return {
+    ...(amount != null && Number.isFinite(amount) && amount >= 0 ? { booking_fee: amount } : {}),
+    ...(fields.sale_date ? { sale_date: fields.sale_date } : {}),
+    ...(method ? { payment_method: method } : {}),
+    ...(fields.payment_reference ? { payment_reference: fields.payment_reference } : {}),
+  };
+}
+
 export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale> }) {
   const [mode, setMode] = useState<"booking" | "pop" | null>(initialValues ? "booking" : null);
   const [values, setValues] = useState<Partial<Sale> | undefined>(initialValues);
@@ -83,6 +96,10 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
         <p className="eyebrow">{mode === "booking" ? "Booking Form" : "Optional POP"}</p>
         <h2>{mode === "booking" ? "Review booking details" : "Prepare proposal details"}</h2>
       </div>
+      {mode === "booking" && <section className="card new-sale-intake">
+        <div className="new-sale-intake-copy"><p className="eyebrow">Booking fee</p><h2>Add payment receipt</h2><p className="subtle">Upload the receipt privately to auto-fill the booking fee, payment date, method and reference.</p></div>
+        <div className="new-sale-intake-actions"><BookingFeeUpload unitNumber={String(values?.unit_number || "")} onUseFields={(fields) => { setValues((current) => ({ ...current, ...bookingFeeValues(fields) })); setRevision((current) => current + 1); }} /></div>
+      </section>}
       <SaleForm key={`${mode}-${revision}`} initialValues={values} mode={mode}/>
     </div>}
   </>;

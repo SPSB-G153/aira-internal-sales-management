@@ -170,7 +170,8 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
       ? "company"
       : "individual",
   );
-  const earnest = price === "" ? "" : (Number(price) * 0.02).toFixed(2);
+  const suppliedBookingFee = sale?.booking_fee ?? initialValues?.booking_fee;
+  const earnest = suppliedBookingFee != null ? String(suppliedBookingFee) : price === "" ? "" : (Number(price) * 0.02).toFixed(2);
   const changeFt = (x: string) => {
     setAreaFt(x);
     setAreaM(x === "" ? "" : (Number(x) * 0.092903).toFixed(2));
@@ -517,7 +518,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             />
           </div>
           <div className="field">
-            <label>Earnest deposit (RM) · 2% automatic</label>
+            <label>Booking fee paid (RM)</label>
             <input name="booking_fee" type="number" readOnly value={earnest} />
           </div>
           <Field
