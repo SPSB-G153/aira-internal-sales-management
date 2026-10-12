@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BookingFormUpload, type BookingUploadFields } from "@/components/booking-form-upload";
 import { SaleForm } from "@/components/sale-form";
+import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 import type { Sale } from "@/lib/types";
 
 const numericFields = new Set(["floor_area", "floor_area_sqm", "purchase_price"]);
@@ -33,6 +34,14 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
       continue;
     }
     values[key] = value;
+  }
+  const unit = typeof values.unit_number === "string" ? values.unit_number : "";
+  const unitDetails = detailsForUnit(unit);
+  if (unitDetails) {
+    values.floor_area = unitDetails.floorAreaSquareFeet;
+    values.floor_area_sqm = squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);
+    values.unit_type = unitDetails.unitType;
+    if (unitDetails.parkingBay) values.car_parking_bay = unitDetails.parkingBay;
   }
   return values as Partial<Sale>;
 }

@@ -8,6 +8,7 @@ import { buildDocumentSnapshot } from "@/lib/templates";
 import { downloadFilename } from "@/lib/download-filename";
 import { documentNames } from "@/lib/types";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
+import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 import type { DocumentType,Sale } from "@/lib/types";
 
 export const runtime="nodejs";
@@ -34,6 +35,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
       (updates as Record<string,unknown>)[name]=value;
     }
     const mappedSolicitor=solicitorForUnit(fields.unit_number);if(mappedSolicitor&&!fields.solicitor_name)updates.solicitor_name=mappedSolicitor;
+    const unitDetails=detailsForUnit(fields.unit_number);if(unitDetails){updates.floor_area=unitDetails.floorAreaSquareFeet;updates.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);updates.unit_type=unitDetails.unitType;if(unitDetails.parkingBay)updates.car_parking_bay=unitDetails.parkingBay;}
     if(typeof updates.purchase_price==="number")updates.booking_fee=Math.round(updates.purchase_price*2)/100;
     const sale=await updateSale(document.sale_id,updates);const db=await createClient();const{team}=await getTeamContext();const{data:documents,error}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(error)throw error;
     const refreshedAt=new Date().toISOString();await Promise.all((documents??[]).map(item=>db.from("documents").update({content:buildDocumentSnapshot(sale,item.document_type as DocumentType),status:"generated",generated_at:refreshedAt}).eq("team_id",team.id).eq("id",item.id)));

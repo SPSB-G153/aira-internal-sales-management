@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
+import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
@@ -42,7 +43,19 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const response=await fetch(`${localUrl}/extract`,{method:"POST",body});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||data.detail||"The Booking Form could not be read.");
-      const unit=String(data.fields?.unit_number||"");const solicitor=solicitorForUnit(unit);setResult({...data,fields:{...data.fields,solicitor_name:data.fields?.solicitor_name||solicitor}});setMessage("");
+      const unit=String(data.fields?.unit_number||"");
+      const solicitor=solicitorForUnit(unit);
+      const fields={...data.fields,solicitor_name:data.fields?.solicitor_name||solicitor};
+      const unitDetails=detailsForUnit(unit);
+      const warnings=[...(Array.isArray(data.warnings)?data.warnings:[])];
+      if(unitDetails){
+        fields.floor_area=String(unitDetails.floorAreaSquareFeet);
+        fields.floor_area_sqm=String(squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet));
+        fields.unit_type=unitDetails.unitType;
+        if(unitDetails.parkingBay)fields.car_parking_bay=unitDetails.parkingBay;
+        warnings.push(`Area, unit type and parking were matched to the stored details for ${unit}.`);
+      }
+      setResult({...data,fields,warnings});setMessage("");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}
     finally{setBusy(false);if(input.current)input.current.value="";}
   }
