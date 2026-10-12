@@ -2,6 +2,7 @@
 import { useActionState, useState } from "react";
 import { saveSale, type FormState } from "@/lib/actions/sales";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
+import { storeyForUnit } from "@/lib/unit-details";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop" };
 const Field = ({
@@ -159,6 +160,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
   const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? ""));
   const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
+  const [storeyNumber, setStoreyNumber] = useState(String(sale?.storey_number ?? initialValues?.storey_number ?? state.fields?.storey_number ?? ""));
   const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? initialValues?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
@@ -182,6 +184,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   };
   const applyUnitDetails = (unit: string) => {
     setSolicitorName(solicitorForUnit(unit));
+    setStoreyNumber(storeyForUnit(unit));
     const details = detailsForUnit(unit);
     if (!details) return;
     setUnitType(details.unitType);
@@ -450,11 +453,10 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             />
             <p className="subtle">The handling lawyer, unit type and area are filled automatically for listed units.</p>
           </div>
-          <Field
-            name="storey_number"
-            label="Storey number"
-            defaultValue={v("storey_number")}
-          />
+          <div className="field">
+            <label htmlFor="storey_number">Storey number</label>
+            <input id="storey_number" name="storey_number" value={storeyNumber} onChange={(event) => setStoreyNumber(event.target.value)} />
+          </div>
           <div className="field">
             <label htmlFor="unit_type">Unit type</label>
             <input id="unit_type" name="unit_type" value={unitType} onChange={(event) => setUnitType(event.target.value)} />

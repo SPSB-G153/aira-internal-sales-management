@@ -42,3 +42,9 @@ export const squareFeetToSquareMetres = (squareFeet: number) =>
 
 export const detailsForUnit = (unit: string) =>
   detailsByUnit[unit.trim().toUpperCase()];
+
+export const storeyForUnit = (unit: string) => {
+  const level = unit.trim().toUpperCase().split("-")[1] ?? "";
+  if (!level) return "";
+  return /^\d+$/.test(level) ? String(Number(level)) : level.replace(/^0+(?=\d)/, "");
+};

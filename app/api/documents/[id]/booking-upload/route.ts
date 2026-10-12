@@ -8,7 +8,7 @@ import { buildDocumentSnapshot } from "@/lib/templates";
 import { downloadFilename } from "@/lib/download-filename";
 import { documentNames } from "@/lib/types";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
-import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
+import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import type { DocumentType,Sale } from "@/lib/types";
 
 export const runtime="nodejs";
@@ -39,6 +39,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
     const mappedSolicitor=solicitorForUnit(fields.unit_number);if(mappedSolicitor&&!fields.solicitor_name)updates.solicitor_name=mappedSolicitor;
     updates.bumi_status=isMalayRace(fields.customer_race);if(fields.customer_name_2||fields.customer_ic_2)updates.bumi_status_2=isMalayRace(fields.customer_race_2);
     updates.customer_sex=fullSex(fields.customer_sex)||null;if(fields.customer_name_2||fields.customer_ic_2)updates.customer_sex_2=fullSex(fields.customer_sex_2)||null;
+    const approvedStorey=storeyForUnit(fields.unit_number);if(approvedStorey)updates.storey_number=approvedStorey;
     const unitDetails=detailsForUnit(fields.unit_number);if(unitDetails){updates.floor_area=unitDetails.floorAreaSquareFeet;updates.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);updates.unit_type=unitDetails.unitType;if(unitDetails.parkingBay)updates.car_parking_bay=unitDetails.parkingBay;}
     if(typeof updates.purchase_price==="number")updates.booking_fee=Math.round(updates.purchase_price*2)/100;
     const sale=await updateSale(document.sale_id,updates);const db=await createClient();const{team}=await getTeamContext();const{data:documents,error}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(error)throw error;

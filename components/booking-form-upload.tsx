@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookingFeeUpload } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
-import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
+import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
@@ -70,12 +70,21 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       if(fields.customer_name_2?.trim()||fields.customer_ic_2?.trim())fields.bumi_status_2=isMalayRace(String(fields.customer_race_2||""))?"yes":"no";
       const unitDetails=detailsForUnit(unit);
       const warnings=[...(Array.isArray(data.warnings)?data.warnings:[])];
+      const approvedStorey=storeyForUnit(unit);
+      const extractedStorey=String(fields.storey_number||"").trim();
+      if(approvedStorey){
+        if(extractedStorey&&extractedStorey.toUpperCase()!==approvedStorey.toUpperCase())warnings.push(`The written storey (${extractedStorey}) did not match the approved unit record (${approvedStorey}); the approved value is used.`);
+        fields.storey_number=approvedStorey;
+      }
       if(unitDetails){
+        const extractedParking=String(fields.car_parking_bay||"").replace(/[^A-Z0-9]/gi,"").toUpperCase();
+        const approvedParking=String(unitDetails.parkingBay||"").replace(/[^A-Z0-9]/gi,"").toUpperCase();
+        if(extractedParking&&approvedParking&&extractedParking!==approvedParking)warnings.push("The written parking bay did not match the approved unit record; the approved parking bay is used.");
         fields.floor_area=String(unitDetails.floorAreaSquareFeet);
         fields.floor_area_sqm=String(squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet));
         fields.unit_type=unitDetails.unitType;
         if(unitDetails.parkingBay)fields.car_parking_bay=unitDetails.parkingBay;
-        warnings.push(`Area, unit type and parking were matched to the stored details for ${unit}.`);
+        warnings.push(`Storey, area, unit type and parking were checked against the approved details for ${unit}.`);
       }
       setResult({...data,fields,warnings});setMessage("");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}
