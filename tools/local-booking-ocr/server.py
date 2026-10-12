@@ -46,6 +46,11 @@ SCHEMA = {
     },
     "required": ["fields", "warnings"],
 }
+UNIT_SCHEMA = {
+    "type": "object",
+    "properties": {"unit_number": {"type": "string"}},
+    "required": ["unit_number"],
+}
 PROMPT = """Read only handwritten or manually entered information from these enlarged, overlapping sections of an Aira Booking Form. The sections are supplied in page order and may repeat content where they overlap. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
@@ -83,6 +88,18 @@ def page_sections(page):
     upper = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.58)
     lower = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.42, rect.x1, rect.y1)
     return [page_png(page, upper), page_png(page, lower)]
+
+
+def property_section(page):
+    rect = page.rect
+    clip = fitz.Rect(
+        rect.x0,
+        rect.y0 + rect.height * 0.45,
+        rect.x1,
+        rect.y0 + rect.height * 0.92,
+    )
+    pixmap = page.get_pixmap(matrix=fitz.Matrix(2.2, 2.2), clip=clip, alpha=False)
+    return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
 
 
 def safe_part(value, fallback):
@@ -145,6 +162,34 @@ async def extract(file: UploadFile = File(...)):
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
+        if not fields.get("unit_number"):
+            # Parcel No. is a small handwritten value inside the Property line
+            # on page 1. If the broad form read misses it, retry only that
+            # enlarged region with an explicit mapping to unit_number.
+            unit_payload = {
+                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "Read the handwritten Parcel No. inside the Property line of this "
+                        "Aira Booking Form. Return it exactly as written, including letters "
+                        "and hyphens (for example A-15-03). Parcel No. means unit_number. "
+                        "Do not return the Tower value or any printed text. If blank or "
+                        "unreadable, return an empty string. Return only the requested JSON."
+                    ),
+                    "images": [property_section(pdf[0])],
+                }],
+                "format": UNIT_SCHEMA,
+                "stream": False,
+                "keep_alive": "30m",
+                "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 120},
+            }
+            unit_result = requests.post(
+                "http://127.0.0.1:11434/api/chat", json=unit_payload, timeout=300
+            )
+            if unit_result.ok:
+                unit_parsed = json.loads(unit_result.json()["message"]["content"])
+                fields["unit_number"] = str(unit_parsed.get("unit_number", "") or "").strip()
         unit = safe_part(fields.get("unit_number", ""), "")
         if not unit:
             unit = f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}"
