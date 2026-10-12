@@ -18,6 +18,7 @@ type FieldName=typeof fieldNames[number];
 type ExtractedFields=Record<FieldName,string>;
 function numberValue(value:string){const parsed=Number(value.replace(/[^0-9.-]/g,""));return Number.isFinite(parsed)?parsed:null;}
 function booleanValue(value:string){const normalized=value.trim().toLowerCase();if(["yes","true","bumi"].includes(normalized))return true;if(["no","false","non-bumi","non bumi"].includes(normalized))return false;return null;}
+function isMalayRace(race:string){return /\b(malay|melayu)\b/i.test(race.trim());}
 function cleanFields(input:unknown){
   const source=input&&typeof input==="object"?input as Record<string,unknown>:{};
   return Object.fromEntries(fieldNames.map(name=>[name,typeof source[name]==="string"?source[name].trim():""])) as ExtractedFields;
@@ -35,6 +36,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
       (updates as Record<string,unknown>)[name]=value;
     }
     const mappedSolicitor=solicitorForUnit(fields.unit_number);if(mappedSolicitor&&!fields.solicitor_name)updates.solicitor_name=mappedSolicitor;
+    updates.bumi_status=isMalayRace(fields.customer_race);if(fields.customer_name_2||fields.customer_ic_2)updates.bumi_status_2=isMalayRace(fields.customer_race_2);
     const unitDetails=detailsForUnit(fields.unit_number);if(unitDetails){updates.floor_area=unitDetails.floorAreaSquareFeet;updates.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);updates.unit_type=unitDetails.unitType;if(unitDetails.parkingBay)updates.car_parking_bay=unitDetails.parkingBay;}
     if(typeof updates.purchase_price==="number")updates.booking_fee=Math.round(updates.purchase_price*2)/100;
     const sale=await updateSale(document.sale_id,updates);const db=await createClient();const{team}=await getTeamContext();const{data:documents,error}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(error)throw error;
