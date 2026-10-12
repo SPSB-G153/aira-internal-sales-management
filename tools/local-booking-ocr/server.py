@@ -71,7 +71,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
 
 Cross-check repeated details elsewhere in the form. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-12-v1"
+CACHE_VERSION = "booking-reader-2026-10-12-v2"
 
 
 @app.middleware("http")
@@ -258,22 +258,20 @@ async def extract(file: UploadFile = File(...)):
         pdf = fitz.open(stream=data, filetype="pdf")
         if not pdf.page_count:
             raise ValueError("The PDF has no pages.")
-        # The cover and final appendix contain the required purchaser, unit,
-        # price, date and contact details. Reading only these four enlarged
-        # sections avoids sending a redundant middle page through the local
-        # CPU-only vision model. Payment evidence is read separately by the
-        # dedicated booking-fee receipt upload.
+        # The final appendix contains the purchaser, unit, price, area,
+        # parking and contact details used by the app. Reading only its two
+        # enlarged halves keeps the private CPU-only model responsive. Any
+        # item absent from the appendix remains available for manual entry,
+        # while payment evidence has its own receipt upload.
         last_index = pdf.page_count - 1
-        images = page_sections(pdf[0], 1.6)
-        if last_index:
-            images.extend(page_sections(pdf[last_index], 1.8))
+        images = page_sections(pdf[last_index], 1.7)
         payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{"role": "user", "content": PROMPT, "images": images}],
             "format": SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 1000},
+            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 900},
         }
         result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=900)
         if not result.ok:
