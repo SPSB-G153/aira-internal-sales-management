@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookingFeeUpload } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
@@ -49,9 +49,25 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   const[result,setResult]=useState<Extraction|null>(null);
   const[displayValues,setDisplayValues]=useState<Record<string,string>>({});
   const[message,setMessage]=useState("");
+  const[reviewRestored,setReviewRestored]=useState(false);
+  const reviewStorageKey=`aira-booking-review:${documentId||"new-sale"}`;
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
   const hasPurchaser2=Boolean(result&&(result.fields.customer_name_2?.trim()||result.fields.customer_ic_2?.trim()));
   const reviewFields=Object.keys(labels).filter(key=>hasPurchaser2||!purchaser2Fields.has(key));
+
+  useEffect(()=>{
+    try{
+      const saved=sessionStorage.getItem(reviewStorageKey);
+      if(saved){const parsed=JSON.parse(saved) as Extraction;if(parsed&&parsed.fields&&Array.isArray(parsed.warnings))setResult(parsed);}
+    }catch{/* Ignore an invalid or unavailable browser-session draft. */}
+    finally{setReviewRestored(true);}
+  },[reviewStorageKey]);
+
+  useEffect(()=>{
+    if(!reviewRestored)return;
+    try{if(result)sessionStorage.setItem(reviewStorageKey,JSON.stringify(result));else sessionStorage.removeItem(reviewStorageKey);}
+    catch{/* The review still works when browser-session storage is unavailable. */}
+  },[result,reviewRestored,reviewStorageKey]);
 
   function updateField(key:string,value:string){
     setDisplayValues(current=>({...current,[key]:value}));
