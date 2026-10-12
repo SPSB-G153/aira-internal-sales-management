@@ -13,6 +13,12 @@ const labels:Record<string,string>={
   customer_name_2:"Purchaser 2 name",customer_ic_2:"Purchaser 2 NRIC / passport",customer_salutation_2:"Purchaser 2 salutation",customer_tin_2:"Purchaser 2 TIN",customer_nationality_2:"Purchaser 2 nationality",customer_sex_2:"Purchaser 2 sex",customer_race_2:"Purchaser 2 race",bumi_status_2:"Purchaser 2 Bumi status",customer_occupation_2:"Purchaser 2 occupation",contact_person_2:"Contact person 2",customer_phone_2:"Mobile number 2",customer_email_2:"Email 2",customer_address_2:"Correspondence address 2",
   sale_date:"Booking date",unit_number:"Parcel / unit number",solicitor_name:"Handling lawyer",storey_number:"Storey",unit_type:"Type",floor_area_sqm:"Area (square metres)",floor_area:"Area (square feet)",purchase_price:"Purchase price",car_parking_bay:"Car parking bay",payment_method:"Payment method",payment_reference:"Cheque / payment reference",purchaser_type:"Purchaser type",
 };
+const purchaser2Fields=new Set([
+  "customer_name_2","customer_ic_2","customer_salutation_2","customer_tin_2",
+  "customer_nationality_2","customer_sex_2","customer_race_2","bumi_status_2",
+  "customer_occupation_2","contact_person_2","customer_phone_2","customer_email_2",
+  "customer_address_2",
+]);
 
 export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
   const input=useRef<HTMLInputElement>(null);
@@ -21,6 +27,8 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   const[result,setResult]=useState<Extraction|null>(null);
   const[message,setMessage]=useState("");
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
+  const hasPurchaser2=result?[...purchaser2Fields].some(key=>result.fields[key]?.trim()):false;
+  const reviewFields=Object.keys(labels).filter(key=>hasPurchaser2||!purchaser2Fields.has(key));
 
   function updateField(key:string,value:string){
     setResult(current=>current?{...current,fields:{...current.fields,[key]:value}}:current);
@@ -83,7 +91,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         <h2>Review extracted information</h2>
         <p className="subtle">Check the handwriting results and fill in any missing items before saving them to the sale and refreshing the letters.</p>
         {result.saved_path&&<p className="upload-saved-path">Saved locally: <strong>{result.saved_path}</strong></p>}
-        <div className="upload-review-fields">{Object.keys(labels).map(key=><label key={key}><span>{labels[key]}</span>{key.includes("address")?<textarea rows={2} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>)}</div>
+        <div className="upload-review-fields">{reviewFields.map(key=><label key={key}><span>{labels[key]}</span>{key.includes("address")?<textarea rows={2} value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>)}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>{documentId?"Save information":"Use these details"}</button></div>
       </div>
