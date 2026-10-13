@@ -158,9 +158,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
   const [bookingFee, setBookingFee] = useState(() => {
     const supplied = sale?.booking_fee ?? initialValues?.booking_fee;
-    if (supplied != null) return String(supplied);
-    const initialPrice = sale?.purchase_price ?? initialValues?.purchase_price;
-    return initialPrice == null ? "" : (Number(initialPrice) * 0.02).toFixed(2);
+    return supplied == null ? "" : String(supplied);
   });
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
@@ -526,6 +524,8 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           <div className="field">
             <label>Booking fee paid (RM)</label>
             <input name="booking_fee" type="number" min="0" step="0.01" value={bookingFee} onChange={(event) => setBookingFee(event.target.value)} />
+            <p className="subtle">Use the actual amount shown in the uploaded banking receipt.</p>
+            {state.fieldErrors?.booking_fee && <p className="error">{state.fieldErrors.booking_fee}</p>}
           </div>
           <Field
             name="rebate_amount"
