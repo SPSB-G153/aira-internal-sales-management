@@ -257,7 +257,10 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
-  const agencyAddress=/\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
+  const enteredAgencyAddress=text(content,"agent_address","");
+  const agencyAddress=enteredAgencyAddress
+    ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)
+    : /\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
   const unit=text(content,"unit_number");
   const tower=towerFromUnit(unit);
   const purchaser=text(content,"customer_name").toUpperCase();

@@ -12,6 +12,7 @@ const labels: Record<string, string> = {
   salesperson_mobile: "Sales personnel mobile no.",
   salesperson_email: "Sales personnel email",
   agent_company: "Sales agency / company",
+  agent_address: "Sales agency / company address (if any)",
 };
 
 export function PopAdminUpload({ unitNumber, onUseFields }: {
@@ -61,7 +62,7 @@ export function PopAdminUpload({ unitNumber, onUseFields }: {
     if (!result) return;
     onUseFields(result.fields);
     setResult(null);
-    setMessage("POP administration details added. Review them below before saving.");
+    setMessage("POP administration details filled below. Review them, then click Save to update the booking and letters.");
   }
 
   return <div className="booking-upload">
@@ -90,7 +91,7 @@ export function PopAdminUpload({ unitNumber, onUseFields }: {
         </div>
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>
-          <button type="button" className="button accent" onClick={apply}>Use these details</button>
+          <button type="button" className="button accent" onClick={apply}>Use these details in form</button>
         </div>
       </div>
     </div>}

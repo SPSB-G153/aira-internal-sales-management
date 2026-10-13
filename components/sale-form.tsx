@@ -5,6 +5,7 @@ import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-uplo
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
 import { emailForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
+import { splitAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop" };
 const Field = ({
@@ -166,6 +167,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
     return typeof value === "boolean" ? String(value) : value;
   };
   const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
+  const storedAgency = splitAgencyDetails(sale?.agent_company ?? initialValues?.agent_company ?? "");
   const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
   const [bookingFee, setBookingFee] = useState(() => {
     const supplied = sale?.booking_fee ?? initialValues?.booking_fee;
@@ -184,7 +186,8 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
     salesperson_designation: String(v("salesperson_designation")),
     salesperson_mobile: String(v("salesperson_mobile")),
     salesperson_email: String(v("salesperson_email")),
-    agent_company: String(v("agent_company")),
+    agent_company: String(state.fields?.agent_company ?? storedAgency.company),
+    agent_address: String(state.fields?.agent_address ?? storedAgency.address),
   });
   const applyPopAdmin = (fields: PopAdminFields) => setPopAdmin((current) => {
     const next = { ...current };
@@ -614,6 +617,16 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             value={popAdmin.agent_company}
             onChange={(value) => setPopAdmin((current) => ({ ...current, agent_company: value }))}
           />
+          <div className="field full">
+            <label htmlFor="agent_address">Sales agency / company address (if any)</label>
+            <textarea
+              id="agent_address"
+              name="agent_address"
+              value={popAdmin.agent_address}
+              placeholder="Enter manually if no namecard is provided"
+              onChange={(event) => setPopAdmin((current) => ({ ...current, agent_address: event.target.value }))}
+            />
+          </div>
           <div className="field">
             <label htmlFor="solicitor_name">Handling lawyer</label>
             <select id="solicitor_name" name="solicitor_name" value={solicitorName} onChange={(event) => setSolicitorName(event.target.value)}>

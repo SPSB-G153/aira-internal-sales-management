@@ -65,7 +65,7 @@ BOOKING_FEE_SCHEMA = {
 }
 POP_ADMIN_FIELDS = [
     "sale_reference", "salesperson_name", "salesperson_designation",
-    "salesperson_mobile", "salesperson_email", "agent_company",
+    "salesperson_mobile", "salesperson_email", "agent_company", "agent_address",
 ]
 POP_ADMIN_SCHEMA = {
     "type": "object",
@@ -124,6 +124,30 @@ def page_sections(page, zoom=1.8):
     upper = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.58)
     lower = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.42, rect.x1, rect.y1)
     return [page_png(page, upper, zoom), page_png(page, lower, zoom)]
+
+
+def pop_admin_section(page):
+    rect = page.rect
+    # POP administration details, including the introducer and agency/company,
+    # are in the top section. Enlarging only that section avoids shrinking the
+    # printed company name when the full A4 page is sent to the private model.
+    upper = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.46)
+    return page_png(page, upper, zoom=2.4)
+
+
+def normalize_agent_company(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    parts = [part.strip(" ,-;") for part in raw.split(",") if part.strip(" ,-;")]
+    company_words = re.compile(
+        r"\b(?:agency|company|iqi|property|properties|realty|sdn\.?|bhd\.?)\b",
+        re.IGNORECASE,
+    )
+    for part in reversed(parts):
+        if company_words.search(part):
+            return part
+    return raw
 
 
 def property_section(page):
@@ -289,7 +313,7 @@ async def extract_pop_admin(
             if not pop.page_count:
                 raise ValueError("The POP Form PDF has no pages.")
             page_indexes = [0] if pop.page_count == 1 else [0, pop.page_count - 1]
-            images = [page_png(pop[index], zoom=1.5) for index in page_indexes]
+            images = [pop_admin_section(pop[index]) for index in page_indexes]
         else:
             images = [base64.b64encode(data).decode("ascii")]
         payload = {
@@ -306,7 +330,8 @@ async def extract_pop_admin(
                     "the AGENT row contains a person followed by a company, use only the company "
                     "portion as agent_company. If the AGENT row is blank, look elsewhere on the "
                     "form for an explicitly printed sales agency, realty or company name and use "
-                    "that as agent_company. Never infer a company from an email domain, logo style "
+                    "that as agent_company. Extract a clearly printed agency/company mailing address "
+                    "as agent_address. Never infer a company or address from an email domain, logo style "
                     "or person's name. Preserve spelling, numbers and email exactly. Do not "
                     "use purchaser details as salesperson details. Return an empty string for any "
                     "field that is not clearly shown. Return only the requested JSON."
@@ -323,6 +348,7 @@ async def extract_pop_admin(
             raise RuntimeError(f"Private model error: {response.text}")
         parsed = json.loads(response.json()["message"]["content"])
         fields = {name: str(parsed.get(name, "") or "").strip() for name in POP_ADMIN_FIELDS}
+        fields["agent_company"] = normalize_agent_company(fields["agent_company"])
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "pop-form.pdf").suffix or ".pdf"
         path = folder / f"POP_Form_{safe_part(unit_number, 'Unidentified')}{suffix}"
@@ -365,8 +391,9 @@ async def extract_namecard_admin(
                     "Read this business namecard privately. Extract the person's name as "
                     "salesperson_name, job title as salesperson_designation, mobile or telephone "
                     "number as salesperson_mobile, email as salesperson_email, and the printed "
-                    "agency or company name as agent_company. Only return agent_company when an "
-                    "agency or company is visibly printed on the card; do not infer it from the "
+                    "agency or company name as agent_company and its printed mailing address as "
+                    "agent_address. Only return agent_company or agent_address when that detail is "
+                    "visibly printed on the card; do not infer it from the "
                     "email domain, logo style, person's name, or other context. Leave "
                     "sale_reference empty. Preserve spelling, capitalization, phone numbers and "
                     "email exactly. Return an empty string for anything not clearly shown. Return "

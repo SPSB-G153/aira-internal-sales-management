@@ -99,7 +99,10 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
 
 function AgentCommissionLetter({content}:{content:Content}){
   const agency=value(content,"agent_company","");
-  const agencyAddress=/\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
+  const enteredAgencyAddress=value(content,"agent_address","");
+  const agencyAddress=enteredAgencyAddress
+    ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)
+    : /\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
   const purchaser=value(content,"customer_name").toUpperCase();
   const unit=value(content,"unit_number");
   const price=number(content,"purchase_price");
