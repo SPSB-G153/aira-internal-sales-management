@@ -91,9 +91,58 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
   if(type==="pre_booking_form")return <ProspectOfferForm content={content}/>;
   if(type==="booking_form")return <BookingFormExact content={content}/>;
   if(type==="acceptance_letter")return <AcceptanceLetterExact content={content}/>;
+  if(type==="agent_commission_letter")return <AgentCommissionLetter content={content}/>;
   if(type==="rebate_letter")return <RebateLetter content={content}/>;
   if(type==="inventory_confirmation_letter")return <InventoryConfirmationLetter content={content}/>;
   return <HovpLetterExact content={content}/>;
+}
+
+function AgentCommissionLetter({content}:{content:Content}){
+  const agency=value(content,"agent_company","Sales Agency");
+  const agencyAddress=/\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
+  const purchaser=value(content,"customer_name").toUpperCase();
+  const unit=value(content,"unit_number");
+  const price=number(content,"purchase_price");
+  const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
+  const approver=value(content,"authorised_signatory_name","");
+  const approverPosition=value(content,"authorised_signatory_position","");
+  const salesperson=value(content,"salesperson_name","");
+  return <div className="agent-commission-letter">
+    <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
+      <section className="notice-page agent-commission-page">
+        <CompanyHead/>
+        <p className="notice-date"><CurrentLetterDate/></p>
+        <p className="agent-recipient">{agency}<br/>{agencyAddress.map((line,index)=><span key={line}>{line}{index<agencyAddress.length-1&&<br/>}</span>)}</p>
+        <p>Dear Sir or Madam,</p>
+        <h1>AGENT&apos;S FEE ARRANGEMENT</h1>
+        <dl className="agent-commission-facts">
+          <Fact label="Project"><b>{value(content,"project_name")}</b></Fact>
+          <Fact label="Property"><b>Parcel No. {unit}{towerFromUnit(unit)?`, Tower ${towerFromUnit(unit)}`:""}</b></Fact>
+          <Fact label="Purchaser"><b>{purchaser}</b></Fact>
+          <Fact label="Purchase Price"><b>{priceText}</b></Fact>
+        </dl>
+        <p>We refer to your appointment in relation to the abovementioned purchaser.</p>
+        <p>We are pleased to advise that, for this sale only, the agent&apos;s commission will be <b>2%</b> of the Net Purchase Price of <b>{priceText}</b>.</p>
+        <p>The Sales Commission will be paid in Ringgit Malaysia within 30 days of our receipt of the following:</p>
+        <ul className="agent-commission-list"><li>a stamped copy of the Sales &amp; Purchase Agreement (SPA);</li><li>a copy of the relevant State Authority&apos;s Consent Approval for Foreigners; and</li><li>the Agent&apos;s Tax Invoice.</li></ul>
+        <p>We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.</p>
+        <p className="agent-commission-closing">Yours faithfully,<br/>For and on behalf of SELANGOR PROPERTIES SDN. BHD.</p>
+        <div className="agent-commission-signature"><span/><b>{approver}</b><small>{approverPosition}</small></div>
+        {salesperson&&<p className="agent-commission-cc">c.c. &nbsp; {salesperson}</p>}
+        <CompanyFooter/><LetterPageNumber page={1}/>
+      </section>
+    </article>
+    <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
+      <section className="notice-page agent-commission-page agent-commission-acceptance">
+        <CompanyEmblem/>
+        <h2>ACCEPTANCE</h2>
+        <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALE OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
+        <p>We, {agency} acknowledge receipt of this Letter dated <CurrentLetterDate/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
+        <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p>Name: ______________________________</p><p>I/C No.: ____________________________</p><p>Date: ______________________________</p></div>
+        <LetterPageNumber page={2}/>
+      </section>
+    </article>
+  </div>;
 }
 
 function BookingFormExact({content}:{content:Content}){

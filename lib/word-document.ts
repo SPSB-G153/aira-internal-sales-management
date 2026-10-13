@@ -254,6 +254,61 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
 }
 
+async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
+  const agency=text(content,"agent_company","Sales Agency");
+  const agencyAddress=/\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
+  const unit=text(content,"unit_number");
+  const tower=towerFromUnit(unit);
+  const purchaser=text(content,"customer_name").toUpperCase();
+  const price=typeof content.purchase_price==="number"?content.purchase_price:0;
+  const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
+  const approver=text(content,"authorised_signatory_name","");
+  const approverPosition=text(content,"authorised_signatory_position","");
+  const salesperson=text(content,"salesperson_name","");
+  const rows:[string,string][]=[
+    ["Project",text(content,"project_name")],
+    ["Property",`Parcel No. ${unit}${tower?`, Tower ${tower}`:""}`],
+    ["Purchaser",purchaser],
+    ["Purchase Price",priceText],
+  ];
+  const facts=new Table({
+    width:{size:100,type:WidthType.PERCENTAGE},
+    borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
+    rows:rows.map(([label,value],index)=>new TableRow({children:[
+      new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?70:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:label,bold:true})],{spacing:{before:0,after:35,line:280}})]}),
+      new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?70:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:":",bold:true})],{spacing:{before:0,after:35,line:280}})]}),
+      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?70:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:value,bold:true})],{spacing:{before:0,after:35,line:280}})]}),
+    ]}))
+  });
+  const pageOne:(Paragraph|Table)[]=[
+    exactParagraph(currentLetterDate(),{spacing:{before:220,after:420,line:300}}),
+    exactParagraph([new TextRun(agency),...agencyAddress.map(address=>new TextRun({text:address,break:1}))],{spacing:{before:0,after:420,line:300}}),
+    exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:320,line:300}}),
+    exactParagraph([new TextRun({text:"AGENT'S FEE ARRANGEMENT",bold:true,size:20})],{spacing:{before:0,after:0,line:300}}),
+    facts,
+    exactParagraph("We refer to your appointment in relation to the abovementioned purchaser.",{spacing:{before:300,after:200,line:300}}),
+    exactParagraph([new TextRun("We are pleased to advise that, for this sale only, the agent's commission will be "),new TextRun({text:"2%",bold:true}),new TextRun(" of the Net Purchase Price of "),new TextRun({text:priceText,bold:true}),new TextRun(".")],{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph("The Sales Commission will be paid in Ringgit Malaysia within 30 days of our receipt of the following:",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph("•    a stamped copy of the Sales & Purchase Agreement (SPA);",{indent:{left:420,hanging:240},spacing:{before:0,after:100,line:300}}),
+    exactParagraph("•    a copy of the relevant State Authority's Consent Approval for Foreigners; and",{indent:{left:420,hanging:240},spacing:{before:0,after:100,line:300}}),
+    exactParagraph("•    the Agent's Tax Invoice.",{indent:{left:420,hanging:240},spacing:{before:0,after:260,line:300}}),
+    exactParagraph("We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and on behalf of SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:300,after:950,line:300}}),
+    new Table({width:{size:3200,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.SINGLE,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:60,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun({text:approver,bold:true}),new TextRun({text:approverPosition,break:1})],{spacing:{before:0,after:0,line:260}})]})]})]}),
+    exactParagraph(salesperson?`c.c.   ${salesperson}`:"",{spacing:{before:220,after:0,line:260}}),
+  ];
+  const pageTwo:(Paragraph|Table)[]=[
+    new Paragraph({children:[new PageBreak()]}),
+    exactParagraph([new TextRun({text:"ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER,spacing:{before:320,after:380,line:300}}),
+    new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:130,left:0,right:0},children:[
+      exactParagraph([new TextRun({text:`AGENT'S FEE ARRANGEMENT TO THE SALE OF UNIT ${unit},`,bold:true}),new TextRun({text:`${text(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT`,bold:true,break:1}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",break:1})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:341}})
+    ]})]})]}),
+    exactParagraph(`We, ${agency} acknowledge receipt of this Letter dated ${currentLetterDate()} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:1500,line:341}}),
+    new Table({width:{size:5000,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.SINGLE,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun("Signature and Company Rubber Stamp:"),new TextRun({text:"Name: ______________________________",break:2}),new TextRun({text:"I/C No.: ____________________________",break:2}),new TextRun({text:"Date: ______________________________",break:2})],{spacing:{before:0,after:0,line:300}})]})]})]}),
+  ];
+  return new Uint8Array(await Packer.toBuffer(letterDocument([...pageOne,...pageTwo],fullLogo,emblemLogo,true)));
+}
+
 const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,colonWidth=180,alignWrapped=false,valueLeft=45)=>new Table({
   width:{size:width,type:WidthType.DXA},
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
@@ -365,6 +420,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
   ]);
   if(type==="acceptance_letter")return createAcceptanceWord(content,fullLogo,emblemLogo);
   const exactLetterGenerators:Partial<Record<DocumentType,(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array)=>Promise<Uint8Array>>>={
+    agent_commission_letter:createAgentCommissionWord,
     rebate_letter:createRebateWord,
     inventory_confirmation_letter:createInventoryWord,
     hovp_letter:createHovpWord,
