@@ -23,7 +23,7 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   const score = scoreSale(sale, docs);
   const isPop = sale.status === "draft";
   const isBookingDraft = sale.status === "booking_draft";
-  const expectedDocuments = 4 + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
+  const expectedDocuments = 3 + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = isPop ? "POP details" : "Booking details";
   const statusLabel = isPop ? "POP" : isBookingDraft ? "Booking draft" : sale.status.replace("_", " ");

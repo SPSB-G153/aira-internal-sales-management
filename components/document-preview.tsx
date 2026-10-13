@@ -2,10 +2,12 @@ import type { CSSProperties, ReactNode } from "react";
 import { documentSteps } from "@/lib/templates";
 import type { DocumentType } from "@/lib/types";
 import { CurrentLetterDate } from "@/components/current-letter-date";
+import { noticeAddressLines } from "@/lib/notice-address";
 
 type Content=Record<string,unknown>;
 function LetterPageNumber({page}:{page:number}){return <div className="notice-page-number"><span>{page}</span></div>}
 function NoticePageFooter({page}:{page:number}){return <>{page===1&&<CompanyFooter/>}<LetterPageNumber page={page}/></>}
+function NoticeAddress({address}:{address:string}){return <>{noticeAddressLines(address).map((line,index)=><span key={`${line}-${index}`}>{index>0&&<br/>}{line}</span>)}</>}
 function AcceptanceLetterExact({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const deposit=price*.1;
@@ -18,7 +20,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
     <section className="notice-page">
       <CompanyHead/>
       <p className="notice-date"><CurrentLetterDate/></p>
-      <p className="notice-recipient"><b>{purchaser}</b><br/>{value(content,"customer_address")}</p>
+      <p className="notice-recipient"><b>{purchaser}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
       <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
       <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Berhad</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser"><b>1. {purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
@@ -53,7 +55,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
   return <article className="letter source-letter acceptance-letter">
     <CompanyHead/>
     <p><CurrentLetterDate/></p>
-    <p><b>{purchaser.toUpperCase()}</b><br/>{value(content,"customer_address")}</p>
+    <p><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
     <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
     <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
     <dl className="acceptance-facts">
