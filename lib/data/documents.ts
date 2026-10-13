@@ -4,7 +4,7 @@ import { getTeamContext } from "@/lib/tenancy";
 import { buildDocumentSnapshot, documentOrder } from "@/lib/templates";
 export async function getDocuments(saleId?:string){const db=await createClient();const{team}=await getTeamContext();let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
 export async function ensureHovpDocument(sale:Sale){
-  if(sale.status==="draft")return;
+  if(sale.status==="draft"||sale.status==="booking_draft")return;
   const db=await createClient();const{team}=await getTeamContext();
   const{data:existing,error:lookupError}=await db.from("documents").select("id").eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","hovp_letter").maybeSingle();
   if(lookupError)throw new Error(lookupError.message);if(existing)return;

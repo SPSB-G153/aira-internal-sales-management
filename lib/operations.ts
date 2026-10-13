@@ -34,6 +34,7 @@ export const governanceRules = [
 const present = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== "";
 
 export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
+  const isDraft = sale.status === "draft" || sale.status === "booking_draft";
   const blockers: string[] = [];
   const qualityChecks = [
     [present(sale.customer_ic), "Add IC / passport"],
@@ -56,8 +57,8 @@ export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
   const reviewed = documents.filter((doc) => doc.status === "reviewed").length;
   const initialLetters = sale.rebate_amount && sale.rebate_amount > 0 ? 2 : 1;
   const expectedLetters = sale.status === "hovp_ready" ? initialLetters + 1 : initialLetters;
-  const documentControl = (sale.status !== "draft" ? 5 : 0) + Math.min(generated, 3) * 4 + Math.min(reviewed, 3) * 8/3;
-  if (sale.status !== "draft" && generated < expectedLetters) blockers.push(`Generate ${expectedLetters - generated} missing letter${expectedLetters - generated === 1 ? "" : "s"}`);
+  const documentControl = (!isDraft ? 5 : 0) + Math.min(generated, 3) * 4 + Math.min(reviewed, 3) * 8/3;
+  if (!isDraft && generated < expectedLetters) blockers.push(`Generate ${expectedLetters - generated} missing letter${expectedLetters - generated === 1 ? "" : "s"}`);
   if (sale.status === "hovp_ready" && reviewed < expectedLetters) blockers.push(`Review ${expectedLetters - reviewed} letter${expectedLetters - reviewed === 1 ? "" : "s"}`);
 
   const governance = (present(sale.sale_reference) ? 3 : 0) + (present(sale.salesperson_name) ? 3 : 0) + (present(sale.sale_date) ? 2 : 0) + (depositValid ? 2 : 0);
@@ -66,6 +67,7 @@ export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
   let stage: OperatingStage = "capture";
   let nextAction = blockers[0] ?? "Complete the draft";
   if (sale.status === "draft" && dataQuality >= 30 && financialIntegrity === 25) { stage = "verify"; nextAction = "Purchaser proceeds: record the 2% deposit and create the booking"; }
+  if (sale.status === "booking_draft") { stage = "verify"; nextAction = blockers[0] ?? "Review the details and confirm the booking"; }
   if (sale.status === "confirmed") { stage = "confirm"; nextAction = "Complete the SPA process, then mark the SPA signed"; }
   if (sale.status === "spa_signed") { stage = "review"; nextAction = "Confirm 90% payment and/or foreign consent, then issue HOVP"; }
   if (sale.status === "hovp_ready") { stage = "complete"; nextAction = reviewed < expectedLetters ? "Review and print the HOVP letter" : "Handover pack is ready"; }

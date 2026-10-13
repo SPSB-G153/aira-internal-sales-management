@@ -1,4 +1,4 @@
-export type SaleStatus = "draft" | "confirmed" | "spa_signed" | "hovp_ready";
+export type SaleStatus = "draft" | "booking_draft" | "confirmed" | "spa_signed" | "hovp_ready";
 export type DocumentType = "pre_booking_form" | "booking_form" | "acceptance_letter" | "rebate_letter" | "inventory_confirmation_letter" | "hovp_letter";
 export type DocumentStatus = "pending" | "generated" | "reviewed";
 export type TeamRole = "owner" | "admin" | "member";

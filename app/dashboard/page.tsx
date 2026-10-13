@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function Dashboard() {
   const [sales, docs, context] = await Promise.all([getSales(), getDocuments(), getTeamContext()]);
   const confirmed = sales.filter((sale) => sale.status === "confirmed").length;
-  const drafts = sales.filter((sale) => sale.status === "draft");
+  const drafts = sales.filter((sale) => sale.status === "draft" || sale.status === "booking_draft");
   const documentsToReview = docs.filter((doc) => doc.status !== "reviewed");
   const reviewed = docs.length - documentsToReview.length;
   const activities = [

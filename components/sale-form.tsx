@@ -156,6 +156,12 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   };
   const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
   const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
+  const [bookingFee, setBookingFee] = useState(() => {
+    const supplied = sale?.booking_fee ?? initialValues?.booking_fee;
+    if (supplied != null) return String(supplied);
+    const initialPrice = sale?.purchase_price ?? initialValues?.purchase_price;
+    return initialPrice == null ? "" : (Number(initialPrice) * 0.02).toFixed(2);
+  });
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
   const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? ""));
@@ -172,8 +178,6 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
       ? "company"
       : "individual",
   );
-  const suppliedBookingFee = sale?.booking_fee ?? initialValues?.booking_fee;
-  const earnest = suppliedBookingFee != null ? String(suppliedBookingFee) : price === "" ? "" : (Number(price) * 0.02).toFixed(2);
   const changeFt = (x: string) => {
     setAreaFt(x);
     setAreaM(x === "" ? "" : (Number(x) * 0.092903).toFixed(2));
@@ -433,7 +437,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           </div>
         </div>
       )}
-      {entryMode === "pop" && <section className="form-section">
+      <section className="form-section">
         <h2>Property details</h2>
         <div className="form-grid">
           <Field
@@ -486,7 +490,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             <input id="car_parking_bay" name="car_parking_bay" value={parkingBay} onChange={(event) => setParkingBay(event.target.value)} />
           </div>
         </div>
-      </section>}
+      </section>
       {entryMode === "pop" && <section className="form-section">
         <div className="section-heading">
           <div>
@@ -521,7 +525,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           </div>
           <div className="field">
             <label>Booking fee paid (RM)</label>
-            <input name="booking_fee" type="number" readOnly value={earnest} />
+            <input name="booking_fee" type="number" min="0" step="0.01" value={bookingFee} onChange={(event) => setBookingFee(event.target.value)} />
           </div>
           <Field
             name="rebate_amount"
@@ -628,7 +632,10 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
         </div>
       </section>
       <div className="form-actions">
-        <button className="button" disabled={pending}>
+        {entryMode === "booking" && (!sale || sale.status === "booking_draft") && <button type="submit" name="save_intent" value="draft" className="button secondary" disabled={pending}>
+          {pending ? "Saving…" : sale ? "Save draft changes" : "Save as draft"}
+        </button>}
+        <button type="submit" name="save_intent" value="final" className="button" disabled={pending}>
           {pending ? "Saving…" : entryMode === "booking" ? (sale ? "Save booking changes" : "Create booking") : (sale ? "Save POP changes" : "Save POP")}
         </button>
       </div>
