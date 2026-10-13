@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { saveSale, type FormState } from "@/lib/actions/sales";
+import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
 import type { Sale } from "@/lib/types";
@@ -12,6 +13,8 @@ const Field = ({
   required = false,
   wide = false,
   defaultValue,
+  value,
+  onChange,
   error,
 }: {
   name: string;
@@ -20,6 +23,8 @@ const Field = ({
   required?: boolean;
   wide?: boolean;
   defaultValue?: string | number | null;
+  value?: string;
+  onChange?: (value: string) => void;
   error?: string;
 }) => (
   <div className={`field ${wide ? "full" : ""}`}>
@@ -34,7 +39,9 @@ const Field = ({
       required={required}
       min={type === "number" ? 0 : undefined}
       step={type === "number" ? "0.01" : undefined}
-      defaultValue={defaultValue ?? ""}
+      defaultValue={value === undefined ? defaultValue ?? "" : undefined}
+      value={value}
+      onChange={onChange ? (event) => onChange(event.target.value) : undefined}
     />
     {error && <p className="error">{error}</p>}
   </div>
@@ -166,6 +173,20 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
   const [storeyNumber, setStoreyNumber] = useState(String(sale?.storey_number ?? initialValues?.storey_number ?? state.fields?.storey_number ?? ""));
   const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? initialValues?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
+  const [unitNumber, setUnitNumber] = useState(String(sale?.unit_number ?? initialValues?.unit_number ?? state.fields?.unit_number ?? ""));
+  const [popAdmin, setPopAdmin] = useState<Record<string, string>>({
+    sale_reference: String(v("sale_reference")),
+    salesperson_name: String(v("salesperson_name")),
+    salesperson_designation: String(v("salesperson_designation")),
+    salesperson_mobile: String(v("salesperson_mobile")),
+    salesperson_email: String(v("salesperson_email")),
+    agent_company: String(v("agent_company")),
+  });
+  const applyPopAdmin = (fields: PopAdminFields) => setPopAdmin((current) => {
+    const next = { ...current };
+    Object.keys(current).forEach((key) => { if (fields[key]?.trim()) next[key] = fields[key]; });
+    return next;
+  });
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
     Boolean(sale?.customer_name_2 || initialValues?.customer_name_2 || state.fields?.customer_name_2),
@@ -450,8 +471,8 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             <input
               id="unit_number"
               name="unit_number"
-              defaultValue={v("unit_number")}
-              onChange={(event) => applyUnitDetails(event.target.value)}
+              value={unitNumber}
+              onChange={(event) => { setUnitNumber(event.target.value); applyUnitDetails(event.target.value); }}
             />
             <p className="subtle">The handling lawyer, unit type and area are filled automatically for listed units.</p>
           </div>
@@ -542,39 +563,48 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
         </div>
       </section>
       <section className="form-section">
-        <h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2>
+        <div className="section-heading">
+          <div><h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2><p className="subtle">Upload the POP Form to fill the sales administration details, or edit them manually.</p></div>
+          <PopAdminUpload unitNumber={unitNumber} onUseFields={applyPopAdmin} />
+        </div>
         <div className="form-grid">
           <Field
             name="sale_reference"
             label={`${entryMode === "booking" ? "Booking" : "POP"} reference (auto if blank)`}
-            defaultValue={v("sale_reference")}
+            value={popAdmin.sale_reference}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, sale_reference: value }))}
           />
           <Field
             name="salesperson_name"
             label="Sales personnel name"
-            defaultValue={v("salesperson_name")}
+            value={popAdmin.salesperson_name}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_name: value }))}
           />
           <Field
             name="salesperson_designation"
             label="Sales personnel designation"
-            defaultValue={v("salesperson_designation")}
+            value={popAdmin.salesperson_designation}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_designation: value }))}
           />
           <Field
             name="salesperson_mobile"
             label="Sales personnel mobile no."
             type="tel"
-            defaultValue={v("salesperson_mobile")}
+            value={popAdmin.salesperson_mobile}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_mobile: value }))}
           />
           <Field
             name="salesperson_email"
             label="Sales personnel email"
             type="email"
-            defaultValue={v("salesperson_email")}
+            value={popAdmin.salesperson_email}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_email: value }))}
           />
           <Field
             name="agent_company"
             label="Sales agency / company"
-            defaultValue={v("agent_company")}
+            value={popAdmin.agent_company}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, agent_company: value }))}
           />
           <div className="field">
             <label htmlFor="solicitor_name">Handling lawyer</label>

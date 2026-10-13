@@ -63,6 +63,15 @@ BOOKING_FEE_SCHEMA = {
     },
     "required": ["booking_fee", "booking_fee_text", "sale_date", "payment_method", "payment_reference"],
 }
+POP_ADMIN_FIELDS = [
+    "sale_reference", "salesperson_name", "salesperson_designation",
+    "salesperson_mobile", "salesperson_email", "agent_company",
+]
+POP_ADMIN_SCHEMA = {
+    "type": "object",
+    "properties": {name: {"type": "string"} for name in POP_ADMIN_FIELDS},
+    "required": POP_ADMIN_FIELDS,
+}
 PROMPT = """Read only handwritten or manually entered information from these enlarged, overlapping sections of an Aira Booking Form. The sections are supplied in page order and may repeat content where they overlap. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
@@ -257,6 +266,65 @@ async def extract_booking_fee(
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:
         raise HTTPException(status_code=500, detail=f"The booking-fee receipt could not be read: {error}") from error
+
+
+@app.post("/extract-pop-admin")
+async def extract_pop_admin(
+    file: UploadFile = File(...),
+    unit_number: str = Form(""),
+):
+    data = await file.read()
+    if len(data) > 20_000_000:
+        raise HTTPException(status_code=400, detail="Please upload a POP Form smaller than 20 MB.")
+    filename = str(file.filename or "").lower()
+    is_pdf = file.content_type == "application/pdf" or filename.endswith(".pdf")
+    is_image = str(file.content_type or "").startswith("image/") or filename.endswith(
+        (".png", ".jpg", ".jpeg", ".webp")
+    )
+    if not is_pdf and not is_image:
+        raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP POP Form.")
+    try:
+        if is_pdf:
+            pop = fitz.open(stream=data, filetype="pdf")
+            if not pop.page_count:
+                raise ValueError("The POP Form PDF has no pages.")
+            page_indexes = [0] if pop.page_count == 1 else [0, pop.page_count - 1]
+            images = [page_png(pop[index], zoom=1.5) for index in page_indexes]
+        else:
+            images = [base64.b64encode(data).decode("ascii")]
+        payload = {
+            "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract only "
+                    "the POP or proposal reference as sale_reference; the sales personnel or "
+                    "salesperson name; designation; mobile or telephone number; email; and sales "
+                    "agency or company. Preserve spelling, numbers and email exactly. Do not use "
+                    "purchaser details as salesperson details. Return an empty string for any field "
+                    "that is not clearly shown. Return only the requested JSON."
+                ),
+                "images": images,
+            }],
+            "format": POP_ADMIN_SCHEMA,
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+        }
+        response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
+        if not response.ok:
+            raise RuntimeError(f"Private model error: {response.text}")
+        parsed = json.loads(response.json()["message"]["content"])
+        fields = {name: str(parsed.get(name, "") or "").strip() for name in POP_ADMIN_FIELDS}
+        folder = unit_folder(unit_number)
+        suffix = Path(file.filename or "pop-form.pdf").suffix or ".pdf"
+        path = folder / f"POP_Form_{safe_part(unit_number, 'Unidentified')}{suffix}"
+        path.write_bytes(data)
+        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+    except requests.ConnectionError as error:
+        raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"The POP Form could not be read: {error}") from error
 
 
 @app.post("/extract")
