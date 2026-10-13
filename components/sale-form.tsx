@@ -4,6 +4,7 @@ import { saveSale, type FormState } from "@/lib/actions/sales";
 import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
+import { emailForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop" };
 const Field = ({
@@ -15,6 +16,7 @@ const Field = ({
   defaultValue,
   value,
   onChange,
+  list,
   error,
 }: {
   name: string;
@@ -25,6 +27,7 @@ const Field = ({
   defaultValue?: string | number | null;
   value?: string;
   onChange?: (value: string) => void;
+  list?: string;
   error?: string;
 }) => (
   <div className={`field ${wide ? "full" : ""}`}>
@@ -42,6 +45,7 @@ const Field = ({
       defaultValue={value === undefined ? defaultValue ?? "" : undefined}
       value={value}
       onChange={onChange ? (event) => onChange(event.target.value) : undefined}
+      list={list}
     />
     {error && <p className="error">{error}</p>}
   </div>
@@ -185,6 +189,8 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   const applyPopAdmin = (fields: PopAdminFields) => setPopAdmin((current) => {
     const next = { ...current };
     Object.keys(current).forEach((key) => { if (fields[key]?.trim()) next[key] = fields[key]; });
+    const staffEmail = emailForSalesPersonnel(next.salesperson_name);
+    if (staffEmail) next.salesperson_email = staffEmail;
     return next;
   });
   const [secondOpen, setSecondOpen] = useState(false);
@@ -578,8 +584,10 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             name="salesperson_name"
             label="Sales personnel name"
             value={popAdmin.salesperson_name}
-            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_name: value }))}
+            list="sales-personnel-list"
+            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_name: value, salesperson_email: emailForSalesPersonnel(value) || current.salesperson_email }))}
           />
+          <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
           <Field
             name="salesperson_designation"
             label="Sales personnel designation"
