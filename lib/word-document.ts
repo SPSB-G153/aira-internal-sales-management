@@ -8,6 +8,7 @@ const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[k
 const amount=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(value):"—";
 const date=(value:unknown)=>{if(typeof value!=="string"||!value)return "—";return new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric"}).format(new Date(`${value}T00:00:00`));};
 const currentLetterDate=()=>new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
+const issuedLetterDate=(content:Record<string,unknown>)=>{const value=text(content,"letter_issued_at","");if(!value)return currentLetterDate();const parsed=new Date(value);return Number.isNaN(parsed.getTime())?currentLetterDate():new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(parsed);};
 const towerFromUnit=(unit:string)=>{const tower=unit.split("-")[0]?.toUpperCase();return tower==="A"||tower==="B"?tower:"";};
 const line=(value:string)=>new Paragraph({children:[new TextRun(value)]});
 
@@ -255,7 +256,7 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 }
 
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
-  const agency=text(content,"agent_company","Sales Agency");
+  const agency=text(content,"agent_company","");
   const agencyAddress=/\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
   const unit=text(content,"unit_number");
   const tower=towerFromUnit(unit);
@@ -265,6 +266,7 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
   const approver=text(content,"authorised_signatory_name","");
   const approverPosition=text(content,"authorised_signatory_position","");
   const salesperson=text(content,"salesperson_name","");
+  const letterDate=issuedLetterDate(content);
   const rows:[string,string][]=[
     ["Project",text(content,"project_name")],
     ["Property",`Parcel No. ${unit}${tower?`, Tower ${tower}`:""}`],
@@ -281,7 +283,7 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
     ]}))
   });
   const pageOne:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:220,after:420,line:300}}),
+    exactParagraph(letterDate,{spacing:{before:220,after:420,line:300}}),
     exactParagraph([new TextRun(agency),...agencyAddress.map(address=>new TextRun({text:address,break:1}))],{spacing:{before:0,after:420,line:300}}),
     exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:320,line:300}}),
     exactParagraph([new TextRun({text:"AGENT'S FEE ARRANGEMENT",bold:true,size:20})],{spacing:{before:0,after:0,line:300}}),
@@ -303,7 +305,7 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:130,left:0,right:0},children:[
       exactParagraph([new TextRun({text:`AGENT'S FEE ARRANGEMENT TO THE SALES OF UNIT ${unit},`,bold:true}),new TextRun({text:`${text(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT`,bold:true,break:1}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",break:1})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:341}})
     ]})]})]}),
-    exactParagraph(`We, ${agency} acknowledge receipt of this Letter dated ${currentLetterDate()} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:1500,line:341}}),
+    exactParagraph(`I/We, ${agency||"____________________"} acknowledge receipt of this Letter dated ${letterDate} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:1500,line:341}}),
     new Table({width:{size:5000,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.SINGLE,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun("Signature and Company Rubber Stamp:"),new TextRun({text:"Name: ______________________________",break:2}),new TextRun({text:"I/C No.: ____________________________",break:2}),new TextRun({text:"Date: ______________________________",break:2})],{spacing:{before:0,after:0,line:300}})]})]})]}),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument([...pageOne,...pageTwo],fullLogo,emblemLogo,true)));

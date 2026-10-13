@@ -98,7 +98,7 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
 }
 
 function AgentCommissionLetter({content}:{content:Content}){
-  const agency=value(content,"agent_company","Sales Agency");
+  const agency=value(content,"agent_company","");
   const agencyAddress=/\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
   const purchaser=value(content,"customer_name").toUpperCase();
   const unit=value(content,"unit_number");
@@ -107,11 +107,12 @@ function AgentCommissionLetter({content}:{content:Content}){
   const approver=value(content,"authorised_signatory_name","");
   const approverPosition=value(content,"authorised_signatory_position","");
   const salesperson=value(content,"salesperson_name","");
+  const letterIssuedAt=value(content,"letter_issued_at","");
   return <div className="agent-commission-letter">
     <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
       <section className="notice-page agent-commission-page">
         <CompanyHead/>
-        <p className="notice-date"><CurrentLetterDate/></p>
+        <p className="notice-date"><CurrentLetterDate date={letterIssuedAt}/></p>
         <p className="agent-recipient">{agency}<br/>{agencyAddress.map((line,index)=><span key={line}>{line}{index<agencyAddress.length-1&&<br/>}</span>)}</p>
         <p>Dear Sir or Madam,</p>
         <h1>AGENT&apos;S FEE ARRANGEMENT</h1>
@@ -137,7 +138,7 @@ function AgentCommissionLetter({content}:{content:Content}){
         <CompanyEmblem/>
         <h2>ACCEPTANCE</h2>
         <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALES OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
-        <p>We, {agency} acknowledge receipt of this Letter dated <CurrentLetterDate/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
+        <p>I/We, {agency||"____________________"} acknowledge receipt of this Letter dated <CurrentLetterDate date={letterIssuedAt}/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
         <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p>Name: ______________________________</p><p>I/C No.: ____________________________</p><p>Date: ______________________________</p></div>
         <LetterPageNumber page={2}/>
       </section>
