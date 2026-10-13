@@ -300,9 +300,13 @@ async def extract_pop_admin(
                     "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract only "
                     "the POP or proposal reference as sale_reference; the sales personnel or "
                     "salesperson name; designation; mobile or telephone number; email; and sales "
-                    "agency or company. Preserve spelling, numbers and email exactly. Do not use "
-                    "purchaser details as salesperson details. Return an empty string for any field "
-                    "that is not clearly shown. Return only the requested JSON."
+                    "agency or company. The value beside the printed label 'Team Member Assisting' "
+                    "is always salesperson_name. Do not use the person shown in the 'Introduction "
+                    "By: AGENT' row as salesperson_name; that row is the external introducer. When "
+                    "the AGENT row contains a person followed by a company, use only the company "
+                    "portion as agent_company. Preserve spelling, numbers and email exactly. Do not "
+                    "use purchaser details as salesperson details. Return an empty string for any "
+                    "field that is not clearly shown. Return only the requested JSON."
                 ),
                 "images": images,
             }],
