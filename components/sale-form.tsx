@@ -487,7 +487,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           </div>
         </div>
       </section>}
-      <section className="form-section">
+      {entryMode === "pop" && <section className="form-section">
         <div className="section-heading">
           <div>
             <p className="eyebrow">POP approval notes</p>
@@ -501,7 +501,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           <div className="field full"><label htmlFor="pop_feasibility_note">3. Feasibility Check - note / remark</label><textarea id="pop_feasibility_note" name="pop_feasibility_note" rows={3} defaultValue={v("pop_feasibility_note")}/></div>
           <div className="field full"><label htmlFor="pop_comments_note">4. Comments/Approval - note / remark</label><textarea id="pop_comments_note" name="pop_comments_note" rows={4} defaultValue={v("pop_comments_note")}/></div>
         </div>
-      </section>
+      </section>}
       <section className="form-section">
         <h2>Offer and deposit</h2>
         <div className="form-grid">
