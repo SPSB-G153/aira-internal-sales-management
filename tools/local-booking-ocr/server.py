@@ -304,7 +304,10 @@ async def extract_pop_admin(
                     "is always salesperson_name. Do not use the person shown in the 'Introduction "
                     "By: AGENT' row as salesperson_name; that row is the external introducer. When "
                     "the AGENT row contains a person followed by a company, use only the company "
-                    "portion as agent_company. Preserve spelling, numbers and email exactly. Do not "
+                    "portion as agent_company. If the AGENT row is blank, look elsewhere on the "
+                    "form for an explicitly printed sales agency, realty or company name and use "
+                    "that as agent_company. Never infer a company from an email domain, logo style "
+                    "or person's name. Preserve spelling, numbers and email exactly. Do not "
                     "use purchaser details as salesperson details. Return an empty string for any "
                     "field that is not clearly shown. Return only the requested JSON."
                 ),
@@ -329,6 +332,67 @@ async def extract_pop_admin(
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:
         raise HTTPException(status_code=500, detail=f"The POP Form could not be read: {error}") from error
+
+
+@app.post("/extract-namecard-admin")
+async def extract_namecard_admin(
+    file: UploadFile = File(...),
+    unit_number: str = Form(""),
+):
+    data = await file.read()
+    if len(data) > 20_000_000:
+        raise HTTPException(status_code=400, detail="Please upload a namecard smaller than 20 MB.")
+    filename = str(file.filename or "").lower()
+    is_pdf = file.content_type == "application/pdf" or filename.endswith(".pdf")
+    is_image = str(file.content_type or "").startswith("image/") or filename.endswith(
+        (".png", ".jpg", ".jpeg", ".webp")
+    )
+    if not is_pdf and not is_image:
+        raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP namecard.")
+    try:
+        if is_pdf:
+            card = fitz.open(stream=data, filetype="pdf")
+            if not card.page_count:
+                raise ValueError("The namecard PDF has no pages.")
+            images = [page_png(card[0], zoom=2.0)]
+        else:
+            images = [base64.b64encode(data).decode("ascii")]
+        payload = {
+            "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Read this business namecard privately. Extract the person's name as "
+                    "salesperson_name, job title as salesperson_designation, mobile or telephone "
+                    "number as salesperson_mobile, email as salesperson_email, and the printed "
+                    "agency or company name as agent_company. Only return agent_company when an "
+                    "agency or company is visibly printed on the card; do not infer it from the "
+                    "email domain, logo style, person's name, or other context. Leave "
+                    "sale_reference empty. Preserve spelling, capitalization, phone numbers and "
+                    "email exactly. Return an empty string for anything not clearly shown. Return "
+                    "only the requested JSON."
+                ),
+                "images": images,
+            }],
+            "format": POP_ADMIN_SCHEMA,
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+        }
+        response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
+        if not response.ok:
+            raise RuntimeError(f"Private model error: {response.text}")
+        parsed = json.loads(response.json()["message"]["content"])
+        fields = {name: str(parsed.get(name, "") or "").strip() for name in POP_ADMIN_FIELDS}
+        folder = unit_folder(unit_number)
+        suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
+        path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"
+        path.write_bytes(data)
+        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+    except requests.ConnectionError as error:
+        raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"The namecard could not be read: {error}") from error
 
 
 @app.post("/extract")

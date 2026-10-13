@@ -121,12 +121,12 @@ function AgentCommissionLetter({content}:{content:Content}){
           <Fact label="Purchaser"><b>{purchaser}</b></Fact>
           <Fact label="Purchase Price"><b>{priceText}</b></Fact>
         </dl>
-        <p>We refer to your appointment in relation to the abovementioned purchaser.</p>
-        <p>We are pleased to advise that, for this sale only, the agent&apos;s commission will be <b>2%</b> of the Net Purchase Price of <b>{priceText}</b>.</p>
+        <p>We refer to your letter of appointment dated 4th April, 2023 to the abovementioned purchaser.</p>
+        <p>We are pleased to advise that in the case of this sale only, the agents commission will be <b>2%</b> of the Net Purchase Price of <b>{priceText}</b>.</p>
         <p>The Sales Commission will be paid in Ringgit Malaysia within 30 days of our receipt of the following:</p>
         <ul className="agent-commission-list"><li>a stamped copy of the Sales &amp; Purchase Agreement (SPA);</li><li>a copy of the relevant State Authority&apos;s Consent Approval for Foreigners; and</li><li>the Agent&apos;s Tax Invoice.</li></ul>
         <p>We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.</p>
-        <p className="agent-commission-closing">Yours faithfully,<br/>For and on behalf of SELANGOR PROPERTIES SDN. BHD.</p>
+        <p className="agent-commission-closing">Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p>
         <div className="agent-commission-signature"><span/><b>{approver}</b><small>{approverPosition}</small></div>
         {salesperson&&<p className="agent-commission-cc">c.c. &nbsp; {salesperson}</p>}
         <CompanyFooter/><LetterPageNumber page={1}/>
@@ -136,7 +136,7 @@ function AgentCommissionLetter({content}:{content:Content}){
       <section className="notice-page agent-commission-page agent-commission-acceptance">
         <CompanyEmblem/>
         <h2>ACCEPTANCE</h2>
-        <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALE OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
+        <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALES OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
         <p>We, {agency} acknowledge receipt of this Letter dated <CurrentLetterDate/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
         <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p>Name: ______________________________</p><p>I/C No.: ____________________________</p><p>Date: ______________________________</p></div>
         <LetterPageNumber page={2}/>
