@@ -56,11 +56,12 @@ BOOKING_FEE_SCHEMA = {
     "type": "object",
     "properties": {
         "booking_fee": {"type": "string"},
+        "booking_fee_text": {"type": "string"},
         "sale_date": {"type": "string"},
         "payment_method": {"type": "string"},
         "payment_reference": {"type": "string"},
     },
-    "required": ["booking_fee", "sale_date", "payment_method", "payment_reference"],
+    "required": ["booking_fee", "booking_fee_text", "sale_date", "payment_method", "payment_reference"],
 }
 PROMPT = """Read only handwritten or manually entered information from these enlarged, overlapping sections of an Aira Booking Form. The sections are supplied in page order and may repeat content where they overlap. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
@@ -84,6 +85,20 @@ async def private_network_header(request, call_next):
 @app.get("/health")
 def health():
     return {"ok": True, "private": True, "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b")}
+
+
+def normalize_booking_fee(amount, displayed_text):
+    raw = str(displayed_text or "").strip()
+    compact = re.sub(r"[\s,]", "", raw)
+    thousands = re.search(r"(?:RM)?(\d+(?:\.\d+)?)K\b", compact, re.IGNORECASE)
+    if thousands:
+        value = float(thousands.group(1)) * 1000
+        return str(int(value)) if value.is_integer() else str(value)
+    comma_amount = re.search(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?", raw)
+    if comma_amount:
+        return comma_amount.group(0).replace(",", "")
+    normalized = re.sub(r"[^0-9.]", "", str(amount or ""))
+    return normalized
 
 
 def page_png(page, clip=None, zoom=1.8):
@@ -205,7 +220,11 @@ async def extract_booking_fee(
                 "content": (
                     "Read this booking-fee payment receipt privately. Extract only: the "
                     "amount actually paid as booking_fee (digits and decimals only, without "
-                    "currency symbols or commas); the payment/transaction date as YYYY-MM-DD; "
+                    "currency symbols or commas), and also copy the exact printed or written "
+                    "amount into booking_fee_text including all commas, decimals, and any K suffix. "
+                    "For example, MYR 200,000.00 must be booking_fee 200000.00. K means thousand: "
+                    "RM200K or 200 K must be returned as booking_fee 200000, never 200. "
+                    "The payment/transaction date must be YYYY-MM-DD; "
                     "payment_method as exactly bank_transfer or cheque; and the transaction, "
                     "receipt or cheque number as payment_reference. Do not use the property "
                     "purchase price, account balance or unrelated amounts. Return an empty "
@@ -226,6 +245,9 @@ async def extract_booking_fee(
             name: str(parsed.get(name, "") or "").strip()
             for name in ("booking_fee", "sale_date", "payment_method", "payment_reference")
         }
+        fields["booking_fee"] = normalize_booking_fee(
+            fields["booking_fee"], parsed.get("booking_fee_text", "")
+        )
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "receipt.pdf").suffix or ".pdf"
         path = folder / f"Booking_Fee_{safe_part(unit_number, 'Unidentified')}{suffix}"
