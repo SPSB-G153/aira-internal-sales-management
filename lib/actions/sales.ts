@@ -7,11 +7,12 @@ import { buildDocumentSnapshot } from "@/lib/templates";
 import { getTeamContext } from "@/lib/tenancy";
 import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import type { DocumentType,Sale } from "@/lib/types";
-import { combineAgencyDetails } from "@/lib/agency-details";
+import { combineAgencyDetails, splitAgencyDetails } from "@/lib/agency-details";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
 export type DeleteSaleState={error?:string};
+export type PopAdminSaveState={error?:string;saved?:boolean};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
 const numeric=(f:FormData,k:string)=>{const v=text(f,k);return v===""?null:Number(v)};
 const optionalBoolean=(f:FormData,k:string)=>{const v=text(f,k);return v==="true"?true:v==="false"?false:null};
@@ -40,6 +41,36 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   values.customer_nationality=normalizeNationality(values.customer_nationality||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_nationality_2=normalizeNationality(values.customer_nationality_2||"")||null;
   let sale:Sale;try{const id=text(form,"id");sale=id?await updateSale(id,values):await createSale(values);const db=await createClient();const{team}=await getTeamContext();const{data:{user}}=await db.auth.getUser();const generated_at=new Date().toISOString();if(sale.status==="draft"){const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"pre_booking_form",content:buildDocumentSnapshot(sale,"pre_booking_form"),status:"generated",generated_at},{onConflict:"sale_id,document_type"});if(error)throw error;}else if(sale.status!=="booking_draft"){const types:DocumentType[]=["booking_form","acceptance_letter","agent_commission_letter"];if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");types.push("hovp_letter");const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}}catch(e){return{error:e instanceof Error?e.message:"Failed to save sale.",fields}}
   revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(`/sales/${sale.id}`);
+}
+export async function savePopAdminDetails(id:string,fields:Record<string,string>):Promise<PopAdminSaveState>{
+  try{
+    const sale=await getSale(id);
+    const existingAgency=splitAgencyDetails(sale.agent_company);
+    const clean=(key:string)=>String(fields[key]??"").trim();
+    const company=clean("agent_company")||existingAgency.company;
+    const address=clean("agent_address")||existingAgency.address;
+    const values:Partial<Sale>={};
+    const allowed=["sale_reference","salesperson_name","salesperson_designation","salesperson_mobile","salesperson_email"] as const;
+    for(const key of allowed){const value=clean(key);if(value)values[key]=value;}
+    if(company||address)values.agent_company=combineAgencyDetails(company,address)||null;
+    const updated=await updateSale(id,values);
+    const db=await createClient();
+    const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const{data:documents,error:documentsError}=await db.from("documents").select("document_type,status,generated_at").eq("team_id",team.id).eq("sale_id",id);
+    if(documentsError)throw documentsError;
+    if(documents?.length){
+      const rows=documents.map(document=>({
+        team_id:team.id,user_id:user?.id??null,sale_id:id,
+        document_type:document.document_type,
+        content:buildDocumentSnapshot(updated,document.document_type as DocumentType),
+        status:document.status,generated_at:document.generated_at,
+      }));
+      const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});
+      if(error)throw error;
+    }
+    revalidatePath(`/sales/${id}`);revalidatePath(`/sales/${id}/edit`);revalidatePath("/documents");revalidatePath("/dashboard");
+    return{saved:true};
+  }catch(error){return{error:error instanceof Error?error.message:"Could not save the POP administration details."};}
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {

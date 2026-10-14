@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { savePopAdminDetails } from "@/lib/actions/sales";
 
 export type PopAdminFields = Record<string, string>;
 type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string };
@@ -15,7 +16,8 @@ const labels: Record<string, string> = {
   agent_address: "Sales agency / company address (if any)",
 };
 
-export function PopAdminUpload({ unitNumber, onUseFields }: {
+export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
+  saleId?: string;
   unitNumber?: string;
   onUseFields: (fields: PopAdminFields) => void;
 }) {
@@ -58,11 +60,20 @@ export function PopAdminUpload({ unitNumber, onUseFields }: {
     }
   }
 
-  function apply() {
+  async function apply() {
     if (!result) return;
-    onUseFields(result.fields);
+    const fields = result.fields;
+    onUseFields(fields);
     setResult(null);
-    setMessage("POP administration details filled below. Review them, then click Save to update the booking and letters.");
+    if (!saleId) {
+      setMessage("POP administration details filled below. Review them, then click Save to create the booking and letters.");
+      return;
+    }
+    setBusy(true);
+    setMessage("Saving the POP administration details to the booking and letters…");
+    const saved = await savePopAdminDetails(saleId, fields);
+    setBusy(false);
+    setMessage(saved.error || "POP administration details saved and reflected in the booking and letters.");
   }
 
   return <div className="booking-upload">
@@ -91,7 +102,7 @@ export function PopAdminUpload({ unitNumber, onUseFields }: {
         </div>
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>
-          <button type="button" className="button accent" onClick={apply}>Use these details in form</button>
+          <button type="button" className="button accent" onClick={() => void apply()}>Use and save these details</button>
         </div>
       </div>
     </div>}

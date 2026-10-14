@@ -574,7 +574,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
       <section className="form-section">
         <div className="section-heading">
           <div><h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2><p className="subtle">Upload the POP Form to fill the sales administration details, or edit them manually.</p></div>
-          <PopAdminUpload unitNumber={unitNumber} onUseFields={applyPopAdmin} />
+          <PopAdminUpload saleId={sale?.id} unitNumber={unitNumber} onUseFields={applyPopAdmin} />
         </div>
         <div className="form-grid">
           <Field
