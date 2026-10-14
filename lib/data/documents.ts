@@ -22,4 +22,33 @@ export async function ensureAgentCommissionDocument(sale:Sale){
   const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"agent_commission_letter",content:buildDocumentSnapshot(sale,"agent_commission_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});
   if(error)throw new Error(error.message);
 }
-export async function getDocument(id:string){const db=await createClient();const{team,role}=await getTeamContext();const{data,error}=await db.from("documents").select("*").eq("team_id",team.id).eq("id",id).single();if(error)throw new Error(error.message);const document=data as SaleDocument;if(!documentOrder.includes(document.document_type))throw new Error("This document type is no longer used.");if(document.document_type==="agent_commission_letter"&&role!=="owner")throw new Error("Only the workspace owner can access this letter.");if(document.document_type==="agent_commission_letter"){const{data:related,error:relatedError}=await db.from("documents").select("content").eq("team_id",team.id).eq("sale_id",document.sale_id);if(relatedError)throw new Error(relatedError.message);const historical=(related??[]).reduce<Record<string,unknown>>((content,row)=>mergeDocumentContent(content,(row.content??{}) as Record<string,unknown>),{});document.content=mergeDocumentContent(historical,document.content);}return document}
+export async function getDocument(id:string){
+  const db=await createClient();
+  const{team,role}=await getTeamContext();
+  const{data,error}=await db.from("documents").select("*").eq("team_id",team.id).eq("id",id).single();
+  if(error)throw new Error(error.message);
+  const document=data as SaleDocument;
+  if(!documentOrder.includes(document.document_type))throw new Error("This document type is no longer used.");
+  if(document.document_type==="agent_commission_letter"&&role!=="owner")throw new Error("Only the workspace owner can access this letter.");
+
+  // A document is a historical snapshot, but previews/downloads must reflect
+  // later approved booking corrections. Merge the related snapshots first,
+  // then make the current sale record authoritative. Blank current fields are
+  // ignored by mergeDocumentContent, so older captured details remain usable.
+  const[{data:related,error:relatedError},{data:sale,error:saleError}]=await Promise.all([
+    db.from("documents").select("content").eq("team_id",team.id).eq("sale_id",document.sale_id),
+    db.from("sales").select("*").eq("team_id",team.id).eq("id",document.sale_id).single(),
+  ]);
+  if(relatedError)throw new Error(relatedError.message);
+  if(saleError)throw new Error(saleError.message);
+  const historical=(related??[]).reduce<Record<string,unknown>>(
+    (content,row)=>mergeDocumentContent(content,(row.content??{}) as Record<string,unknown>),
+    {},
+  );
+  const current=buildDocumentSnapshot(sale as Sale,document.document_type);
+  document.content=mergeDocumentContent(
+    mergeDocumentContent(historical,document.content),
+    current,
+  );
+  return document;
+}

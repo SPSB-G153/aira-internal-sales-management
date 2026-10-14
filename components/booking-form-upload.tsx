@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookingFeeUpload } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
+import { privateReaderUrl } from "@/lib/private-reader";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string;cached?:boolean};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
@@ -84,7 +85,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
     setBusy(true);setMessage("Reading privately on this computer… The first read may take a few minutes.");setDisplayValues({});setResult(null);
     try{
       const body=new FormData();body.set("file",file);
-      const localUrl=process.env.NEXT_PUBLIC_BOOKING_OCR_URL||"http://127.0.0.1:8765";
+      const localUrl=privateReaderUrl();
       const response=await fetch(`${localUrl}/extract`,{method:"POST",body});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||data.detail||"The Booking Form could not be read.");
@@ -134,7 +135,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const response=await fetch(`/api/documents/${documentId}/booking-upload`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({fields:result.fields})});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||"The extracted information could not be saved.");
-      const localUrl=process.env.NEXT_PUBLIC_BOOKING_OCR_URL||"http://127.0.0.1:8765";
+      const localUrl=privateReaderUrl();
       const files=Array.isArray(data.files)?data.files as SavedDocument[]:[];
       const unitNumber=String(data.unit_number||result.fields.unit_number||"").trim();
       let localCopies=0;

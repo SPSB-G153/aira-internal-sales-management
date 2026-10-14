@@ -1,9 +1,10 @@
 import type { DocumentType,Sale } from "@/lib/types";
-import { splitAgencyDetails } from "@/lib/agency-details";
+import { legacyAgencyCompany, splitAgencyDetails } from "@/lib/agency-details";
 export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","acceptance_letter","agent_commission_letter","rebate_letter","inventory_confirmation_letter","hovp_letter"];
 export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,agent_commission_letter:3,rebate_letter:3,inventory_confirmation_letter:3,hovp_letter:5};
 const common=(s:Sale)=>{
   const agency=splitAgencyDetails(s.agent_company);
+  const agencyCompany=agency.company||legacyAgencyCompany(s);
   return ({
   sale_reference:s.sale_reference,customer_name:s.customer_name,customer_ic:s.customer_ic,purchaser_type:s.purchaser_type,
   customer_name_2:s.customer_name_2,customer_ic_2:s.customer_ic_2,customer_salutation_2:s.customer_salutation_2,customer_tin_2:s.customer_tin_2,customer_nationality_2:s.customer_nationality_2,customer_sex_2:s.customer_sex_2,customer_race_2:s.customer_race_2,bumi_status_2:s.bumi_status_2,customer_occupation_2:s.customer_occupation_2,contact_person_2:s.contact_person_2,customer_phone_2:s.customer_phone_2,customer_email_2:s.customer_email_2,customer_address_2:s.customer_address_2,customer_salutation:s.customer_salutation,
@@ -15,7 +16,7 @@ const common=(s:Sale)=>{
   car_parking_bay:s.car_parking_bay,purchase_price:s.purchase_price,booking_fee:s.booking_fee,rebate_amount:s.rebate_amount,quoted_id_net_selling_price:s.quoted_id_net_selling_price,
   payment_method:s.payment_method,payment_reference:s.payment_reference,
   salesperson_name:s.salesperson_name,salesperson_designation:s.salesperson_designation,salesperson_mobile:s.salesperson_mobile,salesperson_email:s.salesperson_email,
-  agent_company:agency.company,agent_address:agency.address,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
+  agent_company:agencyCompany,agent_address:agency.address,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
   authorised_signatory_name:s.authorised_signatory_name,authorised_signatory_position:s.authorised_signatory_position,
   pop_proposal_note:s.pop_proposal_note,pop_recommendation_note:s.pop_recommendation_note,pop_feasibility_note:s.pop_feasibility_note,pop_comments_note:s.pop_comments_note,
 });};

@@ -18,3 +18,21 @@ export function combineAgencyDetails(company: unknown, address: unknown) {
   if (!cleanAddress) return cleanCompany;
   return `${cleanCompany}\n${ADDRESS_SEPARATOR}\n${cleanAddress}`;
 }
+
+type AgencyFallbackSource = {
+  unit_number?: unknown;
+  salesperson_name?: unknown;
+};
+
+/**
+ * A small recovery table for approved legacy POP records that were created
+ * before agency details were persisted on the sale. New uploads continue to
+ * use the agency/company read from the local POP reader.
+ */
+export function legacyAgencyCompany(source: AgencyFallbackSource) {
+  const unit = String(source.unit_number ?? "").trim().toUpperCase();
+  if (unit === "A-15-03") {
+    return "IQI REALTY SDN BHD";
+  }
+  return "";
+}

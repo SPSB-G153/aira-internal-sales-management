@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { privateReaderUrl } from "@/lib/private-reader";
 
 export type BookingFeeFields = Record<string, string>;
 type Extraction = { fields: BookingFeeFields; warnings: string[]; saved_path?: string };
@@ -36,7 +37,7 @@ export function BookingFeeUpload({
       const body = new FormData();
       body.set("file", file);
       body.set("unit_number", unitNumber || "");
-      const localUrl = process.env.NEXT_PUBLIC_BOOKING_OCR_URL || "http://127.0.0.1:8765";
+      const localUrl = privateReaderUrl();
       const response = await fetch(`${localUrl}/extract-booking-fee`, { method: "POST", body });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || "The booking-fee receipt could not be read.");

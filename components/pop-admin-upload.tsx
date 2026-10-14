@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { savePopAdminDetails } from "@/lib/actions/sales";
+import { privateReaderUrl } from "@/lib/private-reader";
 
 export type PopAdminFields = Record<string, string>;
 type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string };
@@ -43,7 +44,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
       const body = new FormData();
       body.set("file", file);
       body.set("unit_number", unitNumber || "");
-      const localUrl = process.env.NEXT_PUBLIC_BOOKING_OCR_URL || "http://127.0.0.1:8765";
+      const localUrl = privateReaderUrl();
       const endpoint = source === "pop" ? "extract-pop-admin" : "extract-namecard-admin";
       const response = await fetch(`${localUrl}/${endpoint}`, { method: "POST", body });
       const data = await response.json();
@@ -86,10 +87,10 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
       if (file) void extract(file, "namecard");
     }} />
     <button type="button" className="button secondary" disabled={busy} onClick={() => input.current?.click()}>
-      {busySource === "pop" ? "Reading POP Form…" : "Upload POP Form"}
+      {busySource === "pop" ? "Reading POP Form…" : saleId ? "Replace POP Form" : "Upload POP Form"}
     </button>
     <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
-      {busySource === "namecard" ? "Reading namecard…" : "Upload namecard (if any)"}
+      {busySource === "namecard" ? "Reading namecard…" : saleId ? "Replace namecard (if any)" : "Upload namecard (if any)"}
     </button>
     {message && <p className="upload-message" role="status">{message}</p>}
     {result && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Review POP administration details">
