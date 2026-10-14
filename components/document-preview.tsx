@@ -110,7 +110,7 @@ function AgentCommissionLetter({content}:{content:Content}){
   const salesperson=value(content,"salesperson_name","");
   const letterIssuedAt=value(content,"letter_issued_at","");
   return <div className="agent-commission-letter">
-    <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
+    <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet agent-commission-page-one">
       <section className="notice-page agent-commission-page">
         <CompanyHead/>
         <p className="notice-date"><CurrentLetterDate date={letterIssuedAt}/></p>
