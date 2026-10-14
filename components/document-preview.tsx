@@ -114,7 +114,7 @@ function AgentCommissionLetter({content}:{content:Content}){
   return <div className="agent-commission-letter">
     <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
       <section className="notice-page agent-commission-page">
-        <CompanyHead/>
+        <CompanyEmblem/>
         <p className="notice-date"><CurrentLetterDate date={letterIssuedAt}/></p>
         <p className="agent-recipient">{agency}<br/>{agencyAddress.map((line,index)=><span key={line}>{line}{index<agencyAddress.length-1&&<br/>}</span>)}</p>
         <p>Dear Sir or Madam,</p>
@@ -138,7 +138,6 @@ function AgentCommissionLetter({content}:{content:Content}){
     </article>
     <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
       <section className="notice-page agent-commission-page agent-commission-acceptance">
-        <CompanyEmblem/>
         <h2>ACCEPTANCE</h2>
         <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALES OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
         <p>I/We, {agency||"____________________"} acknowledge receipt of this Letter dated <CurrentLetterDate date={letterIssuedAt}/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>

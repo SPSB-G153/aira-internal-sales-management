@@ -181,6 +181,17 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
   }]
 });
 
+const agentCommissionDocument=(children:(Paragraph|Table)[],emblemLogo:Uint8Array)=>new Document({
+  features:{updateFields:true},
+  styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
+  sections:[{
+    properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1360,right:1134,bottom:1000,left:1134,header:760,footer:360}}},
+    headers:{first:letterHeader(emblemLogo,true),default:new Header({children:[new Paragraph({})]})},
+    footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
+    children,
+  }]
+});
+
 const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array)=>new Document({
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Helvetica",size:20},paragraph:{spacing:{line:260,after:0}}}}},
@@ -311,7 +322,7 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
     exactParagraph(`I/We, ${agency||"____________________"} acknowledge receipt of this Letter dated ${letterDate} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:1500,line:341}}),
     new Table({width:{size:5000,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.SINGLE,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun("Signature and Company Rubber Stamp:"),new TextRun({text:"Name: ______________________________",break:2}),new TextRun({text:"I/C No.: ____________________________",break:2}),new TextRun({text:"Date: ______________________________",break:2})],{spacing:{before:0,after:0,line:300}})]})]})]}),
   ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument([...pageOne,...pageTwo],fullLogo,emblemLogo,true,360,1360,760)));
+  return new Uint8Array(await Packer.toBuffer(agentCommissionDocument([...pageOne,...pageTwo],emblemLogo)));
 }
 
 const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,colonWidth=180,alignWrapped=false,valueLeft=45)=>new Table({
