@@ -248,8 +248,6 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
   const purchaser=text(content,"customer_name").toUpperCase();
   const price=typeof content.purchase_price==="number"?content.purchase_price:0;
   const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
-  const approver=text(content,"authorised_signatory_name","");
-  const approverPosition=text(content,"authorised_signatory_position","");
   const salesperson=text(content,"salesperson_name","");
   const letterDate=issuedLetterDate(content);
   const rows:[string,string][]=[
@@ -280,8 +278,8 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
     exactParagraph("•    a copy of the relevant State Authority's Consent Approval for Foreigners; and",{indent:{left:420,hanging:240},spacing:{before:0,after:100,line:300}}),
     exactParagraph("•    the Agent's Tax Invoice.",{indent:{left:420,hanging:240},spacing:{before:0,after:260,line:300}}),
     exactParagraph("We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:300,after:950,line:300}}),
-    new Table({width:{size:3200,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.SINGLE,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:60,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun({text:approver,bold:true}),new TextRun({text:approverPosition,break:1})],{spacing:{before:0,after:0,line:260}})]})]})]}),
+    exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:300,after:620,line:300}}),
+    acceptanceSignature(content),
     exactParagraph(salesperson?`c.c.   ${salesperson}`:"",{spacing:{before:220,after:0,line:260}}),
   ];
   const pageTwo:(Paragraph|Table)[]=[

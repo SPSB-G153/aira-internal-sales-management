@@ -107,8 +107,6 @@ function AgentCommissionLetter({content}:{content:Content}){
   const unit=value(content,"unit_number");
   const price=number(content,"purchase_price");
   const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
-  const approver=value(content,"authorised_signatory_name","");
-  const approverPosition=value(content,"authorised_signatory_position","");
   const salesperson=value(content,"salesperson_name","");
   const letterIssuedAt=value(content,"letter_issued_at","");
   return <div className="agent-commission-letter">
@@ -131,7 +129,7 @@ function AgentCommissionLetter({content}:{content:Content}){
         <ul className="agent-commission-list"><li>a stamped copy of the Sales &amp; Purchase Agreement (SPA);</li><li>a copy of the relevant State Authority&apos;s Consent Approval for Foreigners; and</li><li>the Agent&apos;s Tax Invoice.</li></ul>
         <p>We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.</p>
         <p className="agent-commission-closing">Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p>
-        <div className="agent-commission-signature"><span/><b>{approver}</b><small>{approverPosition}</small></div>
+        <ApprovalSignature content={content} hideCopy/>
         {salesperson&&<p className="agent-commission-cc">c.c. &nbsp; {salesperson}</p>}
         <CompanyFooter/><LetterPageNumber page={1}/>
       </section>
