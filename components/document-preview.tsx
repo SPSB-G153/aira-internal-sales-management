@@ -142,7 +142,7 @@ function AgentCommissionLetter({content}:{content:Content}){
         <h2>ACCEPTANCE</h2>
         <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALES OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
         <p>I/We, {agency||"____________________"} acknowledge receipt of this Letter dated <CurrentLetterDate date={letterIssuedAt}/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
-        <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p>Name: ______________________________</p><p>I/C No.: ____________________________</p><p>Date: ______________________________</p></div>
+        <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p><b>Name:</b><i/></p><p><b>I/C No.:</b><i/></p><p><b>Date:</b><i/></p></div>
         <LetterPageNumber page={2}/>
       </section>
     </article>
