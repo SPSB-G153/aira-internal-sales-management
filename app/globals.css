@@ -526,7 +526,7 @@ h3 { margin:0; font-size:16px; }
 .agent-commission-cc { margin-top:20px!important; text-align:left!important; }
 .agent-commission-acceptance h2 { margin:26px 0 30px; font-size:15px; text-align:center; }
 .agent-acceptance-subject { margin:0 0 30px; padding-bottom:10px; border-bottom:1px solid #333; font-size:13px; line-height:1.48; text-align:center; }
-.agent-acceptance-signature { width:333px; max-width:54%; margin-top:160px; }
+.agent-acceptance-signature { width:265px; max-width:100%; margin-top:160px; }
 .agent-acceptance-signature>span { display:block; border-top:1px dotted #333; }
 .agent-acceptance-signature p { margin:6px 0!important; text-align:left!important; }
 .agent-acceptance-signature p:has(i) { display:grid; grid-template-columns:max-content 1fr; gap:5px; align-items:end; }
@@ -534,11 +534,11 @@ h3 { margin:0; font-size:16px; }
 .agent-acceptance-signature p i { display:block; margin-bottom:5px; border-bottom:1px dotted #333; }
 @media screen {
   .agent-commission-sheet { box-sizing:border-box; min-height:970px; }
-  .agent-commission-page-one .agent-commission-page { padding-top:22px; }
+  .agent-commission-page-one .agent-commission-page { padding-top:32px; }
   .agent-commission-sheet:not(.agent-commission-page-one) .agent-commission-page { padding-top:40px; }
 }
 @media print {
   .agent-commission-sheet { padding-top:9mm!important; }
-  .agent-commission-page-one { padding-top:4mm!important; }
+  .agent-commission-page-one { padding-top:7mm!important; }
 }
 .compact-upload-button { min-height:34px!important; padding:7px 11px!important; font-size:11px!important; }
