@@ -72,7 +72,7 @@ POP_ADMIN_SCHEMA = {
     "properties": {name: {"type": "string"} for name in POP_ADMIN_FIELDS},
     "required": POP_ADMIN_FIELDS,
 }
-PROMPT = """Read only handwritten or manually entered information from these enlarged, overlapping sections of an Aira Booking Form. The sections are supplied in page order and may repeat content where they overlap. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
+PROMPT = """Read only handwritten or manually entered information from these enlarged sections of an Aira Booking Form. For the approved five-page form, the images show the completed first page, the Property Details table on page 5, and the Purchaser's Particulars table on page 5. Cross-check repeated values and prefer the clearest or most complete occurrence. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
 - The first completed purchaser row is purchaser 1. Map its Contact Person's Name, Mobile No. and Email Address from the first contact row to contact_person, customer_phone and customer_email.
@@ -80,8 +80,8 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 - Join all handwritten lines under Correspondence Address into one complete address.
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
 
-Cross-check repeated details elsewhere in the form. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-12-v2"
+The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
+CACHE_VERSION = "booking-reader-2026-10-16-v4"
 
 
 @app.middleware("http")
@@ -124,6 +124,24 @@ def page_sections(page, zoom=1.8):
     upper = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.58)
     lower = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.42, rect.x1, rect.y1)
     return [page_png(page, upper, zoom), page_png(page, lower, zoom)]
+
+
+def booking_cover_section(page):
+    rect = page.rect
+    clip = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.18, rect.x1, rect.y0 + rect.height * 0.94)
+    return page_png(page, clip, zoom=2.0)
+
+
+def appendix_property_section(page):
+    rect = page.rect
+    clip = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.04, rect.x1, rect.y0 + rect.height * 0.34)
+    return page_png(page, clip, zoom=2.6)
+
+
+def appendix_purchaser_section(page):
+    rect = page.rect
+    clip = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.27, rect.x1, rect.y0 + rect.height * 0.96)
+    return page_png(page, clip, zoom=2.0)
 
 
 def pop_admin_section(page):
@@ -443,13 +461,20 @@ async def extract(file: UploadFile = File(...)):
         pdf = fitz.open(stream=data, filetype="pdf")
         if not pdf.page_count:
             raise ValueError("The PDF has no pages.")
-        # The final appendix contains the purchaser, unit, price, area,
-        # parking and contact details used by the app. Reading only its two
-        # enlarged halves keeps the private CPU-only model responsive. Any
-        # item absent from the appendix remains available for manual entry,
-        # while payment evidence has its own receipt upload.
-        last_index = pdf.page_count - 1
-        images = page_sections(pdf[last_index], 1.7)
+        # The approved Booking Form appendix is page 5. Supporting documents,
+        # such as parking plans and acknowledgements, may be appended after it.
+        # Reading the physical final PDF page would therefore miss every
+        # purchaser and property field in those combined files. Shorter legacy
+        # forms still fall back to their final page.
+        appendix_index = 4 if pdf.page_count >= 5 else pdf.page_count - 1
+        if pdf.page_count >= 5:
+            images = [
+                booking_cover_section(pdf[0]),
+                appendix_property_section(pdf[appendix_index]),
+                appendix_purchaser_section(pdf[appendix_index]),
+            ]
+        else:
+            images = page_sections(pdf[appendix_index], 1.7)
         payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{"role": "user", "content": PROMPT, "images": images}],
