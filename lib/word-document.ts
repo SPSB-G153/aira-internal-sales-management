@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LineRuleType, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 
@@ -288,9 +288,14 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},margins:{top:0,bottom:130,left:0,right:0},children:[
       exactParagraph([new TextRun({text:`AGENT'S FEE ARRANGEMENT TO THE SALES OF UNIT ${unit},`,bold:true}),new TextRun({text:`${text(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT`,bold:true,break:1}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",break:1})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:341}})
     ]})]})]}),
-    exactParagraph(`I/We, ${agency||"____________________"} acknowledge receipt of this Letter dated ${letterDate} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:130,after:0,line:341}}),
-    exactParagraph("\u00A0",{spacing:{before:0,after:0,line:1650,lineRule:LineRuleType.EXACT}}),
-    new Table({width:{size:4200,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.DOTTED,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun("Signature and Company Rubber Stamp:"),new TextRun({text:"Name: .....................................................................",break:2}),new TextRun({text:"I/C No.: ................................................................",break:2}),new TextRun({text:"Date: ......................................................................",break:2})],{spacing:{before:0,after:0,line:300}})]})]})]}),
+    exactParagraph(`I/We, ${agency||"____________________"} acknowledge receipt of this Letter dated ${letterDate} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:130,after:2100,line:341}}),
+    new Table({width:{size:4500,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.DOTTED,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[
+      exactParagraph("Signature and Company Rubber Stamp:",{spacing:{before:0,after:140,line:300}}),
+      new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:["Name:","I/C No.:","Date:"].map(label=>new TableRow({children:[
+        new TableCell({width:{size:950,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label,{spacing:{before:100,after:130,line:300}})]}),
+        new TableCell({width:{size:3550,type:WidthType.DXA},borders:{top:noBorder,bottom:{style:BorderStyle.DOTTED,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("\u00A0",{spacing:{before:100,after:130,line:300}})]}),
+      ]}))}),
+    ]})]})]}),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument([...pageOne,...pageTwo],fullLogo,emblemLogo,true,360,1360,760)));
 }
