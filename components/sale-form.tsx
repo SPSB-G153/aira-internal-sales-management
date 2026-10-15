@@ -689,6 +689,9 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
         <button type="submit" name="save_intent" value="final" className="button" disabled={pending}>
           {pending ? "Saving…" : entryMode === "booking" ? (sale ? "Save booking changes" : "Create booking") : (sale ? "Save POP changes" : "Save POP")}
         </button>
+        {entryMode === "booking" && !sale && <button type="submit" name="save_intent" value="final_and_new" className="button secondary" disabled={pending}>
+          {pending ? "Saving…" : "Save & upload another"}
+        </button>}
       </div>
     </form>
   );

@@ -22,7 +22,9 @@ const normalizeNationality=(value:string)=>{const trimmed=value.trim();return ["
 export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   const fields=Object.fromEntries([...form.entries()].map(([k,v])=>[k,String(v)]));
   const entryMode=text(form,"entry_mode")==="pop"?"pop":"booking";
-  const saveIntent=text(form,"save_intent")==="draft"?"draft":"final";
+  const requestedSaveIntent=text(form,"save_intent");
+  const saveIntent=requestedSaveIntent==="draft"?"draft":"final";
+  const uploadAnother=requestedSaveIntent==="final_and_new";
   const fieldErrors:Record<string,string>={}; if(!text(form,"customer_name"))fieldErrors.customer_name="Customer name is required.";if(!text(form,"project_name"))fieldErrors.project_name="Project is required.";const price=numeric(form,"purchase_price");if(!price||price<=0)fieldErrors.purchase_price="Enter a purchase price greater than zero.";
   const uploadedBookingFee=numeric(form,"booking_fee");if(entryMode==="booking"&&saveIntent==="final"&&uploadedBookingFee==null)fieldErrors.booking_fee="Upload the banking receipt or enter the actual amount paid.";
   const email=text(form,"customer_email");if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fieldErrors.customer_email="Enter a valid email address.";
@@ -40,7 +42,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   values.customer_sex=fullSex(values.customer_sex||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_sex_2=fullSex(values.customer_sex_2||"")||null;
   values.customer_nationality=normalizeNationality(values.customer_nationality||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_nationality_2=normalizeNationality(values.customer_nationality_2||"")||null;
   let sale:Sale;try{const id=text(form,"id");sale=id?await updateSale(id,values):await createSale(values);const db=await createClient();const{team}=await getTeamContext();const{data:{user}}=await db.auth.getUser();const generated_at=new Date().toISOString();if(sale.status==="draft"){const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"pre_booking_form",content:buildDocumentSnapshot(sale,"pre_booking_form"),status:"generated",generated_at},{onConflict:"sale_id,document_type"});if(error)throw error;}else if(sale.status!=="booking_draft"){const types:DocumentType[]=["booking_form","acceptance_letter","agent_commission_letter"];if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");types.push("hovp_letter");const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}}catch(e){return{error:e instanceof Error?e.message:"Failed to save sale.",fields}}
-  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(`/sales/${sale.id}`);
+  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(uploadAnother?"/sales/new":`/sales/${sale.id}`);
 }
 export async function savePopAdminDetails(id:string,fields:Record<string,string>):Promise<PopAdminSaveState>{
   try{
