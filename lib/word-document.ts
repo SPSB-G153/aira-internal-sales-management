@@ -116,9 +116,9 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const pageOne=[
     acceptanceParagraph(currentLetterDate(),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
-    acceptanceParagraph([new TextRun({text:purchaser,bold:true}),...addressLines.map((address)=>new TextRun({text:address,break:1}))],{alignment:AlignmentType.LEFT,spacing:{before:0,after:760,line:300}}),
-    acceptanceParagraph(purchaserGreeting(content),{alignment:AlignmentType.LEFT}),
-    acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:600,after:240,line:300}}),
+    acceptanceParagraph([new TextRun({text:purchaser,bold:true}),...addressLines.map((address)=>new TextRun({text:address,break:1}))],{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
+    acceptanceParagraph(purchaserGreeting(content),{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
+    acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:120,after:220,line:300}}),
     acceptanceFactTable(content),
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:600,after:200,line:341}}),
     acceptanceParagraph([new TextRun(`We thank you for your Offer to Purchase the Property described above which is dated ${date(content.sale_date)} (“`),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
@@ -142,7 +142,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   ];
   const document=new Document({
     features:{updateFields:true},
-    styles:{default:{document:{run:{font:"Arial",size:20},paragraph:{spacing:{line:341,after:0}}}}},
+    styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:320,after:0}}}}},
     sections:[{
       properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
