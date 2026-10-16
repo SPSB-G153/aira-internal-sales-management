@@ -120,10 +120,52 @@ def normalize_booking_fee(amount, displayed_text):
     return normalized
 
 
+def normalize_payment_date(value):
+    raw = str(value or "").strip()
+    for pattern in ("%Y-%m-%d", "%d/%m/%Y", "%d/%m/%y", "%d-%m-%Y", "%d-%m-%y"):
+        try:
+            return datetime.strptime(raw, pattern).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return ""
+
+
+def normalize_cheque_reference(value, payment_date, filename):
+    digits = re.sub(r"\D", "", str(value or ""))
+    date_digits = ""
+    try:
+        date_digits = datetime.strptime(payment_date, "%Y-%m-%d").strftime("%d%m%y")
+    except ValueError:
+        pass
+    if len(digits) == 6 and digits != date_digits:
+        return digits
+    # Many internal cheque filenames include the cheque number. Use it only
+    # when the visual model returned no valid MICR number or repeated the date.
+    candidates = re.findall(r"(?<!\d)(\d{6})(?!\d)", Path(filename or "").stem)
+    for candidate in candidates:
+        if candidate != date_digits:
+            return candidate
+    return ""
+
+
 def page_png(page, clip=None, zoom=1.8):
     # Handwriting in the appendix sits inside narrow table cells. Rendering
     # enlarged page sections keeps those entries legible to the local model.
     pixmap = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), clip=clip, alpha=False)
+    return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
+
+
+def page_png_rotated(page, rotation, zoom=2.0):
+    matrix = fitz.Matrix(zoom, zoom).prerotate(rotation)
+    pixmap = page.get_pixmap(matrix=matrix, alpha=False)
+    return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
+
+
+def cheque_section(page):
+    rect = page.rect
+    clip = fitz.Rect(rect.x0 + rect.width * 0.46, rect.y0, rect.x0 + rect.width * 0.90, rect.y1)
+    matrix = fitz.Matrix(2.5, 2.5).prerotate(270)
+    pixmap = page.get_pixmap(matrix=matrix, clip=clip, alpha=False)
     return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
 
 
@@ -288,7 +330,10 @@ async def extract_booking_fee(
             receipt = fitz.open(stream=data, filetype="pdf")
             if not receipt.page_count:
                 raise ValueError("The receipt PDF has no pages.")
-            images = [page_png(receipt[0])]
+            # Cheques from the scanner are rotated clockwise on the landscape
+            # page. Rotate them counter-clockwise so the boxed date, RM amount
+            # and MICR cheque number are upright and spatially distinct.
+            images = [cheque_section(receipt[0])]
         else:
             images = [base64.b64encode(data).decode("ascii")]
         payload = {
@@ -302,10 +347,14 @@ async def extract_booking_fee(
                     "amount into booking_fee_text including all commas, decimals, and any K suffix. "
                     "For example, MYR 200,000.00 must be booking_fee 200000.00. K means thousand: "
                     "RM200K or 200 K must be returned as booking_fee 200000, never 200. "
-                    "The payment/transaction date must be YYYY-MM-DD; "
-                    "payment_method as exactly bank_transfer or cheque; and the transaction, "
-                    "receipt or cheque number as payment_reference. Do not use the property "
-                    "purchase price, account balance or unrelated amounts. Return an empty "
+                    "For a cheque, read the date only from the small boxes explicitly labelled DATE "
+                    "on the cheque. Convert a two-digit year such as 26 to 2026 and return YYYY-MM-DD. "
+                    "Never derive the date from an account number, company registration number, MICR "
+                    "line, cheque number, or filename. payment_method must be exactly cheque. Read the "
+                    "six-digit cheque number from the MICR line as payment_reference, preserving leading "
+                    "zeroes. For a non-cheque receipt, use its explicitly labelled transaction date, "
+                    "payment_method as exactly bank_transfer, and its transaction/receipt number as "
+                    "payment_reference. Do not use the property purchase price, account balance or unrelated amounts. Return an empty "
                     "string for anything not clearly shown. Return only the requested JSON."
                 ),
                 "images": images,
@@ -326,6 +375,12 @@ async def extract_booking_fee(
         fields["booking_fee"] = normalize_booking_fee(
             fields["booking_fee"], parsed.get("booking_fee_text", "")
         )
+        fields["sale_date"] = normalize_payment_date(fields["sale_date"])
+        if fields["payment_method"].strip().lower() == "cheque":
+            fields["payment_method"] = "cheque"
+            fields["payment_reference"] = normalize_cheque_reference(
+                fields["payment_reference"], fields["sale_date"], file.filename or ""
+            )
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "receipt.pdf").suffix or ".pdf"
         path = folder / f"Booking_Fee_{safe_part(unit_number, 'Unidentified')}{suffix}"
