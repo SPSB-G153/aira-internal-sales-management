@@ -7,4 +7,7 @@ if (-not (Test-Path -LiteralPath $ReaderPython)) {
 }
 
 $env:BOOKING_FORM_FOLDER = "C:\AIRA Booking"
-& $ReaderPython -m uvicorn server:app --app-dir $ReaderRoot --host 127.0.0.1 --port 8765
+while ($true) {
+  & $ReaderPython -m uvicorn server:app --app-dir $ReaderRoot --host 127.0.0.1 --port 8765
+  Start-Sleep -Seconds 3
+}
