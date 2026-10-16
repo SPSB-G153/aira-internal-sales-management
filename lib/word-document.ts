@@ -61,7 +61,7 @@ const acceptanceFirstFooter=()=>new Footer({children:[new Table({
 })]});
 
 const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
-  spacing:{before:0,after:200,line:341},
+  spacing:{before:0,after:180,line:320},
   alignment:AlignmentType.JUSTIFIED,
   ...options,
   children:typeof children==="string"?[new TextRun(children)]:children,
@@ -142,7 +142,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   ];
   const document=new Document({
     features:{updateFields:true},
-    styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:320,after:0}}}}},
+    styles:{default:{document:{run:{font:"Arial",size:24},paragraph:{spacing:{line:320,after:0}}}}},
     sections:[{
       properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
