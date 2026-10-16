@@ -138,7 +138,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph("(b)   a certified true copy of the latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and",{indent:{left:900,hanging:450}}),
     acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase and henceforth keeping you apprised of the construction progress of your new home in the months and years ahead.",{spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Berhad",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:860,line:300}}),
+    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Berhad",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1100,line:300}}),
     acceptanceSignature(content),
     acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
   ];
