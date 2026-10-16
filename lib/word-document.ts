@@ -4,6 +4,7 @@ import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, Ima
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
+import { designationForSalesPersonnel } from "@/lib/sales-personnel";
 
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
 const amount=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(value):"—";
@@ -110,6 +111,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const purchaser=text(content,"customer_name");
   const salutation=text(content,"customer_salutation","Purchaser");
   const contact=text(content,"salesperson_name","Booking contact");
+  const salespersonDesignation=designationForSalesPersonnel(contact);
   const agency=text(content,"agent_company","");
   const price=typeof content.purchase_price==="number"?content.purchase_price:0;
   const deposit=price*.1;
@@ -123,7 +125,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:600,after:200,line:341}}),
     acceptanceParagraph([new TextRun(`We thank you for your Offer to Purchase the Property described above which is dated ${date(content.sale_date)} (“`),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
     acceptanceParagraph([new TextRun("You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“"),new TextRun({text:"SPA",bold:true}),new TextRun("”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “"),new TextRun({text:"Sale Documents",bold:true}),new TextRun("”) in the manner described below.")]),
-    acceptanceParagraph(`Firstly we ask that you kindly contact our sales and marketing agent ${contact}${agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer – your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.`),
+    acceptanceParagraph(`Firstly we ask that you kindly contact our ${salespersonDesignation||"sales and marketing agent"}${salespersonDesignation?`, ${contact},`:` ${contact}${agency?` from ${agency}`:""}`} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer – your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.`),
   ];
   const pageTwo=[
     new Paragraph({children:[new PageBreak()]}),

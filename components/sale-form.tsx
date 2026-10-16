@@ -4,7 +4,7 @@ import { saveSale, type FormState } from "@/lib/actions/sales";
 import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
-import { emailForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
+import { designationForSalesPersonnel, emailForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { splitAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop" };
@@ -588,7 +588,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
             label="Sales personnel name"
             value={popAdmin.salesperson_name}
             list="sales-personnel-list"
-            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_name: value, salesperson_email: emailForSalesPersonnel(value) || current.salesperson_email }))}
+            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_name: value, salesperson_email: emailForSalesPersonnel(value) || current.salesperson_email, salesperson_designation: designationForSalesPersonnel(value) }))}
           />
           <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
           <Field

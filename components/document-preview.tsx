@@ -4,6 +4,7 @@ import type { DocumentType } from "@/lib/types";
 import { CurrentLetterDate } from "@/components/current-letter-date";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
+import { designationForSalesPersonnel } from "@/lib/sales-personnel";
 
 type Content=Record<string,unknown>;
 function LetterPageNumber({page}:{page:number}){return <div className="notice-page-number"><span>{page}</span></div>}
@@ -15,6 +16,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
   const purchaser=value(content,"customer_name");
   const salutation=value(content,"customer_salutation","Purchaser");
   const contact=value(content,"salesperson_name","Booking contact");
+  const designation=designationForSalesPersonnel(contact);
   const agency=value(content,"agent_company","");
   return <>
     <article className="letter source-letter acceptance-exact notice-sheet">
@@ -28,7 +30,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
       <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
       <p>We thank you for your Offer to Purchase the Property described above which is dated {formattedDate(content.sale_date)} (&ldquo;<b>Offer</b>&rdquo;). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence &ndash; Kuala Lumpur&rsquo;s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence&rsquo;s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.</p>
       <p>You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (&ldquo;<b>SPA</b>&rdquo;), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively &ldquo;<b>Sale Documents</b>&rdquo;) in the manner described below.</p>
-      <p>Firstly we ask that you kindly contact our sales and marketing agent {contact}{agency?` from ${agency}`:""} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer &ndash; your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.</p>
+      <p>Firstly we ask that you kindly contact our {designation||"sales and marketing agent"}{designation?`, ${contact},`:` ${contact}${agency?` from ${agency}`:""}`} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer &ndash; your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.</p>
       <NoticePageFooter page={1}/>
     </section>
     </article>
