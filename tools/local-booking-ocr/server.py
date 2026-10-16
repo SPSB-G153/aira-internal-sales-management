@@ -195,6 +195,20 @@ def safe_part(value, fallback):
     return cleaned or fallback
 
 
+def apply_inferred_salutations(fields):
+    for suffix in ("", "_2"):
+        salutation_key = f"customer_salutation{suffix}"
+        sex_key = f"customer_sex{suffix}"
+        if str(fields.get(salutation_key, "") or "").strip():
+            continue
+        sex = str(fields.get(sex_key, "") or "").strip().upper()
+        if sex in {"M", "MALE"}:
+            fields[salutation_key] = "Mr"
+        elif sex in {"F", "FEMALE"}:
+            fields[salutation_key] = "Ms"
+    return fields
+
+
 def unit_folder(unit_number):
     root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Booking"))
     folder = root / safe_part(unit_number, f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}")
@@ -218,8 +232,11 @@ def cached_extraction(data):
         fields = cached.get("fields", {})
         if not isinstance(fields, dict):
             return None
+        normalized_fields = {
+            name: str(fields.get(name, "") or "").strip() for name in FIELD_NAMES
+        }
         return {
-            "fields": {name: str(fields.get(name, "") or "").strip() for name in FIELD_NAMES},
+            "fields": apply_inferred_salutations(normalized_fields),
             "warnings": [str(item) for item in cached.get("warnings", []) if str(item).strip()],
         }
     except (OSError, ValueError, TypeError):
@@ -499,6 +516,7 @@ async def extract(file: UploadFile = File(...)):
         parsed = json.loads(result.json()["message"]["content"])
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
+        warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
         if pdf.page_count >= 5 and fields.get("purchaser_type", "").strip().lower() == "company":
             director_payload = {
                 "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
@@ -537,7 +555,7 @@ async def extract(file: UploadFile = File(...)):
                     fields["customer_occupation"] = "Company Director"
                 except (KeyError, TypeError, ValueError):
                     warnings.append("The company director line could not be read automatically; review the director/contact fields.")
-        warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
+        fields = apply_inferred_salutations(fields)
         if not fields.get("unit_number"):
             # Parcel No. is a small handwritten value inside the Property line
             # on page 1. If the broad form read misses it, retry only that
