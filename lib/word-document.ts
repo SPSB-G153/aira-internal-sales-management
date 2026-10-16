@@ -3,6 +3,7 @@ import path from "node:path";
 import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
+import { purchaserGreeting } from "@/lib/purchaser-greeting";
 
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
 const amount=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(value):"—";
@@ -107,7 +108,6 @@ const acceptanceSignature=(content:Record<string,unknown>)=>new Table({
 
 async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
-  const isCompany=text(content,"purchaser_type","individual")==="company";
   const salutation=text(content,"customer_salutation","Purchaser");
   const contact=text(content,"salesperson_name","Booking contact");
   const agency=text(content,"agent_company","");
@@ -117,7 +117,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const pageOne=[
     acceptanceParagraph(currentLetterDate(),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
     acceptanceParagraph([new TextRun({text:purchaser,bold:true}),...addressLines.map((address)=>new TextRun({text:address,break:1}))],{alignment:AlignmentType.LEFT,spacing:{before:0,after:760,line:300}}),
-    acceptanceParagraph(isCompany?"Dear Sirs or Madam,":`Dear ${salutation} ${purchaser.split(" ")[0]},`,{alignment:AlignmentType.LEFT}),
+    acceptanceParagraph(purchaserGreeting(content),{alignment:AlignmentType.LEFT}),
     acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:600,after:240,line:300}}),
     acceptanceFactTable(content),
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:600,after:200,line:341}}),
