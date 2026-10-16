@@ -281,12 +281,12 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           />
           <Field
             name="customer_nationality"
-            label="Nationality"
+            label={purchaserType === "company" ? "Director nationality" : "Nationality"}
             defaultValue={v("customer_nationality")}
           />
           <Select
             name="customer_sex"
-            label="Sex"
+            label={purchaserType === "company" ? "Director sex" : "Sex"}
             value={v("customer_sex")}
             options={[
               ["Female", "Female"],
@@ -309,12 +309,12 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           />
           <Field
             name="customer_occupation"
-            label="Occupation"
+            label={purchaserType === "company" ? "Director position / occupation" : "Occupation"}
             defaultValue={v("customer_occupation")}
           />
           <Field
             name="contact_person"
-            label="Contact person"
+            label={purchaserType === "company" ? "Director / contact person" : "Contact person"}
             defaultValue={v("contact_person")}
           />
           <Field

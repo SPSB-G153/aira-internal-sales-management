@@ -47,6 +47,15 @@ SCHEMA = {
     },
     "required": ["fields", "warnings"],
 }
+DIRECTOR_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "director_name": {"type": "string"},
+        "director_nationality": {"type": "string"},
+        "director_sex": {"type": "string"},
+    },
+    "required": ["director_name", "director_nationality", "director_sex"],
+}
 UNIT_SCHEMA = {
     "type": "object",
     "properties": {"unit_number": {"type": "string"}},
@@ -76,12 +85,13 @@ PROMPT = """Read only handwritten or manually entered information from these enl
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
 - The first completed purchaser row is purchaser 1. Map its Contact Person's Name, Mobile No. and Email Address from the first contact row to contact_person, customer_phone and customer_email.
+- When purchaser 1 is a company and the next line in the same purchaser-name cell identifies a director, keep the company as customer_name, set customer_occupation to Company Director and purchaser_type to company. Do not treat the director as purchaser 2.
 - Populate purchaser 2 fields only when the second purchaser row in section A or B contains an actual purchaser name or identity number. A second contact-person row by itself is not a second purchaser.
 - Join all handwritten lines under Correspondence Address into one complete address.
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
 
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-16-v4"
+CACHE_VERSION = "booking-reader-2026-10-16-v7"
 
 
 @app.middleware("http")
@@ -489,6 +499,44 @@ async def extract(file: UploadFile = File(...)):
         parsed = json.loads(result.json()["message"]["content"])
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
+        if pdf.page_count >= 5 and fields.get("purchaser_type", "").strip().lower() == "company":
+            director_payload = {
+                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "Read only the handwritten company director line in this Purchaser's "
+                        "Particulars table. It begins with DIRECTOR or DIRECTOR'S in the purchaser "
+                        "name column. Return the complete person's name after that label as "
+                        "director_name, plus the nationality and sex written across the same row. "
+                        "Do not use the company name or the shorter Contact Person row. Return an "
+                        "empty string only if the director line itself is absent. Return only JSON."
+                    ),
+                    "images": [appendix_purchaser_section(pdf[appendix_index])],
+                }],
+                "format": DIRECTOR_SCHEMA,
+                "stream": False,
+                "keep_alive": "30m",
+                "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 180},
+            }
+            director_result = requests.post(
+                "http://127.0.0.1:11434/api/chat", json=director_payload, timeout=300
+            )
+            if director_result.ok:
+                try:
+                    director = json.loads(director_result.json()["message"]["content"])
+                    director_name = str(director.get("director_name", "") or "").strip()
+                    if director_name:
+                        fields["contact_person"] = director_name
+                    director_nationality = str(director.get("director_nationality", "") or "").strip()
+                    director_sex = str(director.get("director_sex", "") or "").strip()
+                    if director_nationality:
+                        fields["customer_nationality"] = director_nationality
+                    if director_sex:
+                        fields["customer_sex"] = director_sex
+                    fields["customer_occupation"] = "Company Director"
+                except (KeyError, TypeError, ValueError):
+                    warnings.append("The company director line could not be read automatically; review the director/contact fields.")
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
         if not fields.get("unit_number"):
             # Parcel No. is a small handwritten value inside the Property line
