@@ -183,6 +183,21 @@ function appendParagraphText(xml:string,paraId:string,text:string,leadingSpace=t
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace("</w:p>",`<w:r><w:t xml:space=\"preserve\">${leadingSpace?" ":""}${escapeXml(text)}</w:t></w:r></w:p>`));
 }
 
+function setParagraphFontSize(xml:string,paraId:string,halfPoints=22){
+  return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:r(\s[^>]*)?>([\s\S]*?)<\/w:r>/g,(run,attrs="",body:string)=>{
+    const size=`<w:sz w:val="${halfPoints}"/><w:szCs w:val="${halfPoints}"/>`;
+    if(/<w:rPr>/.test(body)){
+      const properties=body.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
+      const resized=properties
+        .replace(/<w:sz\b[^>]*\/>/g,"")
+        .replace(/<w:szCs\b[^>]*\/>/g,"")
+        .replace("</w:rPr>",`${size}</w:rPr>`);
+      return `<w:r${attrs}>${body.replace(properties,resized)}</w:r>`;
+    }
+    return `<w:r${attrs}><w:rPr>${size}</w:rPr>${body}</w:r>`;
+  }));
+}
+
 function alignParagraphLeft(xml:string,paraId:string,left=109){
   return updateParagraph(xml,paraId,paragraph=>paragraph.replace(/<w:pPr>([\s\S]*?)<\/w:pPr>/,(_match,properties:string)=>{
     let next=properties
@@ -305,6 +320,19 @@ export async function createBookingFormWord(content:Content){
   xml=collapseEmptyParagraph(xml,"683A9DBF");
   xml=keepParagraphWithNext(xml,"39208072");
   xml=keepParagraphWithNext(xml,"2EEC6584");
+
+  // The approved template geometry is unchanged; only generated values are
+  // raised to a professional, readable 11 pt in both the cover and Appendix.
+  const generatedValueParagraphs=[
+    "2723075B","2C4A54A2","190CE0CA","2996C4C1","15C5D840","1605BD77",
+    "07404104","5EB91CC6","098C17D3","326B72B1","7BCD07FC","38D7146D",
+    "34783BAC","3F6D2D7F","2F912A77","528CAA50","22A46ABA","0656C9C0",
+    "4A8690F5","2773E86A","24A7E315","637B35D4","57BF556C","5E1E1474",
+    "214472A8","173C1AE5","77E09037","710E04ED","4F402883","37EA2286",
+    "2C3B4CF1","7A03805B","736015D9","16C4BA9A","48330A29","173AC7E5",
+    "24561E60","16D81514","7D0983B0","50582536",
+  ];
+  generatedValueParagraphs.forEach(id=>{xml=setParagraphFontSize(xml,id);});
 
   zip.file("word/document.xml",xml);
   return zip.generateAsync({type:"uint8array",compression:"DEFLATE"});

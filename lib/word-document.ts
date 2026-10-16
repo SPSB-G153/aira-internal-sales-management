@@ -107,6 +107,7 @@ const acceptanceSignature=(content:Record<string,unknown>)=>new Table({
 
 async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
+  const isCompany=text(content,"purchaser_type","individual")==="company";
   const salutation=text(content,"customer_salutation","Purchaser");
   const contact=text(content,"salesperson_name","Booking contact");
   const agency=text(content,"agent_company","");
@@ -116,7 +117,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const pageOne=[
     acceptanceParagraph(currentLetterDate(),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
     acceptanceParagraph([new TextRun({text:purchaser,bold:true}),...addressLines.map((address)=>new TextRun({text:address,break:1}))],{alignment:AlignmentType.LEFT,spacing:{before:0,after:760,line:300}}),
-    acceptanceParagraph(`Dear ${salutation} ${purchaser.split(" ")[0]},`,{alignment:AlignmentType.LEFT}),
+    acceptanceParagraph(isCompany?"Dear Sirs or Madam,":`Dear ${salutation} ${purchaser.split(" ")[0]},`,{alignment:AlignmentType.LEFT}),
     acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:600,after:240,line:300}}),
     acceptanceFactTable(content),
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:600,after:200,line:341}}),
@@ -141,7 +142,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   ];
   const document=new Document({
     features:{updateFields:true},
-    styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:341,after:0}}}}},
+    styles:{default:{document:{run:{font:"Arial",size:20},paragraph:{spacing:{line:341,after:0}}}}},
     sections:[{
       properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},

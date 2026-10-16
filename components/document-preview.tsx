@@ -12,6 +12,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const deposit=price*.1;
   const purchaser=value(content,"customer_name");
+  const isCompany=value(content,"purchaser_type","individual")==="company";
   const salutation=value(content,"customer_salutation","Purchaser");
   const contact=value(content,"salesperson_name","Booking contact");
   const agency=value(content,"agent_company","");
@@ -21,7 +22,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
       <CompanyHead/>
       <p className="notice-date"><CurrentLetterDate/></p>
       <p className="notice-recipient"><b>{purchaser}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
-      <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
+      <p>{isCompany?"Dear Sirs or Madam,":`Dear ${salutation} ${purchaser.split(" ")[0]},`}</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
       <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Berhad</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser"><b>1. {purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
       <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
@@ -56,7 +57,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
     <CompanyHead/>
     <p><CurrentLetterDate/></p>
     <p><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
-    <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
+    <p>{isCompany?"Dear Sirs or Madam,":`Dear ${salutation} ${purchaser.split(" ")[0]},`}</p>
     <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
     <dl className="acceptance-facts">
       <Fact label="Project"><b>{value(content,"project_name")}</b></Fact>

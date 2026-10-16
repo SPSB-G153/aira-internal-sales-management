@@ -58,9 +58,9 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const address = lines(value(content, "customer_address"));
 
   // Page 1 cover and offer summary.
-  fillLine(0, purchaser1, 88, 253, 10, 185); fillLine(0, purchaser2, 88, 277, 10, 185);
-  fillLine(0, value(content, "customer_ic"), 88, 332, 10, 185); fillLine(0, value(content, "customer_ic_2"), 88, 356, 10, 185);
-  address.forEach((line, index) => fillLine(0, line, 52, 414 + index * 24, 10, 220));
+  fillLine(0, purchaser1, 88, 253, 11, 185); fillLine(0, purchaser2, 88, 277, 11, 185);
+  fillLine(0, value(content, "customer_ic"), 88, 332, 11, 185); fillLine(0, value(content, "customer_ic_2"), 88, 356, 11, 185);
+  address.forEach((line, index) => fillLine(0, line, 52, 414 + index * 24, 11, 220));
   // Avoid a clutter of unused dotted rows when the saved address is shorter
   // than the four address lines available in the approved form.
   const addressPage = pdf.getPage(0);
@@ -68,7 +68,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     const lineTop = 414 + index * 24;
     addressPage.drawRectangle({ x: 45, y: addressPage.getHeight() - lineTop - 12, width: 235, height: 24, color: rgb(1, 1, 1) });
   }
-  fillLine(0, bookingDate(value(content, "sale_date")), 88, 513, 10, 185);
+  fillLine(0, bookingDate(value(content, "sale_date")), 88, 513, 11, 185);
 
   // The cover template has fixed labels. Replace only the blank value area so
   // the unit and purchaser data stay on the same baseline as the template.
@@ -107,7 +107,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
   const appendixWrite = (text: string, x: number, top: number, size = 8, weight = false) => appendixPage.drawText(fit(text), { x, y: appendixPage.getHeight() - top, size, font: weight ? bold : font, color: ink });
   // One line, one type size, and one left inset for every value. This keeps
   // the appendix simple and avoids turning a purchaser name into a block.
-  const appendixTextSize = 8.5;
+  const appendixTextSize = 9.5;
   const appendixCell = (text: string, x: number, top: number, _width: number, size = appendixTextSize) => {
     if (!text) return;
     appendixWrite(text, x, top, size);
