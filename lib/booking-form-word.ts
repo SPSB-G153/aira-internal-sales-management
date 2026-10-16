@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import JSZip from "jszip";
+import { bookingAddressLines, bookingDate } from "@/lib/address-lines";
 
 type Content=Record<string,unknown>;
 
@@ -223,8 +224,6 @@ function keepParagraphWithNext(xml:string,paraId:string){
   }));
 }
 
-const firstAddressLines=(address:string)=>address.split(/\r?\n|,/).map(part=>part.trim()).filter(Boolean).slice(0,4);
-
 /** Creates a DOCX by changing only data slots inside the user-approved Booking Form template. */
 export async function createBookingFormWord(content:Content){
   const template=await readFile(path.join(process.cwd(),"public","templates","booking-form-template.docx"));
@@ -237,7 +236,7 @@ export async function createBookingFormWord(content:Content){
   const balance=Math.round(price*8)/100;
   const purchaser=value(content,"customer_name");
   const purchaser2=value(content,"customer_name_2");
-  const addresses=firstAddressLines(value(content,"customer_address"));
+  const addresses=bookingAddressLines(value(content,"customer_address"));
 
   // Cover page fields and the two calculated deposit clauses.
   xml=setPlaceholder(xml,"2723075B",0,purchaser);
@@ -254,7 +253,7 @@ export async function createBookingFormWord(content:Content){
   xml=setParagraphText(xml,"1806FB3B","");
   const addressSlots=[["15C5D840","6205DD40"],["1605BD77","75423034"],["07404104","470AEF53"],["5EB91CC6","3826AFAD"]] as const;
   addressSlots.forEach(([slot,line],index)=>{const address=addresses[index]??"";xml=setPlaceholder(xml,slot,0,address);xml=underlineFieldRun(xml,slot,address,20);xml=setParagraphText(xml,line,"");});
-  xml=appendParagraphText(xml,"098C17D3",value(content,"sale_date"));
+  xml=appendParagraphText(xml,"098C17D3",bookingDate(value(content,"sale_date")));
   xml=setDottedPlaceholder(xml,"47A166A2",0,amountInWords(earnest));
   // Dotted leaders remain in place after their values, therefore later
   // approved blanks retain their original positions in the paragraph.

@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { bookingAddressLines, bookingDate } from "@/lib/address-lines";
 
 type Content = Record<string, unknown>;
 const value = (content: Content, key: string) => String(content[key] ?? "").trim();
@@ -51,7 +52,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     }
     page.drawText(rendered,{x,y:page.getHeight()-top+rise,size,font,color:ink});
   };
-  const lines = (address: string) => address.split(/\r?\n|,/).map(part => part.trim()).filter(Boolean).slice(0, 4);
+  const lines = bookingAddressLines;
   const purchaser1 = value(content, "customer_name"); const purchaser2 = value(content, "customer_name_2");
   const price = amount(content, "purchase_price"); const earnest = price * 0.02; const balance = price * 0.08;
   const address = lines(value(content, "customer_address"));
@@ -67,7 +68,7 @@ export async function createBookingPdf(template: Uint8Array, content: Content) {
     const lineTop = 414 + index * 24;
     addressPage.drawRectangle({ x: 45, y: addressPage.getHeight() - lineTop - 12, width: 235, height: 24, color: rgb(1, 1, 1) });
   }
-  fillLine(0, value(content, "sale_date"), 88, 513, 10, 185);
+  fillLine(0, bookingDate(value(content, "sale_date")), 88, 513, 10, 185);
 
   // The cover template has fixed labels. Replace only the blank value area so
   // the unit and purchaser data stay on the same baseline as the template.
