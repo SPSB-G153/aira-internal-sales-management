@@ -142,7 +142,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   ];
   const document=new Document({
     features:{updateFields:true},
-    styles:{default:{document:{run:{font:"Arial",size:24},paragraph:{spacing:{line:320,after:0}}}}},
+    styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:320,after:0}}}}},
     sections:[{
       properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},

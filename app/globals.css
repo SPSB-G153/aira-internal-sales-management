@@ -543,3 +543,7 @@ h3 { margin:0; font-size:16px; }
   .agent-commission-page-one { padding-top:7mm!important; }
 }
 .compact-upload-button { min-height:34px!important; padding:7px 11px!important; font-size:11px!important; }
+
+/* Final approved Notice size: 11 pt, with the compact spacing above. */
+.acceptance-exact { font-size:14.667px; }
+@media print { .notice-sheet { font-size:14.667px!important; } }
