@@ -549,3 +549,4 @@ h3 { margin:0; font-size:16px; }
 @media print { .notice-sheet { font-size:14.667px!important; } }
 .notice-page > .source-letter-head-emblem + p { margin-top:16px!important; }
 .notice-page .approval-signature .signature-space { height:72px; }
+.notice-facts + p { margin-top:0!important; }
