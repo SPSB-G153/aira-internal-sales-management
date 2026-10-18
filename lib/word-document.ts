@@ -70,6 +70,7 @@ const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragr
 
 const acceptanceFactTable=(content:Record<string,unknown>)=>{
   const purchaser=text(content,"customer_name");
+  const purchaser2=text(content,"customer_name_2","");
   const isCompany=text(content,"purchaser_type","individual")==="company";
   const unit=text(content,"unit_number");
   const tower=unit.split("-")[0]?.toUpperCase();
@@ -77,9 +78,9 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
   const rows:[string,string][]=[
     ["Project",text(content,"project_name")],
     ["Property",property],
-    ["Developer","Selangor Properties Berhad"],
-    ["Proprietor",text(content,"proprietor_name","Bangsar Hill Holdings Sdn. Bhd.")],
-    ["Purchaser",`1. ${purchaser}`],
+    ["Developer","Selangor Properties Sdn. Bhd."],
+    ["Proprietor",text(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")],
+    ["Purchaser",purchaser2?`1. ${purchaser}\n2. ${purchaser2}`:purchaser],
     ["Purchase Price",amount(content.purchase_price)],
   ];
   return new Table({
@@ -102,14 +103,15 @@ const acceptanceSignature=(content:Record<string,unknown>)=>new Table({
     borders:{top:{style:BorderStyle.DOTTED,size:4,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},
     children:[new Paragraph({spacing:{before:0,after:0,line:240},children:[
       new TextRun({text:"Authorized Signatory"}),
-      new TextRun({text:`Name : ${text(content,"authorised_signatory_name","")}`,break:1}),
-      new TextRun({text:`Position : ${text(content,"authorised_signatory_position","")}`,break:1}),
+      new TextRun({text:text(content,"authorised_signatory_name",""),bold:true,break:1}),
+      new TextRun({text:text(content,"authorised_signatory_position",""),bold:true,break:1}),
     ]})]
   })]})]
 });
 
 async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
+  const isCompany=text(content,"purchaser_type","individual")==="company";
   const salutation=text(content,"customer_salutation","Purchaser");
   const contact=text(content,"salesperson_name","Booking contact");
   const salespersonDesignation=designationForSalesPersonnel(contact);
@@ -126,12 +128,12 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:180,after:200,line:341}}),
     acceptanceParagraph([new TextRun(`We thank you for your Offer to Purchase the Property described above which is dated ${date(content.sale_date)} (“`),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
     acceptanceParagraph([new TextRun("You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“"),new TextRun({text:"SPA",bold:true}),new TextRun("”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “"),new TextRun({text:"Sale Documents",bold:true}),new TextRun("”) in the manner described below.")]),
-    acceptanceParagraph(`Firstly we ask that you kindly contact our ${salespersonDesignation||"sales and marketing agent"}${salespersonDesignation?`, ${contact},`:` ${contact}${agency?` from ${agency}`:""}`} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter. In doing so, you will also gain entitlement to a very Special Offer – your choice of the installation of either: (i) the barbeque displayed on the living room balcony of the AIRA Residence Show Apartment; or (ii) a free Miele coffee machine as displayed in the Show Apartment.`),
+    acceptanceParagraph(`Firstly we ask that you kindly contact our ${salespersonDesignation||"sales and marketing agent"}${salespersonDesignation?`, ${contact},`:` ${contact}${agency?` from ${agency}`:""}`} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter.`),
   ];
   const pageTwo=[
     new Paragraph({children:[new PageBreak()]}),
     acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:",{alignment:AlignmentType.JUSTIFIED,spacing:{before:560,after:200,line:341}}),
-    acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Berhad",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{indent:{left:420,hanging:420}}),
+    acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{indent:{left:420,hanging:420}}),
     ...(isCompany?[
       acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are a corporation",italics:true}),new TextRun(":")],{indent:{left:420,hanging:420}}),
       acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the memorandum of transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
@@ -139,7 +141,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
       acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
     ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are an individual",italics:true}),new TextRun(", your identity card / passport;")],{indent:{left:420,hanging:420}})]),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase and henceforth keeping you apprised of the construction progress of your new home in the months and years ahead.",{spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Berhad",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1100,line:300}}),
+    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1100,line:300}}),
     acceptanceSignature(content),
     acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
   ];
@@ -447,7 +449,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
       properties:{titlePage:true},
       headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
       footers:{first:pageNumberFooter(),default:pageNumberFooter()},
-      children:[...common,new Paragraph({heading:HeadingLevel.HEADING_1,alignment:AlignmentType.CENTER,children:[new TextRun({text:title,bold:true})]}),...body.map(line),line(""),line("Yours faithfully,"),line("For and on behalf of Selangor Properties Sdn. Bhd."),line(""),line(""),line("__________________________________"),line(`Name: ${signer||"__________________________________"}`),line(`Designation: ${designation||"____________________________"}`)]
+      children:[...common,new Paragraph({heading:HeadingLevel.HEADING_1,alignment:AlignmentType.CENTER,children:[new TextRun({text:title,bold:true})]}),...body.map(line),line(""),line("Yours faithfully,"),line("For and on behalf of Selangor Properties Sdn. Bhd."),line(""),line(""),line("__________________________________"),line(signer||"__________________________________"),line(designation||"____________________________")]
     }]
   });
   return new Uint8Array(await Packer.toBuffer(document));
