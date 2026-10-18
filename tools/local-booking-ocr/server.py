@@ -86,6 +86,7 @@ PROMPT = """Read only handwritten or manually entered information from these enl
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
 - The first completed purchaser row is purchaser 1. Map its Contact Person's Name, Mobile No. and Email Address from the first contact row to contact_person, customer_phone and customer_email.
 - When purchaser 1 is a company and the next line in the same purchaser-name cell identifies a director, keep the company as customer_name, set customer_occupation to Company Director and purchaser_type to company. Do not treat the director as purchaser 2.
+- Set purchaser_type to company when the purchaser is a registered entity (including names ending in Sdn. Bhd., S/B, Berhad, Ltd., LLP or similar); otherwise set it to individual.
 - Populate purchaser 2 fields only when the second purchaser row in section A or B contains an actual purchaser name or identity number. A second contact-person row by itself is not a second purchaser.
 - Join all handwritten lines under Correspondence Address into one complete address.
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.

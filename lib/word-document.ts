@@ -70,6 +70,7 @@ const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragr
 
 const acceptanceFactTable=(content:Record<string,unknown>)=>{
   const purchaser=text(content,"customer_name");
+  const isCompany=text(content,"purchaser_type","individual")==="company";
   const unit=text(content,"unit_number");
   const tower=unit.split("-")[0]?.toUpperCase();
   const property=`Parcel No. ${unit}${tower==="A"||tower==="B"?`, Tower ${tower}`:""}`;
@@ -131,12 +132,12 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     new Paragraph({children:[new PageBreak()]}),
     acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:",{alignment:AlignmentType.JUSTIFIED,spacing:{before:560,after:200,line:341}}),
     acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Berhad",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{indent:{left:420,hanging:420}}),
-    acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are an individual",italics:true}),new TextRun(", your identity card / passport;")],{indent:{left:420,hanging:420}}),
-    acceptanceParagraph("or",{alignment:AlignmentType.LEFT,indent:{left:420}}),
-    acceptanceParagraph([new TextRun({text:"if you are a corporation",italics:true}),new TextRun(":")],{alignment:AlignmentType.LEFT,indent:{left:420}}),
-    acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the memorandum of transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
-    acceptanceParagraph("(b)   a certified true copy of the latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and",{indent:{left:900,hanging:450}}),
-    acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
+    ...(isCompany?[
+      acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are a corporation",italics:true}),new TextRun(":")],{indent:{left:420,hanging:420}}),
+      acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the memorandum of transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
+      acceptanceParagraph("(b)   a certified true copy of the latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and",{indent:{left:900,hanging:450}}),
+      acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
+    ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"if you are an individual",italics:true}),new TextRun(", your identity card / passport;")],{indent:{left:420,hanging:420}})]),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase and henceforth keeping you apprised of the construction progress of your new home in the months and years ahead.",{spacing:{before:120,after:120,line:341}}),
     acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Berhad",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1100,line:300}}),
     acceptanceSignature(content),

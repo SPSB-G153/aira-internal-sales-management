@@ -41,7 +41,7 @@ const reviewValue=(key:string,value:string)=>{
   if((key==="customer_nationality"||key==="customer_nationality_2")&&nationalityAbbreviations.has(trimmed.toUpperCase()))return trimmed.toUpperCase();
   return toNormalCase(value);
 };
-const normalizePurchaserType=(value:string,name:string,salutation:string)=>/\b(company|corporate|sdn\.?\s*bhd\.?|berhad|limited|ltd\.?|inc\.?|llp|plc)\b/i.test(`${value} ${name} ${salutation}`)?"Company":"Individual";
+const normalizePurchaserType=(value:string,name:string,salutation:string)=>/\b(company|corporate|sdn\.?\s*bhd\.?|s\s*\/\s*b|berhad|limited|ltd\.?|inc\.?|llp|plc)\b/i.test(`${value} ${name} ${salutation}`)?"Company":"Individual";
 
 export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
   const input=useRef<HTMLInputElement>(null);
