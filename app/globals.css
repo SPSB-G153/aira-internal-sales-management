@@ -495,6 +495,17 @@ h3 { margin:0; font-size:16px; }
 .hovp-ack-signatures dl>div:first-child dt,.hovp-ack-signatures dl>div:first-child i { align-self:end; padding-bottom:3px; }
 .hovp-ack-signatures dd { box-sizing:border-box; width:100%; max-width:none; height:auto!important; min-height:21px; justify-self:stretch; padding:0 3px 3px; line-height:1.25; overflow-wrap:anywhere; }
 
+/* Pair the purchaser and company fields in shared rows so wrapped text cannot offset either column. */
+.hovp-ack-signatures { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:28px; row-gap:12px; }
+.hovp-ack-column-title { margin:0!important; text-align:left!important; text-decoration:underline; }
+.hovp-ack-signature-row { display:contents; }
+.hovp-ack-field { display:grid; grid-template-columns:105px 18px minmax(0,1fr); align-items:end; min-width:0; }
+.hovp-ack-signature-row:first-of-type .hovp-ack-field { min-height:72px; }
+.hovp-ack-field dt,.hovp-ack-field dd,.hovp-ack-field i { margin:0; align-self:end; padding-bottom:3px; }
+.hovp-ack-field i { font-style:normal; text-align:center; }
+.hovp-ack-field dd { box-sizing:border-box; width:100%; min-height:21px; padding:0 3px 3px; border-bottom:1px solid #222; line-height:1.25; overflow-wrap:anywhere; }
+@media(max-width:640px){.hovp-ack-signatures{column-gap:20px;font-size:11px}.hovp-ack-field{grid-template-columns:96px 14px minmax(0,1fr)}}
+
 
 /* Rebate offer follows the supplied one-page letter layout. */
 .rebate-exact { position:relative; box-sizing:border-box; min-height:1000px; padding:50px 62px 42px!important; display:flex; flex-direction:column; font-size:12px; line-height:1.43; } .rebate-exact .source-letter-head { margin-bottom:48px; } .rebate-exact .rebate-date { margin:0 0 36px!important; } .rebate-exact .rebate-recipient { min-height:103px; margin:0!important; } .rebate-exact .rebate-subject { display:grid; grid-template-columns:45px minmax(0,1fr); margin:16px 0 18px!important; padding-bottom:5px; border-bottom:1px solid #333; font-size:14px; line-height:1.18; text-align:left!important; } .rebate-exact .rebate-closing { margin-top:0!important; } .rebate-exact .approval-signature { margin-top:42px; } .rebate-exact .source-footer { margin-top:auto; }

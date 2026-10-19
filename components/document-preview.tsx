@@ -252,7 +252,13 @@ function HovpLetterExact({content}:{content:Content}){
       <p className="hovp-ack-project"><b>AIRA Residence</b></p>
       <dl className="hovp-ack-fields"><div><dt>Tower</dt><i>:</i><dd>{tower}</dd></div><div><dt>Unit No.</dt><i>:</i><dd>{unit}</dd></div><div><dt>HOVP Date</dt><i>:</i><dd><CurrentLetterDate/></dd></div></dl>
       <p className="hovp-ack-text">I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an &ldquo;as-is, where-is&rdquo; basis.</p>
-      <div className="hovp-ack-signatures"><section><p>Purchaser</p><dl><div><dt>Signature</dt><i>:</i><dd/></div><div><dt>Purchaser&rsquo;s Name</dt><i>:</i><dd>{purchaser}</dd></div><div><dt>NRIC/Passport No.</dt><i>:</i><dd>{value(content,"customer_ic","")}</dd></div><div><dt>Date</dt><i>:</i><dd/></div></dl></section><section><p>For Selangor Properties Sdn Bhd</p><dl><div><dt>Signature</dt><i>:</i><dd/></div><div><dt>Name</dt><i>:</i><dd>{approver}</dd></div><div><dt>Designation</dt><i>:</i><dd>{designation}</dd></div><div><dt>Date</dt><i>:</i><dd/></div></dl></section></div>
+      <div className="hovp-ack-signatures">
+        <p className="hovp-ack-column-title">Purchaser</p><p className="hovp-ack-column-title">For Selangor Properties Sdn Bhd</p>
+        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Signature</dt><i>:</i><dd/></div><div className="hovp-ack-field"><dt>Signature</dt><i>:</i><dd/></div></div>
+        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Purchaser&rsquo;s Name</dt><i>:</i><dd>{purchaser}</dd></div><div className="hovp-ack-field"><dt>Name</dt><i>:</i><dd>{approver}</dd></div></div>
+        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>NRIC/Passport No.</dt><i>:</i><dd>{value(content,"customer_ic","")}</dd></div><div className="hovp-ack-field"><dt>Designation</dt><i>:</i><dd>{designation}</dd></div></div>
+        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Date</dt><i>:</i><dd/></div><div className="hovp-ack-field"><dt>Date</dt><i>:</i><dd/></div></div>
+      </div>
       <LetterPageNumber page={2}/>
     </article>
   </div>;
