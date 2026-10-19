@@ -42,7 +42,7 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
   if (unitDetails) {
     values.floor_area = unitDetails.floorAreaSquareFeet;
     values.floor_area_sqm = squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);
-    values.unit_type = unitDetails.unitType;
+    values.unit_type = unitDetails.unitType.toUpperCase();
     if (unitDetails.parkingBay) values.car_parking_bay = unitDetails.parkingBay;
   }
   values.bumi_status = isMalayRace(values.customer_race);

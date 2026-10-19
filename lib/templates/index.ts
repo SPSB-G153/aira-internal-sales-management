@@ -12,7 +12,7 @@ const common=(s:Sale)=>{
   customer_race:s.customer_race,bumi_status:s.bumi_status,customer_occupation:s.customer_occupation,
   contact_person:s.contact_person,customer_address:s.customer_address,customer_phone:s.customer_phone,
   customer_email:s.customer_email,project_name:s.project_name,unit_number:s.unit_number,
-  storey_number:s.storey_number,unit_type:s.unit_type,floor_area:s.floor_area,floor_area_sqm:s.floor_area_sqm,
+  storey_number:s.storey_number,unit_type:s.unit_type?.toUpperCase()??null,floor_area:s.floor_area,floor_area_sqm:s.floor_area_sqm,
   car_parking_bay:s.car_parking_bay,purchase_price:s.purchase_price,booking_fee:s.booking_fee,rebate_amount:s.rebate_amount,quoted_id_net_selling_price:s.quoted_id_net_selling_price,
   payment_method:s.payment_method,payment_reference:s.payment_reference,
   salesperson_name:s.salesperson_name,salesperson_designation:s.salesperson_designation,salesperson_mobile:s.salesperson_mobile,salesperson_email:s.salesperson_email,

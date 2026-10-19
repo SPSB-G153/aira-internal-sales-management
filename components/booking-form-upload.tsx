@@ -113,7 +113,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         if(extractedParking&&approvedParking&&extractedParking!==approvedParking)warnings.push("The written parking bay did not match the approved unit record; the approved parking bay is used.");
         fields.floor_area=String(unitDetails.floorAreaSquareFeet);
         fields.floor_area_sqm=String(squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet));
-        fields.unit_type=unitDetails.unitType;
+        fields.unit_type=unitDetails.unitType.toUpperCase();
         if(unitDetails.parkingBay)fields.car_parking_bay=unitDetails.parkingBay;
         warnings.push(`Storey, area, unit type and parking were checked against the approved details for ${unit}.`);
       }

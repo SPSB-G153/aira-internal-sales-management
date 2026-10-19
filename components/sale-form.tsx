@@ -175,7 +175,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
   });
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
-  const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? ""));
+  const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? "").toUpperCase());
   const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
   const [storeyNumber, setStoreyNumber] = useState(String(sale?.storey_number ?? initialValues?.storey_number ?? state.fields?.storey_number ?? ""));
   const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? initialValues?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
@@ -491,7 +491,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
           </div>
           <div className="field">
             <label htmlFor="unit_type">Unit type</label>
-            <input id="unit_type" name="unit_type" value={unitType} onChange={(event) => setUnitType(event.target.value)} />
+            <input id="unit_type" name="unit_type" value={unitType} onChange={(event) => setUnitType(event.target.value.toUpperCase())} />
           </div>
           <div className="field">
             <label>Area (sq ft)</label>

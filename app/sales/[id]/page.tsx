@@ -18,6 +18,7 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   let sale;
   try { sale = await getSale(id); } catch { return notFound(); }
   const query = await searchParams;
+  sale.unit_type = sale.unit_type?.toUpperCase() ?? null;
   const { role } = await getTeamContext();
   await ensureAgentCommissionDocument(sale);
   const allDocs = await getDocuments(id);
