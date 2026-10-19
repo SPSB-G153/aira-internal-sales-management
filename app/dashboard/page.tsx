@@ -10,8 +10,9 @@ export default async function Dashboard() {
   const [sales, docs, context] = await Promise.all([getSales(), getDocuments(), getTeamContext()]);
   const confirmed = sales.filter((sale) => sale.status === "confirmed").length;
   const drafts = sales.filter((sale) => sale.status === "draft" || sale.status === "booking_draft");
-  const documentsToReview = docs.filter((doc) => doc.status !== "reviewed");
-  const reviewed = docs.length - documentsToReview.length;
+  const reviewableDocs = docs.filter((doc) => doc.document_type !== "booking_form");
+  const documentsToReview = reviewableDocs.filter((doc) => doc.status !== "reviewed");
+  const reviewed = reviewableDocs.length - documentsToReview.length;
   const activities = [
     ...sales.map((sale) => ({ date: sale.created_at, text: `Sale ${sale.sale_reference} created for ${sale.customer_name}`, href: `/sales/${sale.id}`, kind: "Sale" })),
     ...docs.map((doc) => {
@@ -29,7 +30,7 @@ export default async function Dashboard() {
 
   return <div className="page">
     <div className="page-header"><div><p className="eyebrow">{context.team.name}</p><h1>What needs attention today?</h1><p className="subtle">Move each sale from verified details to a reviewed document pack.</p></div><Link href="/sales/new" className="button accent">＋ New sale</Link></div>
-    <div className="stats"><div className="card stat"><span className="subtle">Total sales</span><b>{sales.length}</b></div><div className="card stat"><span className="subtle">Confirmed</span><b>{confirmed}</b></div><div className="card stat"><span className="subtle">Drafts</span><b>{drafts.length}</b></div><div className="card stat"><span className="subtle">Reviewed documents</span><b>{reviewed}<small> / {docs.length}</small></b></div></div>
+    <div className="stats"><div className="card stat"><span className="subtle">Total sales</span><b>{sales.length}</b></div><div className="card stat"><span className="subtle">Confirmed</span><b>{confirmed}</b></div><div className="card stat"><span className="subtle">Drafts</span><b>{drafts.length}</b></div><div className="card stat"><span className="subtle">Reviewed documents</span><b>{reviewed}<small> / {reviewableDocs.length}</small></b></div></div>
     <div className="dashboard-grid">
       <section className="card detail-card attention-card"><div className="section-heading"><div><p className="eyebrow">Next actions</p><h2>Needs attention</h2></div><span className="count-pill">{attention.length}</span></div>{attention.length ? <div className="attention-list">{attention.map((item, index) => <Link href={item.href} className="attention-row" key={`${item.href}-${index}`}><span className={`attention-dot ${item.tone}`} /><div><strong>{item.title}</strong><small>{item.detail}</small></div><span>›</span></Link>)}</div> : <div className="calm-state"><span>✓</span><div><strong>You’re caught up</strong><p className="subtle">No drafts or generated documents are waiting.</p></div></div>}</section>
       <section className="card detail-card"><div className="section-heading"><div><p className="eyebrow">Recent sales</p><h2>Latest transactions</h2></div><Link href="/sales" className="text-link">View all</Link></div>{sales.length?<div className="sales-list compact-list">{sales.slice(0, 5).map((sale) => <Link href={`/sales/${sale.id}`} className="sale-row" key={sale.id}><div><strong>{sale.customer_name}</strong><small>{sale.sale_reference} · {sale.project_name}</small></div><span className={`badge ${sale.status}`}>{sale.status}</span><span>›</span></Link>)}</div>:<div className="empty"><h3>No bookings yet</h3><p className="subtle">Start with a verified Aira Booking Form when you are ready.</p><Link href="/sales/new" className="button secondary">Create booking</Link></div>}</section>
