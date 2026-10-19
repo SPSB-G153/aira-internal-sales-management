@@ -306,13 +306,13 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
   return new Uint8Array(await Packer.toBuffer(letterDocument([...pageOne,...pageTwo],fullLogo,emblemLogo,true,360,1360,760)));
 }
 
-const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,colonWidth=180,alignWrapped=false,valueLeft=45)=>new Table({
+const hovpFieldTable=(rows:[string,string][],width=4300,labelWidth=1650,colonWidth=180,alignWrapped=false,valueLeft=45,rowBefore=0)=>new Table({
   width:{size:width,type:WidthType.DXA},
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
   rows:rows.map(([label,value])=>new TableRow({children:[
-    new TableCell({width:{size:labelWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label==="NRIC/Passport No."?[new TextRun({text:label,scale:80})]:label,{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:colonWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:0,after:80,line:260}})]}),
-    new TableCell({width:{size:width-labelWidth-colonWidth,type:WidthType.DXA},verticalAlign:alignWrapped?VerticalAlign.CENTER:undefined,margins:{top:0,bottom:0,left:valueLeft,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:0,after:80,line:260}})]}),
+    new TableCell({width:{size:labelWidth,type:WidthType.DXA},verticalAlign:VerticalAlign.BOTTOM,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(label==="NRIC/Passport No."?[new TextRun({text:label,scale:80})]:label,{spacing:{before:rowBefore,after:80,line:260}})]}),
+    new TableCell({width:{size:colonWidth,type:WidthType.DXA},verticalAlign:VerticalAlign.BOTTOM,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph(":",{spacing:{before:rowBefore,after:80,line:260}})]}),
+    new TableCell({width:{size:width-labelWidth-colonWidth,type:WidthType.DXA},verticalAlign:VerticalAlign.BOTTOM,margins:{top:0,bottom:0,left:valueLeft,right:20},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph(value,{spacing:{before:rowBefore,after:80,line:260}})]}),
   ]}))
 });
 
@@ -325,8 +325,8 @@ const hovpAcknowledgementTable=(leftRows:[string,string][],rightRows:[string,str
       new TableCell({width:{size:49,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:80,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
     ]}),
     ...leftRows.map((leftRow,index)=>new TableRow({children:[
-      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:80},children:[hovpFieldTable([leftRow],4400,1450,120,true,20)]}),
-      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:80,right:0},children:[hovpFieldTable([rightRows[index]],4400,1450,120,true,20)]}),
+      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.BOTTOM,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:80},children:[hovpFieldTable([leftRow],4400,1450,120,true,20,index===0?560:0)]}),
+      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.BOTTOM,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:80,right:0},children:[hovpFieldTable([rightRows[index]],4400,1450,120,true,20,index===0?560:0)]}),
     ]})),
   ],
 });
