@@ -223,9 +223,9 @@ function HovpLetterExact({content}:{content:Content}){
   return <div className="hovp-exact">
     <article className="letter source-letter hovp-letter hovp-sheet">
       <CompanyHead/>
-      <p><CurrentLetterDate/></p>
-      <p><b>{purchaser.toUpperCase()}</b><br/>{value(content,"customer_address")}</p>
-      <p>Dear Sir or Madam,</p>
+      <p className="notice-date"><CurrentLetterDate/></p>
+      <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
+      <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <h1 className="source-subject">RE: &nbsp; AIRA RESIDENCE &ndash; HANDOVER OF VACANT POSSESSION</h1>
       <p>We refer to your purchase of Unit <b>{unit}</b>, AIRA Residence (&ldquo;Unit&rdquo;).</p>
       <p>We are pleased to inform you that vacant possession of the Unit is available for handover on <b><CurrentLetterDate/></b>.</p>

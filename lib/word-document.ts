@@ -321,18 +321,19 @@ const hovpAcknowledgementTable=(leftRows:[string,string][],rightRows:[string,str
   borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
   rows:[
     new TableRow({children:[
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[exactParagraph([new TextRun({text:"Purchaser",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
+      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:80},children:[exactParagraph([new TextRun({text:"Purchaser",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
+      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:80,right:0},children:[exactParagraph([new TextRun({text:"For Selangor Properties Sdn Bhd",underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:140,line:260}})]}),
     ]}),
     ...leftRows.map((leftRow,index)=>new TableRow({children:[
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:160},children:[hovpFieldTable([leftRow],4200,1450,120,true,20)]}),
-      new TableCell({width:{size:48,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:160,right:0},children:[hovpFieldTable([rightRows[index]],4200,1450,120,true,20)]}),
+      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:0,right:80},children:[hovpFieldTable([leftRow],4400,1450,120,true,20)]}),
+      new TableCell({width:{size:49,type:WidthType.PERCENTAGE},verticalAlign:VerticalAlign.CENTER,borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:0,bottom:0,left:80,right:0},children:[hovpFieldTable([rightRows[index]],4400,1450,120,true,20)]}),
     ]})),
   ],
 });
 
 async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
+  const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const unit=text(content,"unit_number");
   const handover=currentLetterDate();
   const salesperson=text(content,"salesperson_name","");
@@ -346,8 +347,8 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const term=(value:string,after=120)=>paragraph(value,{alignment:AlignmentType.JUSTIFIED,indent:{left:430},spacing:{before:0,after,line:250}});
   const children:(Paragraph|Table)[]=[
     paragraph(currentLetterDate()),
-    paragraph([new TextRun({text:text(content,"customer_name").toUpperCase(),bold:true}),new TextRun({text:text(content,"customer_address"),break:1})]),
-    paragraph("Dear Sir or Madam,"),
+    paragraph([new TextRun({text:purchaser.toUpperCase(),bold:true}),...addressLines.map((address)=>new TextRun({text:address,break:1}))]),
+    paragraph(purchaserGreeting(content)),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({margins:{top:0,bottom:60,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"RE:  AIRA RESIDENCE – HANDOVER OF VACANT POSSESSION",bold:true})],{spacing:{before:90,after:0,line:250}})]})]})]}),
     paragraph([new TextRun("We refer to your purchase of Unit "),new TextRun({text:unit,bold:true}),new TextRun(", AIRA Residence (“Unit”).")],{spacing:{before:210,after:180,line:250}}),
     paragraph([new TextRun("We are pleased to inform you that vacant possession of the Unit is available for handover on "),new TextRun({text:handover,bold:true}),new TextRun(".")]),
