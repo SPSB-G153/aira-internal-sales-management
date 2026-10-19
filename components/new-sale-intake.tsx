@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BookingFormUpload, type BookingUploadFields } from "@/components/booking-form-upload";
 import { SaleForm } from "@/components/sale-form";
 import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
@@ -56,6 +56,12 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
   const [mode, setMode] = useState<"booking" | "pop" | null>(initialValues ? "booking" : null);
   const [values, setValues] = useState<Partial<Sale> | undefined>(initialValues);
   const [revision, setRevision] = useState(0);
+  const entryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mode || revision === 0) return;
+    entryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [mode, revision]);
 
   return <>
     <section className="card new-sale-intake">
@@ -84,7 +90,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
         </button>
       </div>
     </section>
-    {mode && <div className="new-sale-entry">
+    {mode && <div ref={entryRef} className="new-sale-entry">
       <div className="new-sale-entry-heading">
         <p className="eyebrow">{mode === "booking" ? "Booking Form" : "Optional POP"}</p>
         <h2>{mode === "booking" ? "Review booking details" : "Prepare proposal details"}</h2>
