@@ -189,7 +189,7 @@ const exactParagraph=(children:string|TextRun[],options:any={})=>new Paragraph({
 
 const exactRecipient=(content:Record<string,unknown>)=>exactParagraph([
   new TextRun({text:text(content,"customer_name").toUpperCase(),bold:true}),
-  new TextRun({text:text(content,"customer_address"),break:1}),
+  ...noticeAddressLines(text(content,"customer_address")).map((address)=>new TextRun({text:address,break:1})),
 ],{spacing:{before:0,after:300,line:300}});
 
 async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
@@ -199,7 +199,7 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
     exactParagraph(currentLetterDate(),{spacing:{before:420,after:540,line:300}}),
     exactParagraph([
       new TextRun({text:text(content,"customer_name").toUpperCase(),bold:true}),
-      new TextRun({text:text(content,"customer_address"),break:1}),
+      ...noticeAddressLines(text(content,"customer_address")).map((address)=>new TextRun({text:address,break:1})),
     ],{spacing:{before:0,after:1020,line:300}}),
     exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`,{spacing:{before:0,after:340,line:300}}),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[

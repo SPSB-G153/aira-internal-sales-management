@@ -183,7 +183,7 @@ function InventoryConfirmationLetter({content}:{content:Content}){
       <section className="notice-page inventory-page">
         <CompanyHead/>
         <p className="notice-date"><CurrentLetterDate/></p>
-        <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/>{value(content,"customer_address")}</p>
+        <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
         <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
         <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AIRA RESIDENCE<br/>CONFIRMATION OF INVENTORIES FOR UNIT {unit}</b></p>
         <p>Greetings from AIRA Residence.</p>

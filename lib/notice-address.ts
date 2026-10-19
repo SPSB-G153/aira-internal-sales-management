@@ -3,7 +3,17 @@ export function noticeAddressLines(address: string, maxLength = 34) {
   const lines: string[] = [];
 
   for (const sourceLine of sourceLines.length ? sourceLines : [address.trim()]) {
-    const parts = sourceLine.split(",").map((part) => part.trim()).filter(Boolean);
+    const rawParts = sourceLine.split(",").map((part) => part.trim()).filter(Boolean);
+    const parts: string[] = [];
+    for (let index = 0; index < rawParts.length; index += 1) {
+      const part = rawParts[index];
+      if (/^no\.?\s*\d/i.test(part) && rawParts[index + 1]) {
+        parts.push(`${part}, ${rawParts[index + 1]}`);
+        index += 1;
+      } else {
+        parts.push(part);
+      }
+    }
     if (parts.length <= 1) {
       lines.push(sourceLine);
       continue;
@@ -11,7 +21,8 @@ export function noticeAddressLines(address: string, maxLength = 34) {
     let current = "";
     parts.forEach((part, index) => {
       const candidate = current ? `${current}, ${part}` : part;
-      if (current && candidate.length > maxLength) {
+      const lineLimit = /^no\.?\s*\d/i.test(current) ? maxLength + 6 : maxLength;
+      if (current && candidate.length > lineLimit) {
         lines.push(`${current},`);
         current = part;
       } else {
