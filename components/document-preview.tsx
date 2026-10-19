@@ -218,8 +218,6 @@ function HovpLetterExact({content}:{content:Content}){
   const salespersonDesignation=value(content,"salesperson_designation","");
   const salespersonMobile=value(content,"salesperson_mobile","");
   const salespersonEmail=value(content,"salesperson_email","");
-  const approver=value(content,"authorised_signatory_name","");
-  const designation=value(content,"authorised_signatory_position","");
   return <div className="hovp-exact">
     <article className="letter source-letter hovp-letter hovp-sheet">
       <CompanyHead/>
@@ -255,8 +253,8 @@ function HovpLetterExact({content}:{content:Content}){
       <div className="hovp-ack-signatures">
         <p className="hovp-ack-column-title">Purchaser</p><p className="hovp-ack-column-title">For Selangor Properties Sdn Bhd</p>
         <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Signature</dt><i>:</i><dd/></div><div className="hovp-ack-field"><dt>Signature</dt><i>:</i><dd/></div></div>
-        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Purchaser&rsquo;s Name</dt><i>:</i><dd>{purchaser}</dd></div><div className="hovp-ack-field"><dt>Name</dt><i>:</i><dd>{approver}</dd></div></div>
-        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>NRIC/Passport No.</dt><i>:</i><dd>{value(content,"customer_ic","")}</dd></div><div className="hovp-ack-field"><dt>Designation</dt><i>:</i><dd>{designation}</dd></div></div>
+        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Purchaser&rsquo;s Name</dt><i>:</i><dd>{purchaser}</dd></div><div className="hovp-ack-field"><dt>Name</dt><i>:</i><dd/></div></div>
+        <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>NRIC/Passport No.</dt><i>:</i><dd>{value(content,"customer_ic","")}</dd></div><div className="hovp-ack-field"><dt>Designation</dt><i>:</i><dd/></div></div>
         <div className="hovp-ack-signature-row"><div className="hovp-ack-field"><dt>Date</dt><i>:</i><dd/></div><div className="hovp-ack-field"><dt>Date</dt><i>:</i><dd/></div></div>
       </div>
       <LetterPageNumber page={2}/>

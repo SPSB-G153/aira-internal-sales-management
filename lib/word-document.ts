@@ -340,8 +340,6 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const salespersonDesignation=text(content,"salesperson_designation","");
   const salespersonMobile=text(content,"salesperson_mobile","");
   const salespersonEmail=text(content,"salesperson_email","");
-  const approver=text(content,"authorised_signatory_name","");
-  const designation=text(content,"authorised_signatory_position","");
   const paragraph=(children:string|TextRun[],options:any={})=>exactParagraph(children,{spacing:{before:0,after:180,line:250},...options});
   const heading=(number:number,value:string)=>paragraph([new TextRun(`${number}.    `),new TextRun({text:value,underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:75,line:250}});
   const term=(value:string,after=120)=>paragraph(value,{alignment:AlignmentType.JUSTIFIED,indent:{left:430},spacing:{before:0,after,line:250}});
@@ -373,7 +371,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     exactParagraph("I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an “as-is, where-is” basis.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:420,line:341}}),
     hovpAcknowledgementTable(
       [["Signature",""],["Purchaser’s Name",purchaser],["NRIC/Passport No.",text(content,"customer_ic","")],["Date",""]],
-      [["Signature",""],["Name",approver],["Designation",designation],["Date",""]],
+      [["Signature",""],["Name",""],["Designation",""],["Date",""]],
     ),
   ];
   return new Uint8Array(await Packer.toBuffer(hovpDocument(children,fullLogo,emblemLogo)));
