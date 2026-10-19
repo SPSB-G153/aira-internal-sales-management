@@ -1,17 +1,27 @@
+function standardizeAddressPart(part: string) {
+  if (/^aira residence$/i.test(part)) return "AIRA Residence";
+  const number = part.match(/^no\.?\s*(\d+[a-z]?)$/i);
+  if (number) return `No. ${number[1].toUpperCase()}`;
+
+  return part.replace(/[A-Za-z]+/g, (word) => {
+    if (word.length <= 3) return word.toUpperCase();
+    return `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}`;
+  });
+}
+
 export function noticeAddressLines(address: string, maxLength = 34) {
   const sourceLines = address.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const lines: string[] = [];
 
   for (const sourceLine of sourceLines.length ? sourceLines : [address.trim()]) {
-    const rawParts = sourceLine.split(",").map((part) => part.trim()).filter(Boolean);
+    const rawParts = sourceLine.split(",").map((part) => standardizeAddressPart(part.trim())).filter(Boolean);
     const towerMatch = rawParts[0]?.match(/^([a-z])-\d/i);
     if (towerMatch && !rawParts.some((part) => /^tower\s+[a-z]$/i.test(part))) {
       rawParts.splice(1, 0, `Tower ${towerMatch[1].toUpperCase()}`);
     }
     const parts: string[] = [];
     for (let index = 0; index < rawParts.length; index += 1) {
-      const rawPart = rawParts[index];
-      const part = /^aira residence$/i.test(rawPart) ? "AIRA Residence" : rawPart;
+      const part = rawParts[index];
       if (/^no\.?\s*\d/i.test(part) && rawParts[index + 1]) {
         parts.push(`${part}, ${rawParts[index + 1]}`);
         index += 1;
