@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSale } from "@/lib/data/sales";
-import { ensureAgentCommissionDocument, ensureHovpDocument, getDocuments } from "@/lib/data/documents";
+import { ensureAgentCommissionDocument, getDocuments } from "@/lib/data/documents";
 import { documentNames } from "@/lib/types";
 import { ConfirmSaleForm } from "@/components/confirm-sale-form";
 import { SaleStageActions } from "@/components/sale-stage-actions";
 import { scoreSale, scoreTone } from "@/lib/operations";
 import { getTeamContext } from "@/lib/tenancy";
 import { DeleteSaleForm } from "@/components/delete-sale-form";
+import { ClearanceLetterUpload } from "@/components/clearance-letter-upload";
 
 export const dynamic = "force-dynamic";
 const money = (value: number | null) => value == null ? "—" : new Intl.NumberFormat("en-MY", { style: "currency", currency: "MYR" }).format(value);
@@ -18,24 +19,25 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   try { sale = await getSale(id); } catch { return notFound(); }
   const query = await searchParams;
   const { role } = await getTeamContext();
-  await Promise.all([ensureHovpDocument(sale), ensureAgentCommissionDocument(sale)]);
-  const docs = await getDocuments(id);
+  await ensureAgentCommissionDocument(sale);
+  const allDocs = await getDocuments(id);
+  const docs = allDocs.filter((document) => document.document_type !== "hovp_letter" || sale.status === "hovp_ready");
   const score = scoreSale(sale, docs);
   const isPop = sale.status === "draft";
   const isBookingDraft = sale.status === "booking_draft";
-  const expectedDocuments = (role === "owner" ? 4 : 3) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
+  const expectedDocuments = (role === "owner" ? 3 : 2) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = isPop ? "POP details" : "Booking details";
   const statusLabel = isPop ? "POP" : isBookingDraft ? "Booking draft" : sale.status.replace("_", " ");
   const letterSummary = ["Notice of Acceptance", ...(role === "owner" ? ["Agent Commission Letter"] : []), ...(sale.rebate_amount && sale.rebate_amount > 0 ? ["Rebate Letter"] : []), ...(sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? ["Confirmation of Inventories"] : [])].join(", ");
 
   return <div className="page">
-    <div className="page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>{sale.customer_name}</h1><p className="subtle">{sale.project_name} · {sale.unit_number || "Unit pending"}</p></div><div className="form-actions"><Link href={`/sales/${id}/edit`} className="button secondary">{isPop ? "Edit POP" : "Edit booking"}</Link>{(isPop || isBookingDraft) && <ConfirmSaleForm saleId={id} />}{sale.status === "confirmed" && <SaleStageActions saleId={id} status="confirmed" />}{sale.status === "spa_signed" && <SaleStageActions saleId={id} status="spa_signed" />}</div></div>
+    <div className="page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>{sale.customer_name}</h1><p className="subtle">{sale.project_name} · {sale.unit_number || "Unit pending"}</p></div><div className="form-actions"><Link href={`/sales/${id}/edit`} className="button secondary">{isPop ? "Edit POP" : "Edit booking"}</Link>{(isPop || isBookingDraft) && <ConfirmSaleForm saleId={id} />}{sale.status === "confirmed" && <SaleStageActions saleId={id} status="confirmed" />}{sale.status === "spa_signed" && <ClearanceLetterUpload saleId={id} unitNumber={sale.unit_number || sale.sale_reference} />}</div></div>
     {query.confirmed && <div className="alert success" role="status">Booking confirmed. {letterSummary} is ready to print.</div>}
     {sale.status === "draft" && <div className="readiness"><div><strong>POP is editable and may be withdrawn before booking</strong><p>{missing.length ? `Complete ${missing.join(", ")} before the booking is created.` : "When the purchaser proceeds and the 2% deposit is paid, create the booking and issue the letters."}</p></div><Link href={`/sales/${id}/edit`} className="button secondary">Edit POP</Link></div>}
     {isBookingDraft && <div className="readiness"><div><strong>Booking saved as draft</strong><p>Review and edit any uploaded details, then confirm the booking when everything is correct.</p></div><Link href={`/sales/${id}/edit`} className="button secondary">Edit booking</Link></div>}
     {sale.status === "confirmed" && <div className="readiness"><div><strong>Booking confirmed and 2% deposit recorded</strong><p>Proceed with the SPA process. Mark the SPA as signed when completed.</p></div></div>}
-    {sale.status === "spa_signed" && <div className="readiness"><div><strong>SPA signed</strong><p>When the 90% balance is paid and/or foreign consent is completed, issue the HOVP letter.</p></div></div>}
+    {sale.status === "spa_signed" && <div className="readiness"><div><strong>SPA signed — clearance letter required</strong><p>Upload the received clearance letter locally. The HOVP Letter will only be issued after the local upload succeeds.</p></div></div>}
     {sale.status === "hovp_ready" && <div className="alert success">HOVP letter issued after SPA completion requirements were confirmed.</div>}
     <div className="detail-grid"><div className="stack"><section className="card detail-card"><div className="page-header" style={{ marginBottom: 0 }}><h2>{heading}</h2><span className={`badge ${sale.status}`}>{statusLabel}</span></div><dl className="kv"><div><dt>IC / Passport</dt><dd>{sale.customer_ic || "—"}</dd></div><div><dt>Contact</dt><dd>{sale.customer_phone || sale.customer_email || "—"}</dd></div><div><dt>Unit type</dt><dd>{sale.unit_type || "—"}</dd></div><div><dt>Floor area</dt><dd>{sale.floor_area ? `${sale.floor_area} sq ft` : "—"}</dd></div><div><dt>Salesperson</dt><dd>{sale.salesperson_name || "—"}</dd></div><div><dt>{isPop ? "Proposal date" : "Booking date"}</dt><dd>{sale.sale_date || "—"}</dd></div></dl></section>
       <section><div className="page-header"><div><p className="eyebrow">Generated letters</p><h2>{docs.length}/{expectedDocuments} generated</h2></div><div className="form-actions">{docs.length > 0 && <span className="completion-label">{docs.filter(d => d.status === "reviewed").length}/{expectedDocuments} reviewed</span>}</div></div>{docs.length ? <div className="doc-grid">{docs.map(d => <Link className="card doc-card" href={`/documents/${d.id}`} key={d.id}><span className="doc-icon">▤</span><div><h3>{documentNames[d.document_type]}</h3><p className="subtle" style={{ margin: "6px 0" }}>Ready to print</p><span className={`badge ${d.status}`}>{d.status}</span></div></Link>)}</div> : <div className="card empty"><h3>No letters generated yet</h3><p className="subtle">Create the booking to issue the Notice of Acceptance and Agent Commission Letter{sale.rebate_amount && sale.rebate_amount > 0 ? ", plus the Rebate Letter" : ""}.</p></div>}</section></div>

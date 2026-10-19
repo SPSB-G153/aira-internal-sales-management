@@ -7,14 +7,14 @@ export const dynamic = "force-dynamic";
 
 export default async function DocumentsPage() {
   const [allDocs, sales] = await Promise.all([getDocuments(), getSales()]);
+  const salesById = new Map(sales.map((sale) => [sale.id, sale]));
   const docs = allDocs.filter((document) => [
     "acceptance_letter",
     "agent_commission_letter",
     "rebate_letter",
     "inventory_confirmation_letter",
     "hovp_letter",
-  ].includes(document.document_type));
-  const salesById = new Map(sales.map((sale) => [sale.id, sale]));
+  ].includes(document.document_type) && (document.document_type !== "hovp_letter" || salesById.get(document.sale_id)?.status === "hovp_ready"));
 
   return <div className="page">
     <div className="page-header"><div>

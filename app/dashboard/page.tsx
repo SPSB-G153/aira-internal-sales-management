@@ -7,7 +7,9 @@ import { documentNames } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
-  const [sales, docs, context] = await Promise.all([getSales(), getDocuments(), getTeamContext()]);
+  const [sales, allDocs, context] = await Promise.all([getSales(), getDocuments(), getTeamContext()]);
+  const saleStatus = new Map(sales.map((sale) => [sale.id, sale.status]));
+  const docs = allDocs.filter((document) => document.document_type !== "hovp_letter" || saleStatus.get(document.sale_id) === "hovp_ready");
   const confirmed = sales.filter((sale) => sale.status === "confirmed").length;
   const drafts = sales.filter((sale) => sale.status === "draft" || sale.status === "booking_draft");
   const reviewableDocs = docs.filter((doc) => doc.document_type !== "booking_form");

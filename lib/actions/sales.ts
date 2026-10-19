@@ -41,7 +41,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   values.bumi_status=isMalayRace(values.customer_race||"");if(values.customer_name_2||values.customer_ic_2)values.bumi_status_2=isMalayRace(values.customer_race_2||"");
   values.customer_sex=fullSex(values.customer_sex||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_sex_2=fullSex(values.customer_sex_2||"")||null;
   values.customer_nationality=normalizeNationality(values.customer_nationality||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_nationality_2=normalizeNationality(values.customer_nationality_2||"")||null;
-  let sale:Sale;try{const id=text(form,"id");sale=id?await updateSale(id,values):await createSale(values);const db=await createClient();const{team}=await getTeamContext();const{data:{user}}=await db.auth.getUser();const generated_at=new Date().toISOString();if(sale.status==="draft"){const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"pre_booking_form",content:buildDocumentSnapshot(sale,"pre_booking_form"),status:"generated",generated_at},{onConflict:"sale_id,document_type"});if(error)throw error;}else if(sale.status!=="booking_draft"){const types:DocumentType[]=["booking_form","acceptance_letter","agent_commission_letter"];if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");types.push("hovp_letter");const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}}catch(e){return{error:e instanceof Error?e.message:"Failed to save sale.",fields}}
+  let sale:Sale;try{const id=text(form,"id");sale=id?await updateSale(id,values):await createSale(values);const db=await createClient();const{team}=await getTeamContext();const{data:{user}}=await db.auth.getUser();const generated_at=new Date().toISOString();if(sale.status==="draft"){const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"pre_booking_form",content:buildDocumentSnapshot(sale,"pre_booking_form"),status:"generated",generated_at},{onConflict:"sale_id,document_type"});if(error)throw error;}else if(sale.status!=="booking_draft"){const types:DocumentType[]=["booking_form","acceptance_letter","agent_commission_letter"];if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}}catch(e){return{error:e instanceof Error?e.message:"Failed to save sale.",fields}}
   revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(uploadAnother?"/sales/new":`/sales/${sale.id}`);
 }
 export async function savePopAdminDetails(id:string,fields:Record<string,string>):Promise<PopAdminSaveState>{
@@ -80,7 +80,6 @@ export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Prom
     const types:DocumentType[]=["booking_form","acceptance_letter","agent_commission_letter"];
     if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
     if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");
-    types.push("hovp_letter");
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:new Date().toISOString()}));
     const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw new Error(error.message);
     await updateSale(id,{status:"confirmed"});
@@ -102,15 +101,9 @@ export async function generateHovp(id:string,_:ConfirmState,__form:FormData):Pro
   } catch { return {error:"Could not issue the HOVP letter."}; }
   revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");return {};
 }
-export async function generateMissingHovp(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
-  try {
-    const sale=await getSale(id);if(sale.status==="draft"||sale.status==="booking_draft")return{error:"Create the booking before generating the HOVP letter."};
-    const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"hovp_letter",content:buildDocumentSnapshot(sale,"hovp_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(error)throw error;
-  } catch { return {error:"Could not create the HOVP letter."}; }
-  revalidatePath(`/sales/${id}`);revalidatePath("/documents");revalidatePath("/dashboard");return {};
+export async function generateHovpAfterClearance(id:string):Promise<ConfirmState>{
+  return generateHovp(id,{},new FormData());
 }
-
 export async function deleteSale(id:string,_:DeleteSaleState,form:FormData):Promise<DeleteSaleState>{
   const confirmationReference=text(form,"confirmation_reference");
   try {
