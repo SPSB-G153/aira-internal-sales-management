@@ -369,7 +369,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
     exactParagraph("",{spacing:{before:0,after:0,line:300}}),
     exactParagraph([new TextRun({text:"HOVP HANDOVER ACKNOWLEDGEMENT",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:120,line:300}}),
     exactParagraph([new TextRun({text:"AIRA Residence",bold:true,size:24})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:720,line:300}}),
-    hovpFieldTable([["Tower",towerFromUnit(unit)],["Unit No.",unit],["HOVP Date",handover]],5000),
+    hovpFieldTable([["Tower",towerFromUnit(unit)],["Unit No.",unit],["HOVP Date",handover]],4400,1450,180,true,20),
     exactParagraph("I/We acknowledge receipt of the keys, access cards, remote controls and other applicable handover items for the above Unit and confirm that vacant possession has been handed over and accepted on an “as-is, where-is” basis.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:320,after:420,line:341}}),
     hovpAcknowledgementTable(
       [["Signature",""],["Purchaser’s Name",purchaser],["NRIC/Passport No.",text(content,"customer_ic","")],["Date",""]],
