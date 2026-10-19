@@ -4,9 +4,14 @@ export function noticeAddressLines(address: string, maxLength = 34) {
 
   for (const sourceLine of sourceLines.length ? sourceLines : [address.trim()]) {
     const rawParts = sourceLine.split(",").map((part) => part.trim()).filter(Boolean);
+    const towerMatch = rawParts[0]?.match(/^([a-z])-\d/i);
+    if (towerMatch && !rawParts.some((part) => /^tower\s+[a-z]$/i.test(part))) {
+      rawParts.splice(1, 0, `Tower ${towerMatch[1].toUpperCase()}`);
+    }
     const parts: string[] = [];
     for (let index = 0; index < rawParts.length; index += 1) {
-      const part = rawParts[index];
+      const rawPart = rawParts[index];
+      const part = /^aira residence$/i.test(rawPart) ? "AIRA Residence" : rawPart;
       if (/^no\.?\s*\d/i.test(part) && rawParts[index + 1]) {
         parts.push(`${part}, ${rawParts[index + 1]}`);
         index += 1;
