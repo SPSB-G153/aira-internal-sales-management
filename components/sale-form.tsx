@@ -7,7 +7,7 @@ import { storeyForUnit } from "@/lib/unit-details";
 import { designationForSalesPersonnel, emailForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { splitAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
-type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop" };
+type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual" };
 const Field = ({
   name,
   label,
@@ -157,7 +157,7 @@ const keepSecondPurchaser = (form: HTMLFormElement) =>
     form.appendChild(hidden);
   });
 
-export function SaleForm({ sale, initialValues, mode }: Props) {
+export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }: Props) {
   const [state, action, pending] = useActionState<FormState, FormData>(
     saveSale,
     {},
@@ -227,6 +227,7 @@ export function SaleForm({ sale, initialValues, mode }: Props) {
     <form action={action} className="card form-card">
       {sale && <input type="hidden" name="id" value={sale.id} />}{" "}
       <input type="hidden" name="entry_mode" value={entryMode} />
+      <input type="hidden" name="booking_source" value={bookingSource} />
       {state.error && <div className="alert">{state.error}</div>}
       <section className="form-section">
         <div className="section-heading">
