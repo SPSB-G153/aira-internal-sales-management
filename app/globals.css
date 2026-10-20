@@ -560,4 +560,4 @@ h3 { margin:0; font-size:16px; }
 .notice-page > .source-letter-head-emblem + p { margin-top:16px!important; }
 .notice-page .approval-signature .signature-space { height:92px; }
 .notice-facts + p { margin-top:0!important; }
-sup.ordinal-suffix { font-size:.62em; line-height:0; vertical-align:super; }
+sup.ordinal-suffix { position:relative; top:-.3em; font-size:.62em; line-height:0; vertical-align:baseline; }
