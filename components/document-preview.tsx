@@ -91,7 +91,7 @@ const towerFromUnit=(unit:string)=>{const tower=unit.split("-")[0]?.toUpperCase(
 const number=(content:Content,key:string)=>typeof content[key]==="number"?content[key] as number:0;
 const money=(amount:unknown)=>typeof amount==="number"?new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(amount):"—";
 const formattedDate=(input:unknown,key?:string)=>{const value=key&&input&&typeof input==="object"?(input as Content)[key]:input;return typeof value==="string"&&value?new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric"}).format(new Date(`${value}T00:00:00`)):"—";};
-const formattedOrdinalDate=(input:unknown)=>{if(typeof input!=="string"||!input)return "—";const parsed=new Date(`${input}T00:00:00`);if(Number.isNaN(parsed.getTime()))return "—";const day=parsed.getDate();const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return `${day}${suffix} ${new Intl.DateTimeFormat("en-MY",{month:"long",year:"numeric"}).format(parsed)}`;};
+const formattedOrdinalDate=(input:unknown)=>{if(typeof input!=="string"||!input)return "—";const parsed=new Date(`${input}T00:00:00`);if(Number.isNaN(parsed.getTime()))return "—";const day=parsed.getDate();const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return <>{day}<sup className="ordinal-suffix">{suffix}</sup> {new Intl.DateTimeFormat("en-MY",{month:"long",year:"numeric"}).format(parsed)}</>;};
 const approvalDate=(input:unknown)=>typeof input==="string"&&input?input.split("-").reverse().map((part,index)=>index===2?part.slice(-2):part).join("."):"";
 
 export function DocumentPreview({type,content}:{type:DocumentType;content:Content}){
