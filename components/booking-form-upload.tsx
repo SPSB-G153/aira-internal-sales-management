@@ -30,7 +30,7 @@ const normalCaseFields=new Set([
   "customer_name_2","customer_salutation_2","customer_nationality_2","customer_race_2",
   "bumi_status_2","customer_occupation_2","contact_person_2","customer_address_2",
 ]);
-const toNormalCase=(value:string)=>value.toLocaleLowerCase("en-MY").replace(/(^|[\s,./()'\-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`).replace(/\bAira\b/g,"AIRA");
+const toNormalCase=(value:string)=>value.toLocaleLowerCase("en-MY").replace(/(^|[\s,./()'\-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`).replace(/\bAira\b/g,"AIRA").replace(/\b[AB]-\d+[A-Z]?-\d+\b/gi,(unit)=>unit.toUpperCase());
 const nationalityAbbreviations=new Set(["UK","US","USA","UAE","PRC"]);
 const normalizeNationality=(value:string)=>{
   const trimmed=value.trim();
@@ -89,9 +89,9 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const response=await fetch(`${localUrl}/extract`,{method:"POST",body});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||data.detail||"The Booking Form could not be read.");
-      const unit=String(data.fields?.unit_number||"");
+      const unit=String(data.fields?.unit_number||"").trim().toUpperCase();
       const solicitor=solicitorForUnit(unit);
-      const fields={...data.fields,solicitor_name:data.fields?.solicitor_name||solicitor};
+      const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor};
       fields.customer_sex=fullSex(String(fields.customer_sex||""));
       fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));

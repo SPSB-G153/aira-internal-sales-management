@@ -35,6 +35,10 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
       values[key] = value.toLowerCase().includes("company") ? "company" : "individual";
       continue;
     }
+    if (key === "unit_number") {
+      values[key] = value.toUpperCase();
+      continue;
+    }
     values[key] = value;
   }
   const unit = typeof values.unit_number === "string" ? values.unit_number : "";
