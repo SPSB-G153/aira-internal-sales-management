@@ -334,7 +334,7 @@ async def extract_booking_fee(
             # Cheques from the scanner are rotated clockwise on the landscape
             # page. Rotate them counter-clockwise so the boxed date, RM amount
             # and MICR cheque number are upright and spatially distinct.
-            images = [cheque_section(receipt[0])]
+            images = [cheque_section(receipt[page_number]) for page_number in range(receipt.page_count)]
         else:
             images = [base64.b64encode(data).decode("ascii")]
         payload = {
@@ -342,7 +342,8 @@ async def extract_booking_fee(
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this booking-fee payment receipt privately. Extract only: the "
+                    "Read every supplied page of this booking-fee payment file privately. The file may "
+                    "contain more than one cheque. Add all cheque amounts together and return the total "
                     "amount actually paid as booking_fee (digits and decimals only, without "
                     "currency symbols or commas), and also copy the exact printed or written "
                     "amount into booking_fee_text including all commas, decimals, and any K suffix. "
@@ -352,8 +353,9 @@ async def extract_booking_fee(
                     "on the cheque. Convert a two-digit year such as 26 to 2026 and return YYYY-MM-DD. "
                     "Never derive the date from an account number, company registration number, MICR "
                     "line, cheque number, or filename. payment_method must be exactly cheque. Read the "
-                    "six-digit cheque number from the MICR line as payment_reference, preserving leading "
-                    "zeroes. For a non-cheque receipt, use its explicitly labelled transaction date, "
+                    "six-digit cheque number from each MICR line as payment_reference, preserving leading "
+                    "zeroes and separating multiple cheque numbers with commas. If all cheques show the "
+                    "same date, return that date. For a non-cheque receipt, use its explicitly labelled transaction date, "
                     "payment_method as exactly bank_transfer, and its transaction/receipt number as "
                     "payment_reference. Do not use the property purchase price, account balance or unrelated amounts. Return an empty "
                     "string for anything not clearly shown. Return only the requested JSON."
