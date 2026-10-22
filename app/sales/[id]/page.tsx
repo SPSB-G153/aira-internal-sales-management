@@ -19,7 +19,8 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   try { sale = await getSale(id); } catch { return notFound(); }
   const query = await searchParams;
   sale.unit_type = sale.unit_type?.toUpperCase() ?? null;
-  const { role } = await getTeamContext();
+  const { role, isDemo } = await getTeamContext();
+  const canAccessAgentLetter = role === "owner" || isDemo;
   await ensureAgentCommissionDocument(sale);
   const allDocs = await getDocuments(id);
   const docs = allDocs.filter((document) =>
@@ -30,11 +31,11 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   const isPop = sale.status === "draft";
   const isBookingDraft = sale.status === "booking_draft";
   const hasAgent = hasExternalAgent(sale);
-  const expectedDocuments = 1 + (role === "owner" && hasAgent ? 1 : 0) + (docs.some((document) => document.document_type === "booking_form") ? 1 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
+  const expectedDocuments = 1 + (canAccessAgentLetter && hasAgent ? 1 : 0) + (docs.some((document) => document.document_type === "booking_form") ? 1 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = isPop ? "POP details" : "Booking details";
   const statusLabel = isPop ? "POP" : isBookingDraft ? "Booking draft" : sale.status === "spa_signed" ? "confirmed" : sale.status.replace("_", " ");
-  const letterSummary = ["Notice of Acceptance", ...(role === "owner" && hasAgent ? ["Agent's Fee Arrangement"] : []), ...(sale.rebate_amount && sale.rebate_amount > 0 ? ["Rebate Letter"] : []), ...(sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? ["Confirmation of Inventories"] : [])].join(", ");
+  const letterSummary = ["Notice of Acceptance", ...(canAccessAgentLetter && hasAgent ? ["Agent's Fee Arrangement"] : []), ...(sale.rebate_amount && sale.rebate_amount > 0 ? ["Rebate Letter"] : []), ...(sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? ["Confirmation of Inventories"] : [])].join(", ");
 
   return <div className="page">
     <div className="page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>{sale.customer_name}</h1><p className="subtle">{sale.project_name} · {sale.unit_number || "Unit pending"}</p></div><div className="form-actions"><Link href={`/sales/${id}/edit`} className="button secondary">{isPop ? "Edit POP" : "Edit booking"}</Link>{(isPop || isBookingDraft) && <ConfirmSaleForm saleId={id} />}{(sale.status === "confirmed" || sale.status === "spa_signed") && <ClearanceLetterUpload saleId={id} unitNumber={sale.unit_number || sale.sale_reference} />}</div></div>

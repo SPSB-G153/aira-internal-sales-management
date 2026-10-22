@@ -4,7 +4,7 @@ import { getTeamContext } from "@/lib/tenancy";
 import { buildDocumentSnapshot, documentOrder } from "@/lib/templates";
 import { mergeDocumentContent } from "@/lib/document-content";
 import { hasExternalAgent } from "@/lib/agency-details";
-export async function getDocuments(saleId?:string){const db=await createClient();const{team,role}=await getTeamContext();let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type)&&(doc.document_type!=="agent_commission_letter"||role==="owner"));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
+export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type)&&(doc.document_type!=="agent_commission_letter"||canAccessAgentLetter));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
 export async function ensureAgentCommissionDocument(sale:Sale){
   if(sale.status==="draft"||sale.status==="booking_draft")return;
   const db=await createClient();const{team}=await getTeamContext();
@@ -21,12 +21,12 @@ export async function ensureAgentCommissionDocument(sale:Sale){
 }
 export async function getDocument(id:string){
   const db=await createClient();
-  const{team,role}=await getTeamContext();
+  const{team,role,isDemo}=await getTeamContext();
   const{data,error}=await db.from("documents").select("*").eq("team_id",team.id).eq("id",id).single();
   if(error)throw new Error(error.message);
   const document=data as SaleDocument;
   if(!documentOrder.includes(document.document_type))throw new Error("This document type is no longer used.");
-  if(document.document_type==="agent_commission_letter"&&role!=="owner")throw new Error("Only the workspace owner can access this letter.");
+  if(document.document_type==="agent_commission_letter"&&role!=="owner"&&!isDemo)throw new Error("Only the workspace owner can access this letter.");
 
   // A document is a historical snapshot, but previews/downloads must reflect
   // later approved booking corrections. Merge the related snapshots first,
