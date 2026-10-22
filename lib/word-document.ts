@@ -248,7 +248,7 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
-  const agencyDetails=agencyLetterDetails(agency);
+  const agencyDetails=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
   const enteredAgencyAddress=text(content,"agent_address","");
   const agencyAddress=enteredAgencyAddress
     ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)

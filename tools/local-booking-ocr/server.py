@@ -77,8 +77,22 @@ BOOKING_FEE_SCHEMA = {
         "sale_date": {"type": "string"},
         "payment_method": {"type": "string"},
         "payment_reference": {"type": "string"},
+        "cheque_amounts": {"type": "string"},
+        "cheque_amount_words": {"type": "string"},
+        "cheque_dates": {"type": "string"},
+        "cheque_references": {"type": "string"},
     },
-    "required": ["booking_fee", "booking_fee_text", "sale_date", "payment_method", "payment_reference"],
+    "required": ["booking_fee", "booking_fee_text", "sale_date", "payment_method", "payment_reference", "cheque_amounts", "cheque_amount_words", "cheque_dates", "cheque_references"],
+}
+SINGLE_CHEQUE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "amount": {"type": "string"},
+        "amount_words": {"type": "string"},
+        "date": {"type": "string"},
+        "reference": {"type": "string"},
+    },
+    "required": ["amount", "amount_words", "date", "reference"],
 }
 POP_ADMIN_FIELDS = [
     "sale_reference", "salesperson_name", "salesperson_designation",
@@ -88,6 +102,12 @@ POP_ADMIN_SCHEMA = {
     "type": "object",
     "properties": {name: {"type": "string"} for name in POP_ADMIN_FIELDS},
     "required": POP_ADMIN_FIELDS,
+}
+AGENT_CARD_FIELDS = ["agent_company", "agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_address"]
+AGENT_CARD_SCHEMA = {
+    "type": "object",
+    "properties": {name: {"type": "string"} for name in AGENT_CARD_FIELDS},
+    "required": AGENT_CARD_FIELDS,
 }
 PROMPT = """Read only handwritten or manually entered information from these enlarged sections of an Aira Booking Form. For the approved five-page form, the images show the completed first page, the Property Details table on page 5, and the Purchaser's Particulars table on page 5. Cross-check repeated values and prefer the clearest or most complete occurrence. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
@@ -127,6 +147,28 @@ def normalize_booking_fee(amount, displayed_text):
         return comma_amount.group(0).replace(",", "")
     normalized = re.sub(r"[^0-9.]", "", str(amount or ""))
     return normalized
+
+
+def amount_from_words(value):
+    small = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
+    current = total = 0
+    found = False
+    for word in re.findall(r"[a-z]+", str(value or "").lower()):
+        if word in small:
+            current += small[word]
+            found = True
+        elif word == "hundred":
+            current = max(current, 1) * 100
+            found = True
+        elif word == "thousand":
+            total += max(current, 1) * 1000
+            current = 0
+            found = True
+        elif word == "million":
+            total += max(current, 1) * 1_000_000
+            current = 0
+            found = True
+    return total + current if found else None
 
 
 def normalize_payment_date(value):
@@ -170,12 +212,17 @@ def page_png_rotated(page, rotation, zoom=2.0):
     return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
 
 
-def cheque_section(page):
+def cheque_sections(page):
     rect = page.rect
-    clip = fitz.Rect(rect.x0 + rect.width * 0.46, rect.y0, rect.x0 + rect.width * 0.90, rect.y1)
-    matrix = fitz.Matrix(2.5, 2.5).prerotate(270)
-    pixmap = page.get_pixmap(matrix=matrix, clip=clip, alpha=False)
-    return base64.b64encode(pixmap.tobytes("png")).decode("ascii")
+    # Scanner PDFs can contain two cheques stacked on one portrait page. Give
+    # the model one full-width half-page image per possible cheque so a small
+    # cheque is not lost beside a much larger one. The model is instructed to
+    # ignore a half when it contains no cheque.
+    halves = [
+        fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.5),
+        fitz.Rect(rect.x0, rect.y0 + rect.height * 0.5, rect.x1, rect.y1),
+    ]
+    return [page_png(page, clip, zoom=2.5) for clip in halves]
 
 
 def page_sections(page, zoom=1.8):
@@ -339,19 +386,63 @@ async def extract_booking_fee(
             receipt = fitz.open(stream=data, filetype="pdf")
             if not receipt.page_count:
                 raise ValueError("The receipt PDF has no pages.")
-            # Cheques from the scanner are rotated clockwise on the landscape
-            # page. Rotate them counter-clockwise so the boxed date, RM amount
-            # and MICR cheque number are upright and spatially distinct.
-            images = [cheque_section(receipt[page_number]) for page_number in range(receipt.page_count)]
+            images = [
+                image
+                for page_number in range(receipt.page_count)
+                for image in cheque_sections(receipt[page_number])
+            ]
         else:
             images = [base64.b64encode(data).decode("ascii")]
-        payload = {
+        if is_pdf:
+            individual = []
+            for image in images:
+                single_payload = {
+                    "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                    "messages": [{
+                        "role": "user",
+                        "content": (
+                            "This image contains at most one cheque. If present, read the numeric RM amount, "
+                            "the written amount-in-words line, the boxed DATE as DD/MM/YY, and the six-digit "
+                            "MICR cheque number. Return empty strings if no cheque is present. Do not add a zero."
+                        ),
+                        "images": [image],
+                    }],
+                    "format": SINGLE_CHEQUE_SCHEMA,
+                    "stream": False,
+                    "keep_alive": "30m",
+                    "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 250},
+                }
+                single_result = requests.post("http://127.0.0.1:11434/api/chat", json=single_payload, timeout=600)
+                if not single_result.ok:
+                    raise RuntimeError(f"Private model error: {single_result.text}")
+                cheque = json.loads(single_result.json()["message"]["content"])
+                if str(cheque.get("amount", "")).strip() or str(cheque.get("amount_words", "")).strip():
+                    individual.append(cheque)
+            parsed = {
+                "booking_fee": "",
+                "booking_fee_text": "",
+                "sale_date": "",
+                "payment_method": "cheque",
+                "payment_reference": "",
+                "cheque_amounts": ",".join(str(item.get("amount", "")) for item in individual),
+                "cheque_amount_words": "|".join(str(item.get("amount_words", "")) for item in individual),
+                "cheque_dates": ",".join(str(item.get("date", "")) for item in individual),
+                "cheque_references": ",".join(str(item.get("reference", "")) for item in individual),
+            }
+        else:
+            payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{
                 "role": "user",
                 "content": (
                     "Read every supplied page of this booking-fee payment file privately. The file may "
-                    "contain more than one cheque. Add all cheque amounts together and return the total "
+                    "contain more than one cheque, including two cheques stacked on a single page. Treat "
+                    "each supplied image as a possible separate cheque and ignore blank images. Return every "
+                    "distinct numeric cheque amount in cheque_amounts separated by commas, the corresponding "
+                    "written amount-in-words line in cheque_amount_words separated by vertical bars, every boxed cheque "
+                    "date in cheque_dates separated by commas, and every six-digit MICR number in "
+                    "cheque_references separated by commas, in matching order. Do not omit a smaller cheque because another cheque "
+                    "has a much larger amount. Add all distinct cheque amounts together and return the total "
                     "amount actually paid as booking_fee (digits and decimals only, without "
                     "currency symbols or commas), and also copy the exact printed or written "
                     "amount into booking_fee_text including all commas, decimals, and any K suffix. "
@@ -373,21 +464,60 @@ async def extract_booking_fee(
             "format": BOOKING_FEE_SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 900},
         }
-        result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
-        if not result.ok:
-            raise RuntimeError(f"Private model error: {result.text}")
-        parsed = json.loads(result.json()["message"]["content"])
+            result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
+            if not result.ok:
+                raise RuntimeError(f"Private model error: {result.text}")
+            parsed = json.loads(result.json()["message"]["content"])
         fields = {
             name: str(parsed.get(name, "") or "").strip()
             for name in ("booking_fee", "sale_date", "payment_method", "payment_reference")
         }
-        fields["booking_fee"] = normalize_booking_fee(
-            fields["booking_fee"], parsed.get("booking_fee_text", "")
-        )
-        fields["sale_date"] = normalize_payment_date(fields["sale_date"])
-        if fields["payment_method"].strip().lower() == "cheque":
+        cheque_amount_values = [part.strip() for part in re.split(r"[,;|]", str(parsed.get("cheque_amounts", ""))) if part.strip()]
+        cheque_word_values = [part.strip() for part in str(parsed.get("cheque_amount_words", "")).split("|") if part.strip()]
+        cheque_date_values = [part.strip() for part in re.split(r"[,;|]", str(parsed.get("cheque_dates", ""))) if part.strip()]
+        cheque_reference_values = [part.strip() for part in re.split(r"[,;|]", str(parsed.get("cheque_references", ""))) if part.strip()]
+        cheque_amounts = []
+        cheque_dates = []
+        cheque_references = []
+        word_amounts = [amount_from_words(value) for value in cheque_word_values]
+        word_amounts = [float(value) for value in word_amounts if value is not None]
+        if len(word_amounts) > len(images):
+            word_amounts = list(dict.fromkeys(word_amounts))
+        for index, value in enumerate(cheque_amount_values):
+            normalized_amount = normalize_booking_fee(value, value)
+            try:
+                numeric_amount = float(normalized_amount)
+                words_amount = amount_from_words(cheque_word_values[index]) if index < len(cheque_word_values) else None
+                cheque_amounts.append(float(words_amount) if words_amount and abs(words_amount - numeric_amount) > 0.009 else numeric_amount)
+            except (TypeError, ValueError):
+                pass
+        # Written words are the safer source when the scan clearly contains
+        # multiple cheques: handwriting OCR can add a zero to a boxed amount.
+        if word_amounts and (len(word_amounts) == len(cheque_amount_values) or len(word_amounts) >= 2):
+            cheque_amounts = word_amounts
+        for value in cheque_date_values:
+            normalized_date = normalize_payment_date(value)
+            if normalized_date:
+                cheque_dates.append(normalized_date)
+        for index, value in enumerate(cheque_reference_values):
+            normalized_reference = normalize_cheque_reference(
+                value, cheque_dates[index] if index < len(cheque_dates) else "", ""
+            )
+            if normalized_reference and normalized_reference not in cheque_references:
+                cheque_references.append(normalized_reference)
+        if cheque_amounts:
+            fields["booking_fee"] = f"{sum(cheque_amounts):.2f}"
+            fields["payment_method"] = "cheque"
+            fields["sale_date"] = max(cheque_dates) if cheque_dates else ""
+            fields["payment_reference"] = ", ".join(cheque_references)
+        else:
+            fields["booking_fee"] = normalize_booking_fee(
+                fields["booking_fee"], parsed.get("booking_fee_text", "")
+            )
+            fields["sale_date"] = normalize_payment_date(fields["sale_date"])
+        if fields["payment_method"].strip().lower() == "cheque" and not cheque_amounts:
             fields["payment_method"] = "cheque"
             fields["payment_reference"] = normalize_cheque_reference(
                 fields["payment_reference"], fields["sale_date"], file.filename or ""
@@ -499,20 +629,20 @@ async def extract_namecard_admin(
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this business namecard privately. Extract the person's name as "
-                    "salesperson_name, job title as salesperson_designation, mobile or telephone "
-                    "number as salesperson_mobile, email as salesperson_email, and the printed "
+                    "Read this real-estate agent namecard privately. Extract the person's name as "
+                    "agent_name, job title as agent_designation, mobile or telephone "
+                    "number as agent_mobile, email as agent_email, and the printed "
                     "agency or company name as agent_company and its printed mailing address as "
                     "agent_address. Only return agent_company or agent_address when that detail is "
                     "visibly printed on the card; do not infer it from the "
                     "email domain, logo style, person's name, or other context. Leave "
-                    "sale_reference empty. Preserve spelling, capitalization, phone numbers and "
+                    "Preserve spelling, capitalization, phone numbers and "
                     "email exactly. Return an empty string for anything not clearly shown. Return "
                     "only the requested JSON."
                 ),
                 "images": images,
             }],
-            "format": POP_ADMIN_SCHEMA,
+            "format": AGENT_CARD_SCHEMA,
             "stream": False,
             "keep_alive": "30m",
             "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
@@ -521,7 +651,7 @@ async def extract_namecard_admin(
         if not response.ok:
             raise RuntimeError(f"Private model error: {response.text}")
         parsed = json.loads(response.json()["message"]["content"])
-        fields = {name: str(parsed.get(name, "") or "").strip() for name in POP_ADMIN_FIELDS}
+        fields = {name: str(parsed.get(name, "") or "").strip() for name in AGENT_CARD_FIELDS}
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
         path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"

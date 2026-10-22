@@ -15,7 +15,12 @@ const labels: Record<string, string> = {
   salesperson_email: "Sales personnel email",
   agent_company: "Sales agency / company",
   agent_address: "Sales agency / company address (if any)",
+  agent_name: "Agent name",
+  agent_designation: "Agent designation",
+  agent_mobile: "Agent mobile no.",
+  agent_email: "Agent email",
 };
+const namecardFields = ["agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_company", "agent_address"];
 
 export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
   saleId?: string;
@@ -90,7 +95,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
       {busySource === "pop" ? "Reading POP Form…" : saleId ? "Replace POP Form" : "Upload POP Form"}
     </button>
     <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
-      {busySource === "namecard" ? "Reading namecard…" : saleId ? "Replace namecard (if any)" : "Upload namecard (if any)"}
+      {busySource === "namecard" ? "Reading agent namecard…" : saleId ? "Replace agent namecard" : "Upload agent namecard"}
     </button>
     {message && <p className="upload-message" role="status">{message}</p>}
     {result && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Review POP administration details">
@@ -99,7 +104,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
         <p className="subtle">Check the privately extracted details before adding them to the form. Agency/company is filled only when it is shown.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
         <div className="upload-review-fields">
-          {Object.keys(labels).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
+          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !key.startsWith("agent_") || key === "agent_company" || key === "agent_address")).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
         </div>
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>

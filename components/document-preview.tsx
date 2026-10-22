@@ -107,7 +107,7 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
 
 function AgentCommissionLetter({content}:{content:Content}){
   const agency=value(content,"agent_company","");
-  const agencyDetails=agencyLetterDetails(agency);
+  const agencyDetails=agencyLetterDetails(agency,{company:agency,address:value(content,"agent_address",""),agent_name:value(content,"agent_name",""),agent_designation:value(content,"agent_designation",""),agent_mobile:value(content,"agent_mobile",""),agent_email:value(content,"agent_email","")});
   const enteredAgencyAddress=value(content,"agent_address","");
   const agencyAddress=enteredAgencyAddress
     ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)

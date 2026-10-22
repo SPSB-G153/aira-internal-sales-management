@@ -1,22 +1,41 @@
 const ADDRESS_SEPARATOR = "---AGENCY ADDRESS---";
+const AGENT_NAME_SEPARATOR = "---AGENT NAME---";
+const AGENT_DESIGNATION_SEPARATOR = "---AGENT DESIGNATION---";
+const AGENT_MOBILE_SEPARATOR = "---AGENT MOBILE---";
+const AGENT_EMAIL_SEPARATOR = "---AGENT EMAIL---";
+
+const sections = [
+  ["address", ADDRESS_SEPARATOR],
+  ["agent_name", AGENT_NAME_SEPARATOR],
+  ["agent_designation", AGENT_DESIGNATION_SEPARATOR],
+  ["agent_mobile", AGENT_MOBILE_SEPARATOR],
+  ["agent_email", AGENT_EMAIL_SEPARATOR],
+] as const;
 
 export function splitAgencyDetails(value: unknown) {
   const raw = String(value ?? "").trim();
-  if (!raw.includes(ADDRESS_SEPARATOR)) {
-    return { company: raw, address: "" };
+  const firstSeparator = sections.map(([, marker]) => raw.indexOf(marker)).filter((index) => index >= 0).sort((a, b) => a - b)[0];
+  const result = { company: (firstSeparator == null ? raw : raw.slice(0, firstSeparator)).trim(), address: "", agent_name: "", agent_designation: "", agent_mobile: "", agent_email: "" };
+  for (const [key, marker] of sections) {
+    const start = raw.indexOf(marker);
+    if (start < 0) continue;
+    const valueStart = start + marker.length;
+    const next = sections.map(([, candidate]) => raw.indexOf(candidate, valueStart)).filter((index) => index >= 0).sort((a, b) => a - b)[0];
+    result[key] = raw.slice(valueStart, next == null ? raw.length : next).trim();
   }
-  const [company, ...addressParts] = raw.split(ADDRESS_SEPARATOR);
-  return {
-    company: company.trim(),
-    address: addressParts.join(ADDRESS_SEPARATOR).trim(),
-  };
+  return result;
 }
 
-export function combineAgencyDetails(company: unknown, address: unknown) {
+export function combineAgencyDetails(company: unknown, address: unknown, agentName?: unknown, agentDesignation?: unknown, agentMobile?: unknown, agentEmail?: unknown) {
   const cleanCompany = String(company ?? "").trim();
-  const cleanAddress = String(address ?? "").trim();
-  if (!cleanAddress) return cleanCompany;
-  return `${cleanCompany}\n${ADDRESS_SEPARATOR}\n${cleanAddress}`;
+  const values = [
+    [AGENT_NAME_SEPARATOR, agentName],
+    [AGENT_DESIGNATION_SEPARATOR, agentDesignation],
+    [AGENT_MOBILE_SEPARATOR, agentMobile],
+    [AGENT_EMAIL_SEPARATOR, agentEmail],
+    [ADDRESS_SEPARATOR, address],
+  ];
+  return [cleanCompany, ...values.filter(([, value]) => String(value ?? "").trim()).flatMap(([marker, value]) => [marker, String(value ?? "").trim()])].filter(Boolean).join("\n");
 }
 
 type AgencyFallbackSource = {
@@ -45,7 +64,11 @@ export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?
   return Boolean(agencyCompanyForSale(source).trim());
 }
 
-export function agencyLetterDetails(company: unknown) {
+export function agencyLetterDetails(company: unknown, stored?: ReturnType<typeof splitAgencyDetails>) {
+  if (stored?.agent_name) {
+    const firstName = stored.agent_name.replace(/^(mr|mrs|ms|miss|dr)\.?\s+/i, "").split(/\s+/)[0];
+    return { contactName: stored.agent_name, contactPosition: stored.agent_designation, greeting: firstName ? `Dear ${firstName},` : "Dear Sir or Madam,", appointmentDate: "" };
+  }
   const normalized = String(company ?? "").trim();
   if (/belle\s*&\s*bross/i.test(normalized)) {
     return { contactName: "Ms Bella Wong", contactPosition: "CEO", greeting: "Dear Ms Bella,", appointmentDate: "8th January, 2024" };

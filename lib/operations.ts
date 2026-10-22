@@ -68,8 +68,8 @@ export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
   let nextAction = blockers[0] ?? "Complete the draft";
   if (sale.status === "draft" && dataQuality >= 30 && financialIntegrity === 25) { stage = "verify"; nextAction = "Purchaser proceeds: record the 2% deposit and create the booking"; }
   if (sale.status === "booking_draft") { stage = "verify"; nextAction = blockers[0] ?? "Review the details and confirm the booking"; }
-  if (sale.status === "confirmed") { stage = "confirm"; nextAction = "Complete the SPA process, then mark the SPA signed"; }
-  if (sale.status === "spa_signed") { stage = "review"; nextAction = "Confirm 90% payment and/or foreign consent, then issue HOVP"; }
+  if (sale.status === "confirmed") { stage = "confirm"; nextAction = "Upload the clearance letter when received to issue HOVP"; }
+  if (sale.status === "spa_signed") { stage = "confirm"; nextAction = "Upload the clearance letter when received to issue HOVP"; }
   if (sale.status === "hovp_ready") { stage = "complete"; nextAction = reviewed < expectedLetters ? "Review and print the HOVP letter" : "Handover pack is ready"; }
 
   return { total, dataQuality, financialIntegrity, documentControl, governance, stage, stageLabel: processStages.find((item) => item.key === stage)?.title ?? stage, blockers, nextAction };

@@ -188,6 +188,10 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
     salesperson_email: String(v("salesperson_email")),
     agent_company: String(state.fields?.agent_company ?? storedAgency.company),
     agent_address: String(state.fields?.agent_address ?? storedAgency.address),
+    agent_name: String(state.fields?.agent_name ?? storedAgency.agent_name),
+    agent_designation: String(state.fields?.agent_designation ?? storedAgency.agent_designation),
+    agent_mobile: String(state.fields?.agent_mobile ?? storedAgency.agent_mobile),
+    agent_email: String(state.fields?.agent_email ?? storedAgency.agent_email),
   });
   const applyPopAdmin = (fields: PopAdminFields) => setPopAdmin((current) => {
     const next = { ...current };
@@ -632,6 +636,10 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
             value={popAdmin.agent_company}
             onChange={(value) => setPopAdmin((current) => ({ ...current, agent_company: value }))}
           />
+          <Field name="agent_name" label="Agent name (from namecard)" value={popAdmin.agent_name} onChange={(value) => setPopAdmin((current) => ({ ...current, agent_name: value }))} />
+          <Field name="agent_designation" label="Agent designation" value={popAdmin.agent_designation} onChange={(value) => setPopAdmin((current) => ({ ...current, agent_designation: value }))} />
+          <Field name="agent_mobile" label="Agent mobile no." type="tel" value={popAdmin.agent_mobile} onChange={(value) => setPopAdmin((current) => ({ ...current, agent_mobile: value }))} />
+          <Field name="agent_email" label="Agent email" type="email" value={popAdmin.agent_email} onChange={(value) => setPopAdmin((current) => ({ ...current, agent_email: value }))} />
           <div className="field full">
             <label htmlFor="agent_address">Sales agency / company address (if any)</label>
             <textarea

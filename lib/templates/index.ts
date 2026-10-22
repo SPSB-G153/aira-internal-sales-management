@@ -18,7 +18,7 @@ const common=(s:Sale)=>{
   pop_introduction_agent:s.pop_introduction_agent,pop_introduction_spsb:s.pop_introduction_spsb,pop_assisting_member_2:s.pop_assisting_member_2,
   payment_method:s.payment_method,payment_reference:s.payment_reference,
   salesperson_name:s.salesperson_name,salesperson_designation:s.salesperson_designation,salesperson_mobile:s.salesperson_mobile,salesperson_email:s.salesperson_email,
-  agent_company:agencyCompany,agent_address:agency.address,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
+  agent_company:agencyCompany,agent_address:agency.address,agent_name:agency.agent_name,agent_designation:agency.agent_designation,agent_mobile:agency.agent_mobile,agent_email:agency.agent_email,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
   authorised_signatory_name:s.authorised_signatory_name,authorised_signatory_position:s.authorised_signatory_position,
   pop_proposal_note:s.pop_proposal_note,pop_conditions_note:s.pop_conditions_note,pop_recommendation_note:s.pop_recommendation_note,pop_feasibility_note:s.pop_feasibility_note,pop_comments_note:s.pop_comments_note,
 });};
