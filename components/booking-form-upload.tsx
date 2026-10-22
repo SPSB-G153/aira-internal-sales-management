@@ -51,13 +51,17 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   const[displayValues,setDisplayValues]=useState<Record<string,string>>({});
   const[message,setMessage]=useState("");
   const[reviewRestored,setReviewRestored]=useState(false);
-  const reviewStorageKey=`aira-booking-review:${documentId||"new-sale"}`;
+  // A new upload must never inherit an earlier purchaser's or unit's review.
+  // Existing document reviews may be restored by document id; new-sale
+  // uploads always start clean and are identified by the unit read from file.
+  const reviewStorageKey=documentId?`aira-booking-review:${documentId}`:"";
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
   const hasPurchaser2=Boolean(result&&(result.fields.customer_name_2?.trim()||result.fields.customer_ic_2?.trim()));
   const reviewFields=Object.keys(labels).filter(key=>hasPurchaser2||!purchaser2Fields.has(key));
 
   useEffect(()=>{
     try{
+      if(!reviewStorageKey){sessionStorage.removeItem("aira-booking-review:new-sale");return;}
       const saved=sessionStorage.getItem(reviewStorageKey);
       if(saved){const parsed=JSON.parse(saved) as Extraction;if(parsed&&parsed.fields&&Array.isArray(parsed.warnings))setResult(parsed);}
     }catch{/* Ignore an invalid or unavailable browser-session draft. */}
@@ -66,6 +70,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
 
   useEffect(()=>{
     if(!reviewRestored)return;
+    if(!reviewStorageKey)return;
     try{if(result)sessionStorage.setItem(reviewStorageKey,JSON.stringify(result));else sessionStorage.removeItem(reviewStorageKey);}
     catch{/* The review still works when browser-session storage is unavailable. */}
   },[result,reviewRestored,reviewStorageKey]);

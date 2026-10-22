@@ -61,6 +61,14 @@ UNIT_SCHEMA = {
     "properties": {"unit_number": {"type": "string"}},
     "required": ["unit_number"],
 }
+PRICE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "is_filled": {"type": "boolean"},
+        "purchase_price": {"type": "string"},
+    },
+    "required": ["is_filled", "purchase_price"],
+}
 BOOKING_FEE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -92,7 +100,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
 
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-16-v7"
+CACHE_VERSION = "booking-reader-2026-10-22-v8-price-verification"
 
 
 @app.middleware("http")
@@ -575,6 +583,47 @@ async def extract(file: UploadFile = File(...)):
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
+        # Price is too important to accept from the broad whole-form reading.
+        # Verify only the actual Purchase Price row. A blank box must remain
+        # blank; it must never inherit a previous sale or a model guess.
+        if pdf.page_count >= 5:
+            broad_price = fields.get("purchase_price", "")
+            price_payload = {
+                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "Inspect only the handwritten entry box beside the printed label "
+                        "'Purchase Price' in this Property Details table. Set is_filled to true "
+                        "only when digits are visibly written inside that exact box. If the box "
+                        "is blank, crossed out, unreadable, or the number appears elsewhere, set "
+                        "is_filled to false and purchase_price to an empty string. Do not infer, "
+                        "calculate, copy a prior example, or use printed text. When filled, return "
+                        "digits only without RM or commas. Return only the requested JSON."
+                    ),
+                    "images": [appendix_property_section(pdf[appendix_index])],
+                }],
+                "format": PRICE_SCHEMA,
+                "stream": False,
+                "keep_alive": "30m",
+                "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 100},
+            }
+            price_result = requests.post(
+                "http://127.0.0.1:11434/api/chat", json=price_payload, timeout=300
+            )
+            verified_price = ""
+            if price_result.ok:
+                try:
+                    price_check = json.loads(price_result.json()["message"]["content"])
+                    if price_check.get("is_filled") is True:
+                        verified_price = re.sub(
+                            r"[^0-9.]", "", str(price_check.get("purchase_price", "") or "")
+                        )
+                except (KeyError, TypeError, ValueError):
+                    verified_price = ""
+            fields["purchase_price"] = verified_price
+            if broad_price and not verified_price:
+                warnings.append("Purchase Price was left blank because no value was verified in its labelled box.")
         if pdf.page_count >= 5 and fields.get("purchaser_type", "").strip().lower() == "company":
             director_payload = {
                 "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
