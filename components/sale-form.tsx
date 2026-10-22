@@ -168,6 +168,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   };
   const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
   const storedAgency = splitAgencyDetails(sale?.agent_company ?? initialValues?.agent_company ?? "");
+  const storedSalesperson = profileForSalesPersonnel(String(v("salesperson_name")));
   const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
   const [bookingFee, setBookingFee] = useState(() => {
     const supplied = sale?.booking_fee ?? initialValues?.booking_fee;
@@ -184,7 +185,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     sale_reference: String(v("sale_reference")),
     salesperson_name: String(v("salesperson_name")),
     salesperson_designation: String(v("salesperson_designation")),
-    salesperson_mobile: String(v("salesperson_mobile")),
+    salesperson_mobile: String(v("salesperson_mobile") || storedSalesperson?.mobile || ""),
     salesperson_email: String(v("salesperson_email")),
     agent_company: String(state.fields?.agent_company ?? storedAgency.company),
     agent_address: String(state.fields?.agent_address ?? storedAgency.address),
