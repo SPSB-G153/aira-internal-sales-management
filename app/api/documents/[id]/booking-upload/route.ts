@@ -9,11 +9,12 @@ import { downloadFilename } from "@/lib/download-filename";
 import { documentNames } from "@/lib/types";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
+import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
 import type { DocumentType,Sale } from "@/lib/types";
 
 export const runtime="nodejs";
 
-const fieldNames=["customer_name","customer_ic","customer_salutation","customer_tin","customer_nationality","customer_sex","customer_race","bumi_status","customer_occupation","contact_person","customer_phone","customer_email","customer_address","customer_name_2","customer_ic_2","customer_salutation_2","customer_tin_2","customer_nationality_2","customer_sex_2","customer_race_2","bumi_status_2","customer_occupation_2","contact_person_2","customer_phone_2","customer_email_2","customer_address_2","sale_date","unit_number","solicitor_name","storey_number","unit_type","floor_area_sqm","floor_area","purchase_price","car_parking_bay","payment_method","payment_reference","purchaser_type"] as const;
+const fieldNames=["customer_name","customer_ic","customer_salutation","customer_tin","customer_nationality","customer_sex","customer_race","bumi_status","customer_occupation","contact_person","customer_phone","customer_email","customer_address","customer_name_2","customer_ic_2","customer_salutation_2","customer_tin_2","customer_nationality_2","customer_sex_2","customer_race_2","bumi_status_2","customer_occupation_2","contact_person_2","customer_phone_2","customer_email_2","customer_address_2","sale_date","unit_number","solicitor_name","storey_number","unit_type","floor_area_sqm","floor_area","purchase_price","car_parking_bay","payment_method","payment_reference","purchaser_type","salesperson_name","salesperson_designation","salesperson_mobile","salesperson_email","agent_company","agent_name","agent_designation","agent_mobile","agent_email","agent_address"] as const;
 type FieldName=typeof fieldNames[number];
 type ExtractedFields=Record<FieldName,string>;
 function numberValue(value:string){const parsed=Number(value.replace(/[^0-9.-]/g,""));return Number.isFinite(parsed)?parsed:null;}
@@ -35,7 +36,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
       if(name==="bumi_status"||name==="bumi_status_2"){const bool=booleanValue(value);if(bool!==null)(updates as Record<string,unknown>)[name]=bool;continue;}
       if(name==="payment_method"){const method=value.toLowerCase();if(method.includes("cheque"))(updates as Record<string,unknown>)[name]="cheque";else if(method.includes("bank")||method.includes("transfer"))(updates as Record<string,unknown>)[name]="bank_transfer";continue;}
       if(name==="purchaser_type"){(updates as Record<string,unknown>)[name]=value.toLowerCase().includes("company")?"company":"individual";continue;}
-      (updates as Record<string,unknown>)[name]=value;
+      if(!name.startsWith("agent_"))(updates as Record<string,unknown>)[name]=value;
     }
     const mappedSolicitor=solicitorForUnit(fields.unit_number);if(mappedSolicitor&&!fields.solicitor_name)updates.solicitor_name=mappedSolicitor;
     updates.bumi_status=isMalayRace(fields.customer_race);if(fields.customer_name_2||fields.customer_ic_2)updates.bumi_status_2=isMalayRace(fields.customer_race_2);
@@ -45,10 +46,18 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
     if(typeof updates.unit_type==="string")updates.unit_type=updates.unit_type.toUpperCase();
     const unitDetails=detailsForUnit(fields.unit_number);if(unitDetails){updates.floor_area=unitDetails.floorAreaSquareFeet;updates.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);updates.unit_type=unitDetails.unitType.toUpperCase();if(unitDetails.parkingBay)updates.car_parking_bay=unitDetails.parkingBay;}
     if(typeof updates.purchase_price==="number")updates.booking_fee=Math.round(updates.purchase_price*2)/100;
-    const sale=await updateSale(document.sale_id,updates);const db=await createClient();const{team}=await getTeamContext();const{data:documents,error}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(error)throw error;
+    const existingSale=await getSale(document.sale_id);const existingAgency=splitAgencyDetails(existingSale.agent_company);
+    const company=fields.agent_company||existingAgency.company;const address=fields.agent_address||existingAgency.address;const agentName=fields.agent_name||existingAgency.agent_name;const agentDesignation=fields.agent_designation||existingAgency.agent_designation;const agentMobile=fields.agent_mobile||existingAgency.agent_mobile;const agentEmail=fields.agent_email||existingAgency.agent_email;
+    if(company||address)updates.agent_company=combineAgencyDetails(company,address,agentName,agentDesignation,agentMobile,agentEmail)||null;
+    const sale=await updateSale(document.sale_id,updates);const db=await createClient();const{team}=await getTeamContext();let{data:documents,error}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(error)throw error;
+    if(hasExternalAgent(sale)&&!(documents??[]).some(item=>item.document_type==="agent_commission_letter")){
+      const{data:{user}}=await db.auth.getUser();const{error:agentError}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"agent_commission_letter",content:buildDocumentSnapshot(sale,"agent_commission_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(agentError)throw agentError;
+      const refreshed=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(refreshed.error)throw refreshed.error;documents=refreshed.data;
+    }
     const refreshedAt=new Date().toISOString();await Promise.all((documents??[]).map(item=>db.from("documents").update({content:buildDocumentSnapshot(sale,item.document_type as DocumentType),status:item.document_type==="booking_form"?"reviewed":"generated",generated_at:refreshedAt}).eq("team_id",team.id).eq("id",item.id)));
     revalidatePath(`/sales/${sale.id}`);revalidatePath(`/documents/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     const files=(documents??[]).map(item=>{const content=buildDocumentSnapshot(sale,item.document_type as DocumentType);return{id:item.id,type:item.document_type,wordFilename:downloadFilename(documentNames[item.document_type as DocumentType],"docx",content),pdfFilename:item.document_type==="booking_form"?downloadFilename("aira-booking-form","pdf",content):item.document_type==="pre_booking_form"?downloadFilename("prospect-offer-proposal-form","pdf",content):null};});
-    return NextResponse.json({ok:true,unit_number:sale.unit_number||fields.unit_number,files});
+    const agentLetterId=(documents??[]).find(item=>item.document_type==="agent_commission_letter")?.id;
+    return NextResponse.json({ok:true,unit_number:sale.unit_number||fields.unit_number,files,agentLetterId});
   }catch(error){console.error("Booking Form upload save failed",error);return NextResponse.json({error:error instanceof Error?error.message:"The extracted information could not be saved."},{status:500});}
 }

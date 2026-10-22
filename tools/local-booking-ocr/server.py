@@ -34,6 +34,8 @@ FIELD_NAMES = [
     "customer_email_2", "customer_address_2", "sale_date", "unit_number",
     "storey_number", "unit_type", "floor_area_sqm", "floor_area", "purchase_price",
     "car_parking_bay", "payment_method", "payment_reference", "purchaser_type",
+    "salesperson_name", "salesperson_designation", "salesperson_mobile", "salesperson_email",
+    "agent_company", "agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_address",
 ]
 SCHEMA = {
     "type": "object",
@@ -119,7 +121,9 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 - Join all handwritten lines under Correspondence Address into one complete address.
 - Read crossed or circled Yes/No Bumi status only when the intended choice is clear.
 
-The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures. Return only the requested JSON."""
+The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
+
+If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
 CACHE_VERSION = "booking-reader-2026-10-22-v8-price-verification"
 
 

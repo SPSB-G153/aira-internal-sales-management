@@ -12,7 +12,7 @@ import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/li
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
 export type DeleteSaleState={error?:string};
-export type PopAdminSaveState={error?:string;saved?:boolean};
+export type PopAdminSaveState={error?:string;saved?:boolean;agentLetterId?:string};
 export type SavedAgentDetails={agent_company:string;agent_address:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string};
 export type SavedSalespersonDetails={salesperson_name:string;salesperson_designation:string;salesperson_mobile:string;salesperson_email:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
@@ -145,7 +145,7 @@ export async function savePopAdminDetails(id:string,fields:Record<string,string>
     const updated=await updateSale(id,values);
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const{data:documents,error:documentsError}=await db.from("documents").select("document_type,status,generated_at").eq("team_id",team.id).eq("sale_id",id);
+    const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type,status,generated_at").eq("team_id",team.id).eq("sale_id",id);
     if(documentsError)throw documentsError;
     {
       const rows=(documents??[]).map(document=>({
@@ -159,8 +159,10 @@ export async function savePopAdminDetails(id:string,fields:Record<string,string>
       }
       if(rows.length){const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}
     }
+    const{data:agentLetter,error:agentLetterError}=hasExternalAgent(updated)?await db.from("documents").select("id").eq("team_id",team.id).eq("sale_id",id).eq("document_type","agent_commission_letter").maybeSingle():{data:null,error:null};
+    if(agentLetterError)throw agentLetterError;
     revalidatePath(`/sales/${id}`);revalidatePath(`/sales/${id}/edit`);revalidatePath("/documents");revalidatePath("/dashboard");
-    return{saved:true};
+    return{saved:true,agentLetterId:agentLetter?.id};
   }catch(error){return{error:error instanceof Error?error.message:"Could not save the POP administration details."};}
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{

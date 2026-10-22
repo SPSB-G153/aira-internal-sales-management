@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
@@ -30,6 +31,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
   showNamecard?: boolean;
   compact?: boolean;
 }) {
+  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const namecardInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -111,6 +113,10 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
     setMessage("Saving the POP administration details to the booking and letters…");
     const saved = await savePopAdminDetails(saleId, fields);
     setBusy(false);
+    if (saved.agentLetterId) {
+      router.push(`/documents/${saved.agentLetterId}`);
+      return;
+    }
     setMessage(saved.error || "POP administration details saved and reflected in the booking and letters.");
   }
 
