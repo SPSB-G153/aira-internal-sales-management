@@ -74,6 +74,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   values.customer_sex=fullSex(values.customer_sex||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_sex_2=fullSex(values.customer_sex_2||"")||null;
   values.customer_nationality=normalizeNationality(values.customer_nationality||"")||null;if(values.customer_name_2||values.customer_ic_2)values.customer_nationality_2=normalizeNationality(values.customer_nationality_2||"")||null;
   let sale:Sale;
+  let agentLetterId:string|null=null;
   try{
     let id=text(form,"id");
     if(!id&&entryMode==="booking"&&values.unit_number){
@@ -118,8 +119,13 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
       const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at}));
       const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
     }
+    if(hasExternalAgent(sale)){
+      const{data:agentLetter,error:agentLetterError}=await db.from("documents").select("id").eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","agent_commission_letter").maybeSingle();
+      if(agentLetterError)throw agentLetterError;
+      agentLetterId=agentLetter?.id??null;
+    }
   }catch(e){return{error:e instanceof Error?e.message:"Failed to save sale.",fields}}
-  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(uploadAnother?"/sales/new":`/sales/${sale.id}`);
+  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(agentLetterId?`/documents/${agentLetterId}`:uploadAnother?"/sales/new":`/sales/${sale.id}`);
 }
 export async function savePopAdminDetails(id:string,fields:Record<string,string>):Promise<PopAdminSaveState>{
   try{
