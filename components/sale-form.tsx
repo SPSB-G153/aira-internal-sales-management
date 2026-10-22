@@ -4,7 +4,7 @@ import { saveSale, type FormState } from "@/lib/actions/sales";
 import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
-import { designationForSalesPersonnel, emailForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
+import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { splitAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual" };
@@ -196,8 +196,13 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
   const applyPopAdmin = (fields: PopAdminFields) => setPopAdmin((current) => {
     const next = { ...current };
     Object.keys(current).forEach((key) => { if (fields[key]?.trim()) next[key] = fields[key]; });
-    const staffEmail = emailForSalesPersonnel(next.salesperson_name);
-    if (staffEmail) next.salesperson_email = staffEmail;
+    const staff = profileForSalesPersonnel(next.salesperson_name);
+    if (staff) {
+      next.salesperson_name = staff.name;
+      next.salesperson_email = staff.email;
+      next.salesperson_designation = staff.designation;
+      if (staff.mobile) next.salesperson_mobile = staff.mobile;
+    }
     return next;
   });
   const [secondOpen, setSecondOpen] = useState(false);
@@ -607,7 +612,10 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
             label="Sales personnel name"
             value={popAdmin.salesperson_name}
             list="sales-personnel-list"
-            onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_name: value, salesperson_email: emailForSalesPersonnel(value) || current.salesperson_email, salesperson_designation: designationForSalesPersonnel(value) }))}
+            onChange={(value) => setPopAdmin((current) => {
+              const staff = profileForSalesPersonnel(value);
+              return { ...current, salesperson_name: value, salesperson_email: staff?.email || current.salesperson_email, salesperson_designation: staff?.designation || "", salesperson_mobile: staff?.mobile || current.salesperson_mobile };
+            })}
           />
           <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
           <Field

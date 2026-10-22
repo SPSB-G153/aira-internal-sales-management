@@ -5,6 +5,7 @@ import { BookingFormUpload, type BookingUploadFields } from "@/components/bookin
 import { PopAdminUpload } from "@/components/pop-admin-upload";
 import { SaleForm } from "@/components/sale-form";
 import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
+import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import type { Sale } from "@/lib/types";
 
 const numericFields = new Set(["floor_area", "floor_area_sqm", "purchase_price", "booking_fee"]);
@@ -54,6 +55,13 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
   values.customer_sex = fullSex(values.customer_sex);
   if (values.customer_name_2 || values.customer_ic_2) values.customer_sex_2 = fullSex(values.customer_sex_2);
   if (values.customer_name_2 || values.customer_ic_2) values.bumi_status_2 = isMalayRace(values.customer_race_2);
+  const salesperson = profileForSalesPersonnel(String(values.salesperson_name || ""));
+  if (salesperson) {
+    values.salesperson_name = salesperson.name;
+    values.salesperson_designation = salesperson.designation;
+    values.salesperson_email = salesperson.email;
+    if (salesperson.mobile) values.salesperson_mobile = salesperson.mobile;
+  }
   return values as Partial<Sale>;
 }
 

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { savePopAdminDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
+import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 
 export type PopAdminFields = Record<string, string>;
 type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string };
@@ -41,11 +42,13 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
     setResult((current) => current ? { ...current, fields: { ...current.fields, [key]: value } } : current);
   }
 
-  async function extract(file: File, source: "pop" | "namecard") {
+  async function extract(file: File, source: "pop" | "namecard", mergeIntoPop = false) {
     setBusy(true);
     setBusySource(source);
-    setResult(null);
-    setReviewSource(source === "pop" ? "POP Form" : "namecard");
+    if (!mergeIntoPop) {
+      setResult(null);
+      setReviewSource(source === "pop" ? "POP Form" : "namecard");
+    }
     setMessage(`Reading the ${source === "pop" ? "POP Form" : "namecard"} privately on this computer…`);
     try {
       const body = new FormData();
@@ -56,7 +59,22 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
       const response = await fetch(`${localUrl}/${endpoint}`, { method: "POST", body });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || `The ${source === "pop" ? "POP Form" : "namecard"} could not be read.`);
-      setResult(data);
+      const extracted = data as Extraction;
+      if (source === "pop") {
+        const staff = profileForSalesPersonnel(extracted.fields.salesperson_name || "");
+        if (staff) extracted.fields = {
+          ...extracted.fields,
+          salesperson_name: staff.name,
+          salesperson_designation: staff.designation,
+          salesperson_email: staff.email,
+          salesperson_mobile: staff.mobile || extracted.fields.salesperson_mobile || "",
+        };
+      }
+      setResult((current) => mergeIntoPop && current ? {
+        ...current,
+        fields: { ...current.fields, ...Object.fromEntries(Object.entries(extracted.fields).filter(([, value]) => value?.trim())) },
+        warnings: [...current.warnings, ...extracted.warnings],
+      } : extracted);
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : `The ${source === "pop" ? "POP Form" : "namecard"} could not be read.`);
@@ -91,7 +109,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
     }} />
     <input ref={namecardInput} type="file" accept="application/pdf,image/png,image/jpeg,image/webp" hidden onChange={(event) => {
       const file = event.target.files?.[0];
-      if (file) void extract(file, "namecard");
+      if (file) void extract(file, "namecard", reviewSource === "POP Form" && Boolean(result));
     }} />
     <button type="button" className={`button secondary${compact ? " pop-intake-button" : ""}`} disabled={busy} onClick={() => input.current?.click()}>
       {busySource === "pop" ? "Reading POP Form…" : saleId ? "Replace POP Form" : "Upload POP Form"}
@@ -106,8 +124,11 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
         <p className="subtle">Check the privately extracted details before adding them to the form. Agency/company is filled only when it is shown.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
         <div className="upload-review-fields">
-          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !key.startsWith("agent_") || key === "agent_company" || key === "agent_address")).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
+          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels)).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
         </div>
+        {reviewSource === "POP Form" && <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
+          {busySource === "namecard" ? "Reading agent namecard…" : "Add agent namecard"}
+        </button>}
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>
           <button type="button" className="button accent" onClick={() => void apply()}>Use and save these details</button>
