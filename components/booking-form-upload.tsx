@@ -159,7 +159,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         }
       }catch{localSaveFailed=true;}
       setResult(null);
-      if(data.agentLetterId){router.push(`/documents/${data.agentLetterId}`);return;}
+      if(data.agencyAppointmentLetterId||data.agentLetterId){router.push(`/sales/${data.saleId}`);return;}
       setMessage(`Information saved and letters refreshed.${localCopies?` ${localCopies} document files saved in C:\\AIRA Booking\\${unitNumber}.`:""}${localSaveFailed?" Some local document copies could not be saved.":""}`);router.refresh();
     }catch(error){setMessage(error instanceof Error?error.message:"The extracted information could not be saved.");}
     finally{setBusy(false);}

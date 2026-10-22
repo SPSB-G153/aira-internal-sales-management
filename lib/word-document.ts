@@ -246,6 +246,26 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
 }
 
+async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
+  const agency=text(content,"agent_company","");
+  const details=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
+  const address=text(content,"agent_address","").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const pageBreak=()=>new Paragraph({children:[new PageBreak()]});
+  const children:(Paragraph|Table)[]=[
+    exactParagraph(issuedLetterDate(content),{spacing:{before:220,after:420,line:300}}),
+    exactParagraph([...(details.contactName?[new TextRun({text:details.contactName,bold:true}),new TextRun({text:details.contactPosition,bold:true,break:1})]:[]),new TextRun({text:agency,bold:true,break:details.contactName?1:0}),...address.map(line=>new TextRun({text:line,break:1}))]),
+    exactParagraph(details.greeting),
+    exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true,break:1,underline:{type:UnderlineType.SINGLE}})]),
+    exactParagraph("We would like to thank you for introducing a prospect for the AIRA Residence project and wish to take this opportunity to formalize your agency appointment."),
+    exactParagraph("As an Appointed Agent for AIRA Residence, each prospect must first be registered with SPSB through the approved CRM process. The agent's representative is required to escort the prospect through the show unit and lead the sales presentation, supported by our Relationship Managers when required."),
+    pageBreak(),exactParagraph([new TextRun({text:"SALES COMMISSION STRUCTURE",bold:true,size:22})],{alignment:AlignmentType.CENTER}),
+    exactParagraph("Domestic Sales: 2.00% of the Net Purchase Price, unless a separate fee arrangement is issued for a particular unit."),exactParagraph("International Sales (Towers A & B): 2.00% of the Net Purchase Price."),exactParagraph("Net Purchase Price means the approved selling price less any discounts or rebates offered to the buyer with SPSB's approval."),exactParagraph("The Sales Commission will be paid in Ringgit Malaysia within 30 days after receipt of the stamped Sale and Purchase Agreement and the Agent's Tax Invoice."),
+    pageBreak(),exactParagraph("The sale of units is on a first-come-first-served basis. The Appointed Agent must confirm unit availability and current list prices with SPSB."),exactParagraph("The Appointed Agent must not advertise AIRA Residence on any media platform without SPSB's prior approval."),exactParagraph(`For clarification, please contact ${text(content,"salesperson_name","")}, ${text(content,"salesperson_designation","")}, ${text(content,"salesperson_mobile","")}, ${text(content,"salesperson_email","")}.`),exactParagraph("We look forward to working with you and your team and trust that our collaboration on AIRA Residence will be productive and successful."),exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and on behalf of SELANGOR PROPERTIES SDN BHD",bold:true,break:1})],{spacing:{before:300,after:620,line:300}}),acceptanceSignature(content),
+    pageBreak(),exactParagraph([new TextRun({text:"ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER}),exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",break:1})],{alignment:AlignmentType.CENTER}),exactParagraph([new TextRun("We, "),new TextRun({text:agency||"____________________",bold:true}),new TextRun(", agree to become an Appointed Agent for AIRA Residence on the terms and conditions contained in this letter and to comply with the policies and sales procedures of Selangor Properties Sdn Bhd.")],{spacing:{before:500,after:1400,line:341}}),exactParagraph("________________________________\nSignature and Company Rubber Stamp:\n\nName: __________________________\n\nI/C No.: ________________________\n\nDate: __________________________"),
+  ];
+  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true,360,1360,760)));
+}
+
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
   const agencyDetails=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
@@ -412,6 +432,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
   ]);
   if(type==="acceptance_letter")return createAcceptanceWord(content,fullLogo,emblemLogo);
   const exactLetterGenerators:Partial<Record<DocumentType,(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array)=>Promise<Uint8Array>>>={
+    agency_appointment_letter:createAgencyAppointmentWord,
     agent_commission_letter:createAgentCommissionWord,
     rebate_letter:createRebateWord,
     inventory_confirmation_letter:createInventoryWord,

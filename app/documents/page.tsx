@@ -10,6 +10,7 @@ export default async function DocumentsPage() {
   const salesById = new Map(sales.map((sale) => [sale.id, sale]));
   const docs = allDocs.filter((document) => [
     "acceptance_letter",
+    "agency_appointment_letter",
     "agent_commission_letter",
     "rebate_letter",
     "inventory_confirmation_letter",

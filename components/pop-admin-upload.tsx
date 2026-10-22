@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails } from "@/lib/actions/sales";
+import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 
@@ -31,7 +30,6 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
   showNamecard?: boolean;
   compact?: boolean;
 }) {
-  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const namecardInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -39,6 +37,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
   const [reviewSource, setReviewSource] = useState<"POP Form" | "namecard">("POP Form");
   const [result, setResult] = useState<Extraction | null>(null);
   const [message, setMessage] = useState("");
+  const [agentDocuments, setAgentDocuments] = useState<{ appointment?: string; fee?: string }>({});
 
   function updateField(key: string, value: string) {
     setResult((current) => current ? { ...current, fields: { ...current.fields, [key]: value } } : current);
@@ -103,20 +102,33 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
   async function apply() {
     if (!result) return;
     const fields = result.fields;
-    onUseFields(fields);
-    setResult(null);
     if (!saleId) {
-      setMessage("POP administration details filled below. Review them, then click Save to create the booking and letters.");
+      setBusy(true);
+      setMessage("Saving the uploaded POP and preparing its documents…");
+      const saved = await saveUploadedPopDetails(fields);
+      setBusy(false);
+      if (saved.agencyAppointmentLetterId || saved.agentLetterId) {
+        setResult(null);
+        setAgentDocuments({ appointment: saved.agencyAppointmentLetterId, fee: saved.agentLetterId });
+        setMessage("POP saved. Both agent letters are ready to preview and download.");
+        return;
+      }
+      if (saved.previewDocumentId) { setResult(null); setMessage("POP saved. No agent was indicated, so no agent letters were created."); return; }
+      onUseFields(fields);
+      setMessage(saved.error || "The uploaded POP could not be saved.");
       return;
     }
     setBusy(true);
     setMessage("Saving the POP administration details to the booking and letters…");
     const saved = await savePopAdminDetails(saleId, fields);
     setBusy(false);
-    if (saved.agentLetterId) {
-      router.push(`/documents/${saved.agentLetterId}`);
+    if (saved.agencyAppointmentLetterId || saved.agentLetterId) {
+      setResult(null);
+      setAgentDocuments({ appointment: saved.agencyAppointmentLetterId, fee: saved.agentLetterId });
+      setMessage("Details saved. Both agent letters are ready to preview and download.");
       return;
     }
+    onUseFields(fields);
     setMessage(saved.error || "POP administration details saved and reflected in the booking and letters.");
   }
 
@@ -136,6 +148,10 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
       {busySource === "namecard" ? "Reading agent namecard…" : saleId ? "Replace agent namecard" : "Upload agent namecard"}
     </button>}
     {message && <p className="upload-message" role="status">{message}</p>}
+    {(agentDocuments.appointment || agentDocuments.fee) && <div className="form-actions agent-letter-actions">
+      {agentDocuments.appointment && <a className="button accent" href={`/documents/${agentDocuments.appointment}`}>Preview Agency Appointment Letter</a>}
+      {agentDocuments.fee && <a className="button secondary" href={`/documents/${agentDocuments.fee}`}>Preview Agent&apos;s Fee Arrangement</a>}
+    </div>}
     {result && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Review POP administration details">
       <div className="upload-review-card">
         <h2>Review {reviewSource} administration details</h2>

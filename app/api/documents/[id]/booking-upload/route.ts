@@ -50,14 +50,15 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
     const company=fields.agent_company||existingAgency.company;const address=fields.agent_address||existingAgency.address;const agentName=fields.agent_name||existingAgency.agent_name;const agentDesignation=fields.agent_designation||existingAgency.agent_designation;const agentMobile=fields.agent_mobile||existingAgency.agent_mobile;const agentEmail=fields.agent_email||existingAgency.agent_email;
     if(company||address)updates.agent_company=combineAgencyDetails(company,address,agentName,agentDesignation,agentMobile,agentEmail)||null;
     const sale=await updateSale(document.sale_id,updates);const db=await createClient();const{team}=await getTeamContext();let{data:documents,error}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(error)throw error;
-    if(hasExternalAgent(sale)&&!(documents??[]).some(item=>item.document_type==="agent_commission_letter")){
-      const{data:{user}}=await db.auth.getUser();const{error:agentError}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type:"agent_commission_letter",content:buildDocumentSnapshot(sale,"agent_commission_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(agentError)throw agentError;
+    const missingAgentTypes=hasExternalAgent(sale)?(["agency_appointment_letter","agent_commission_letter"] as const).filter(type=>!(documents??[]).some(item=>item.document_type===type)):[];
+    if(missingAgentTypes.length){
+      const{data:{user}}=await db.auth.getUser();const{error:agentError}=await db.from("documents").upsert(missingAgentTypes.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:new Date().toISOString()})),{onConflict:"sale_id,document_type"});if(agentError)throw agentError;
       const refreshed=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);if(refreshed.error)throw refreshed.error;documents=refreshed.data;
     }
     const refreshedAt=new Date().toISOString();await Promise.all((documents??[]).map(item=>db.from("documents").update({content:buildDocumentSnapshot(sale,item.document_type as DocumentType),status:item.document_type==="booking_form"?"reviewed":"generated",generated_at:refreshedAt}).eq("team_id",team.id).eq("id",item.id)));
     revalidatePath(`/sales/${sale.id}`);revalidatePath(`/documents/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     const files=(documents??[]).map(item=>{const content=buildDocumentSnapshot(sale,item.document_type as DocumentType);return{id:item.id,type:item.document_type,wordFilename:downloadFilename(documentNames[item.document_type as DocumentType],"docx",content),pdfFilename:item.document_type==="booking_form"?downloadFilename("aira-booking-form","pdf",content):item.document_type==="pre_booking_form"?downloadFilename("prospect-offer-proposal-form","pdf",content):null};});
-    const agentLetterId=(documents??[]).find(item=>item.document_type==="agent_commission_letter")?.id;
-    return NextResponse.json({ok:true,unit_number:sale.unit_number||fields.unit_number,files,agentLetterId});
+    const agencyAppointmentLetterId=(documents??[]).find(item=>item.document_type==="agency_appointment_letter")?.id;const agentLetterId=(documents??[]).find(item=>item.document_type==="agent_commission_letter")?.id;
+    return NextResponse.json({ok:true,saleId:sale.id,unit_number:sale.unit_number||fields.unit_number,files,agentLetterId,agencyAppointmentLetterId});
   }catch(error){console.error("Booking Form upload save failed",error);return NextResponse.json({error:error instanceof Error?error.message:"The extracted information could not be saved."},{status:500});}
 }

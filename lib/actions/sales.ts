@@ -12,7 +12,8 @@ import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/li
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
 export type DeleteSaleState={error?:string};
-export type PopAdminSaveState={error?:string;saved?:boolean;agentLetterId?:string};
+export type PopAdminSaveState={error?:string;saved?:boolean;agentLetterId?:string;agencyAppointmentLetterId?:string};
+export type UploadedPopSaveState={error?:string;previewDocumentId?:string;agentLetterId?:string;agencyAppointmentLetterId?:string};
 export type SavedAgentDetails={agent_company:string;agent_address:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string};
 export type SavedSalespersonDetails={salesperson_name:string;salesperson_designation:string;salesperson_mobile:string;salesperson_email:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
@@ -99,20 +100,20 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
     const generated_at=new Date().toISOString();
     if(sale.status==="draft"){
       const types:DocumentType[]=["pre_booking_form"];
-      if(hasExternalAgent(sale))types.push("agent_commission_letter");
+      if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
       const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
       const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
     }else if(sale.status==="booking_draft"){
       const types:DocumentType[]=[];
       if(bookingSource==="manual")types.push("booking_form");
-      if(hasExternalAgent(sale))types.push("agent_commission_letter");
+      if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
       if(types.length){
         const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:document_type==="booking_form"?"pending":"generated",generated_at}));
         const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
       }
     }else{
       const types:DocumentType[]=["acceptance_letter"];
-      if(hasExternalAgent(sale))types.push("agent_commission_letter");
+      if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
       if(bookingSource==="manual")types.unshift("booking_form");
       if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
       if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");
@@ -125,7 +126,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
       agentLetterId=agentLetter?.id??null;
     }
   }catch(e){return{error:e instanceof Error?e.message:"Failed to save sale.",fields}}
-  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(agentLetterId?`/documents/${agentLetterId}`:uploadAnother?"/sales/new":`/sales/${sale.id}`);
+  revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(uploadAnother?"/sales/new":`/sales/${sale.id}`);
 }
 export async function savePopAdminDetails(id:string,fields:Record<string,string>):Promise<PopAdminSaveState>{
   try{
@@ -154,23 +155,40 @@ export async function savePopAdminDetails(id:string,fields:Record<string,string>
         content:buildDocumentSnapshot(updated,document.document_type as DocumentType),
         status:document.status,generated_at:document.generated_at,
       }));
-      if(hasExternalAgent(updated)&&!(documents??[]).some(document=>document.document_type==="agent_commission_letter")){
-        rows.push({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"agent_commission_letter",content:buildDocumentSnapshot(updated,"agent_commission_letter"),status:"generated",generated_at:new Date().toISOString()});
-      }
+      if(hasExternalAgent(updated))for(const document_type of ["agency_appointment_letter","agent_commission_letter"] as const)if(!(documents??[]).some(document=>document.document_type===document_type))rows.push({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:buildDocumentSnapshot(updated,document_type),status:"generated",generated_at:new Date().toISOString()});
       if(rows.length){const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}
     }
-    const{data:agentLetter,error:agentLetterError}=hasExternalAgent(updated)?await db.from("documents").select("id").eq("team_id",team.id).eq("sale_id",id).eq("document_type","agent_commission_letter").maybeSingle():{data:null,error:null};
+    const{data:agentLetters,error:agentLetterError}=hasExternalAgent(updated)?await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",id).in("document_type",["agency_appointment_letter","agent_commission_letter"]):{data:null,error:null};
     if(agentLetterError)throw agentLetterError;
     revalidatePath(`/sales/${id}`);revalidatePath(`/sales/${id}/edit`);revalidatePath("/documents");revalidatePath("/dashboard");
-    return{saved:true,agentLetterId:agentLetter?.id};
+    return{saved:true,agentLetterId:agentLetters?.find(item=>item.document_type==="agent_commission_letter")?.id,agencyAppointmentLetterId:agentLetters?.find(item=>item.document_type==="agency_appointment_letter")?.id};
   }catch(error){return{error:error instanceof Error?error.message:"Could not save the POP administration details."};}
+}
+export async function saveUploadedPopDetails(fields:Record<string,string>):Promise<UploadedPopSaveState>{
+  try{
+    const clean=(key:string)=>String(fields[key]??"").trim();
+    const unit=clean("unit_number").toUpperCase();const customer=clean("customer_name");const price=Number(clean("purchase_price").replace(/[^0-9.-]/g,""));
+    if(!unit||!customer||!Number.isFinite(price)||price<=0)return{error:"The uploaded POP did not clearly provide the unit, purchaser and purchase price. Please check those extracted fields once."};
+    const company=clean("agent_company");const agentDetails=combineAgencyDetails(company,clean("agent_address"),clean("agent_name"),clean("agent_designation"),clean("agent_mobile"),clean("agent_email"))||null;
+    const existing=(await getSales(unit)).find(item=>item.unit_number?.trim().toUpperCase()===unit);
+    const values:Partial<Sale>={sale_reference:clean("sale_reference")||existing?.sale_reference||`S-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,customer_name:customer,purchaser_type:clean("purchaser_type").toLowerCase().includes("company")?"company":"individual",project_name:clean("project_name")||"Aira Residence",unit_number:unit,purchase_price:price,status:"draft",sale_date:clean("sale_date")||null,salesperson_name:clean("salesperson_name")||null,salesperson_designation:clean("salesperson_designation")||null,salesperson_mobile:clean("salesperson_mobile")||null,salesperson_email:clean("salesperson_email")||null,agent_company:agentDetails,solicitor_name:clean("solicitor_name")||null,authorised_signatory_name:clean("authorised_signatory_name")||null,authorised_signatory_position:clean("authorised_signatory_position")||null};
+    const sale=existing?await updateSale(existing.id,values):await createSale(values);
+    const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);const generated_at=new Date().toISOString();
+    const types:DocumentType[]=["pre_booking_form"];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
+    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
+    const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
+    const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",types);if(documentsError)throw documentsError;
+    const agencyAppointmentLetterId=documents?.find(item=>item.document_type==="agency_appointment_letter")?.id;const agentLetterId=documents?.find(item=>item.document_type==="agent_commission_letter")?.id;const popDocumentId=documents?.find(item=>item.document_type==="pre_booking_form")?.id;
+    revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
+    return{previewDocumentId:agencyAppointmentLetterId||agentLetterId||popDocumentId,agentLetterId,agencyAppointmentLetterId};
+  }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {
     const sale=await getSale(id); const db=await createClient(); const [{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
     const{data:manualBooking}=await db.from("documents").select("content").eq("team_id",team.id).eq("sale_id",id).eq("document_type","booking_form").maybeSingle();
     const types:DocumentType[]=["acceptance_letter"];
-    if(hasExternalAgent(sale))types.push("agent_commission_letter");
+    if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
     if(manualBooking?.content?.booking_source==="manual")types.unshift("booking_form");
     if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
     if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");

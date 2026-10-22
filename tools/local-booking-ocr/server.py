@@ -97,6 +97,7 @@ SINGLE_CHEQUE_SCHEMA = {
     "required": ["amount", "amount_words", "date", "reference"],
 }
 POP_ADMIN_FIELDS = [
+    "customer_name", "purchaser_type", "project_name", "unit_number", "purchase_price", "sale_date",
     "sale_reference", "salesperson_name", "salesperson_designation",
     "salesperson_mobile", "salesperson_email", "agent_company", "agent_address",
 ]
@@ -566,7 +567,7 @@ async def extract_pop_admin(
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract only "
+                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract the purchaser name, purchaser type, project, unit or parcel number, purchase or SPA price, proposal date, "
                     "the POP or proposal reference as sale_reference; the sales personnel or "
                     "salesperson name; designation; mobile or telephone number; email; and sales "
                     "agency or company. The value beside the printed label 'Team Member Assisting' "
@@ -578,7 +579,7 @@ async def extract_pop_admin(
                     "that as agent_company. Extract a clearly printed agency/company mailing address "
                     "as agent_address. Never infer a company or address from an email domain, logo style "
                     "or person's name. Preserve spelling, numbers and email exactly. Do not "
-                    "use purchaser details as salesperson details. Return an empty string for any "
+                    "use purchaser details as salesperson details. Return purchase_price as digits only without RM or commas, use DD/MM/YYYY for sale_date, and preserve the unit number in uppercase. Return an empty string for any "
                     "field that is not clearly shown. Return only the requested JSON."
                 ),
                 "images": images,
