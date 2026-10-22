@@ -70,6 +70,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
   const [values, setValues] = useState<Partial<Sale> | undefined>(initialValues);
   const [revision, setRevision] = useState(0);
   const [bookingSource, setBookingSource] = useState<"uploaded" | "manual">("manual");
+  const [popSource, setPopSource] = useState<"uploaded" | "manual">("manual");
   const entryRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -107,10 +108,11 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
             onUseFields={(fields) => {
               setValues(fields as unknown as Partial<Sale>);
               setMode("pop");
+              setPopSource("uploaded");
               setRevision((current) => current + 1);
             }}
           />
-          <button type="button" className="button secondary pop-intake-button" onClick={() => { setValues(undefined); setMode("pop"); setRevision((current) => current + 1); }}>
+          <button type="button" className="button secondary pop-intake-button" onClick={() => { setValues(undefined); setMode("pop"); setPopSource("manual"); setRevision((current) => current + 1); }}>
             Enter POP manually
           </button>
         </div>
@@ -121,7 +123,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
         <p className="eyebrow">{mode === "booking" ? "Booking Form" : "Optional POP"}</p>
         <h2>{mode === "booking" ? "Review booking details" : "Prepare proposal details"}</h2>
       </div>
-      <SaleForm key={`${mode}-${revision}`} initialValues={values} mode={mode} bookingSource={bookingSource}/>
+      <SaleForm key={`${mode}-${revision}`} initialValues={values} mode={mode} bookingSource={bookingSource} popSource={popSource}/>
     </div>}
   </>;
 }

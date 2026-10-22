@@ -7,7 +7,7 @@ import { storeyForUnit } from "@/lib/unit-details";
 import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { splitAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
-type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual" };
+type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual"; popSource?: "uploaded" | "manual" };
 const Field = ({
   name,
   label,
@@ -157,7 +157,7 @@ const keepSecondPurchaser = (form: HTMLFormElement) =>
     form.appendChild(hidden);
   });
 
-export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }: Props) {
+export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", popSource = "manual" }: Props) {
   const [state, action, pending] = useActionState<FormState, FormData>(
     saveSale,
     {},
@@ -597,8 +597,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
       </section>}
       <section className="form-section">
         <div className="section-heading">
-          <div><h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2><p className="subtle">Upload the POP Form to fill the sales administration details, or edit them manually.</p></div>
-          <PopAdminUpload saleId={sale?.id} unitNumber={unitNumber} onUseFields={applyPopAdmin} />
+          <div><h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2><p className="subtle">{entryMode === "pop" && popSource === "uploaded" ? "POP and agent details from the uploaded form are shown below. Edit only if needed." : "Upload the POP Form to fill the sales and agent details, or edit them manually."}</p></div>
+          {!(entryMode === "pop" && popSource === "uploaded" && !sale) && <PopAdminUpload saleId={sale?.id} unitNumber={unitNumber} onUseFields={applyPopAdmin} />}
         </div>
         <div className="form-grid">
           <Field

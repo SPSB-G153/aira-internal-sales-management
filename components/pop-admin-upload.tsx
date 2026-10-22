@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { savePopAdminDetails } from "@/lib/actions/sales";
+import { findSavedAgentDetails, savePopAdminDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 
@@ -69,6 +69,11 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
           salesperson_email: staff.email,
           salesperson_mobile: staff.mobile || extracted.fields.salesperson_mobile || "",
         };
+        const company = extracted.fields.agent_company?.trim();
+        if (company) {
+          const savedAgent = await findSavedAgentDetails(company);
+          if (savedAgent) extracted.fields = { ...extracted.fields, ...savedAgent };
+        }
       }
       setResult((current) => mergeIntoPop && current ? {
         ...current,
@@ -131,7 +136,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
         </button>}
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>
-          <button type="button" className="button accent" onClick={() => void apply()}>Use and save these details</button>
+          <button type="button" className="button accent" onClick={() => void apply()}>{saleId ? "Save these details" : "Continue with these details"}</button>
         </div>
       </div>
     </div>}

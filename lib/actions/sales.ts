@@ -13,12 +13,23 @@ export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:
 export type ConfirmState={error?:string};
 export type DeleteSaleState={error?:string};
 export type PopAdminSaveState={error?:string;saved?:boolean};
+export type SavedAgentDetails={agent_company:string;agent_address:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
 const numeric=(f:FormData,k:string)=>{const v=text(f,k);return v===""?null:Number(v)};
 const optionalBoolean=(f:FormData,k:string)=>{const v=text(f,k);return v==="true"?true:v==="false"?false:null};
 const isMalayRace=(race:string)=>/\b(malay|melayu)\b/i.test(race.trim());
 const fullSex=(value:string)=>{const normalized=value.trim().toUpperCase();return normalized==="M"||normalized==="MALE"?"Male":normalized==="F"||normalized==="FEMALE"?"Female":value.trim();};
 const normalizeNationality=(value:string)=>{const trimmed=value.trim();return ["UK","US","USA","UAE","PRC"].includes(trimmed.toUpperCase())?trimmed.toUpperCase():trimmed;};
+const normalizeCompany=(value:string)=>value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+export async function findSavedAgentDetails(company:string):Promise<SavedAgentDetails|null>{
+  const wanted=normalizeCompany(company);
+  if(!wanted)return null;
+  const matches=(await getSales()).map(sale=>splitAgencyDetails(sale.agent_company)).filter(details=>normalizeCompany(details.company)===wanted&&Boolean(details.agent_name||details.agent_email||details.agent_mobile));
+  const unique=new Map(matches.map(details=>[[details.agent_name,details.agent_email,details.agent_mobile].map(value=>value.trim().toUpperCase()).join("|"),details]));
+  if(unique.size!==1)return null;
+  const details=[...unique.values()][0];
+  return{agent_company:details.company,agent_address:details.address,agent_name:details.agent_name,agent_designation:details.agent_designation,agent_mobile:details.agent_mobile,agent_email:details.agent_email};
+}
 export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   const fields=Object.fromEntries([...form.entries()].map(([k,v])=>[k,String(v)]));
   const entryMode=text(form,"entry_mode")==="pop"?"pop":"booking";
