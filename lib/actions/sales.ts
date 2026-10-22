@@ -14,6 +14,7 @@ export type ConfirmState={error?:string};
 export type DeleteSaleState={error?:string};
 export type PopAdminSaveState={error?:string;saved?:boolean};
 export type SavedAgentDetails={agent_company:string;agent_address:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string};
+export type SavedSalespersonDetails={salesperson_name:string;salesperson_designation:string;salesperson_mobile:string;salesperson_email:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
 const numeric=(f:FormData,k:string)=>{const v=text(f,k);return v===""?null:Number(v)};
 const optionalBoolean=(f:FormData,k:string)=>{const v=text(f,k);return v==="true"?true:v==="false"?false:null};
@@ -29,6 +30,15 @@ export async function findSavedAgentDetails(company:string):Promise<SavedAgentDe
   if(unique.size!==1)return null;
   const details=[...unique.values()][0];
   return{agent_company:details.company,agent_address:details.address,agent_name:details.agent_name,agent_designation:details.agent_designation,agent_mobile:details.agent_mobile,agent_email:details.agent_email};
+}
+export async function findSavedSalespersonDetails(name:string):Promise<SavedSalespersonDetails|null>{
+  const wanted=name.trim().toLocaleLowerCase("en-MY");
+  if(!wanted)return null;
+  const matches=(await getSales()).filter(sale=>sale.salesperson_name?.trim().toLocaleLowerCase("en-MY")===wanted);
+  const withMobile=matches.find(sale=>Boolean(sale.salesperson_mobile?.trim()));
+  const saved=withMobile??matches.find(sale=>Boolean(sale.salesperson_email?.trim()||sale.salesperson_designation?.trim()));
+  if(!saved)return null;
+  return{salesperson_name:saved.salesperson_name||name,salesperson_designation:saved.salesperson_designation||"",salesperson_mobile:saved.salesperson_mobile||"",salesperson_email:saved.salesperson_email||""};
 }
 export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   const fields=Object.fromEntries([...form.entries()].map(([k,v])=>[k,String(v)]));

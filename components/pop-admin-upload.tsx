@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { findSavedAgentDetails, savePopAdminDetails } from "@/lib/actions/sales";
+import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 
@@ -68,6 +68,13 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
           salesperson_designation: staff.designation,
           salesperson_email: staff.email,
           salesperson_mobile: staff.mobile || extracted.fields.salesperson_mobile || "",
+        };
+        const savedSalesperson = await findSavedSalespersonDetails(extracted.fields.salesperson_name || "");
+        if (savedSalesperson) extracted.fields = {
+          ...extracted.fields,
+          salesperson_designation: extracted.fields.salesperson_designation || savedSalesperson.salesperson_designation,
+          salesperson_mobile: extracted.fields.salesperson_mobile || savedSalesperson.salesperson_mobile,
+          salesperson_email: extracted.fields.salesperson_email || savedSalesperson.salesperson_email,
         };
         const company = extracted.fields.agent_company?.trim();
         if (company) {

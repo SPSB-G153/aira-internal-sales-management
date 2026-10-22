@@ -25,6 +25,7 @@ button,a,input,select,textarea { -webkit-tap-highlight-color:transparent; }
 .mobile-header,.nav-toggle,.nav-scrim,.mobile-bottom-nav { display:none; }
 .page { max-width:1180px; margin:0 auto; }
 .page-header { display:flex; gap:20px; align-items:flex-start; justify-content:space-between; margin-bottom:28px; }
+.new-sale-page-header h1 { font-size:clamp(28px,3vw,36px); line-height:1.08; }
 .eyebrow { margin:0 0 8px; color:var(--gold); font-size:10px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; }
 h1 { margin:0; font:800 clamp(28px,4vw,44px)/1.05 Manrope,Arial,sans-serif; letter-spacing:-.04em; }
 h2 { margin:0; font:750 23px/1.2 Manrope,Arial,sans-serif; letter-spacing:-.02em; }

@@ -22,5 +22,5 @@ const testAg01: Partial<Sale> = {
 export default async function NewSale({ searchParams }: { searchParams: Promise<{ prefill?: string }> }) {
   const { prefill } = await searchParams;
   const initialValues = prefill === "ag01" ? testAg01 : prefill === "test" ? testSale : undefined;
-  return <div className="page"><div className="page-header"><div><p className="eyebrow">New sale</p><h1>Create a booking from the Booking Form.</h1><p className="subtle">Upload the completed Booking Form, review the extracted details, then create the booking.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
+  return <div className="page"><div className="page-header new-sale-page-header"><div><p className="eyebrow">New sale</p><h1>Create a booking</h1><p className="subtle">Upload the completed Booking Form, review the extracted details, then create the booking.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
 }
