@@ -4,19 +4,19 @@ export type PopValues = {
   agent: string;
   spsb: string;
   salesperson: string;
+  secondAssistant: string;
   saleDate: string;
   purchaser: string;
   unit: string;
   unitType: string;
   size: number;
-  listPrice: number;
+  approvedPrice: number;
+  proposedPrice: number;
+  additionalRevenue: number;
   discount: number;
   rebate: number;
-  quotedIdNetSellingPrice: number | null;
-  otherIncentives: number;
   proposalNote: string;
-  recommendationNote: string;
-  feasibilityNote: string;
+  conditionsNote: string;
   commentsNote: string;
 };
 
@@ -60,14 +60,14 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   clear(375, 55, 220, 90);
   write("SALES", 140, 108, 16);
 
-  const spaPrice = Math.max(0, values.listPrice - values.discount);
+  const spaPrice = values.proposedPrice;
   const netPrice = Math.max(0, spaPrice - values.rebate);
-  const totalIncentives = values.discount + values.rebate + values.otherIncentives;
-  const listPsf = values.size ? values.listPrice / values.size : 0;
+  const totalIncentives = values.discount + values.rebate;
+  const listPsf = values.size ? values.approvedPrice / values.size : 0;
   const spaPsf = values.size ? spaPrice / values.size : 0;
   const netPsf = values.size ? netPrice / values.size : 0;
-  const discountPercentage = values.listPrice > 0 ? (values.discount / values.listPrice) * 100 : 0;
-  const rebatePercentage = values.listPrice > 0 ? (values.rebate / values.listPrice) * 100 : 0;
+  const discountPercentage = values.approvedPrice > 0 ? (values.discount / values.approvedPrice) * 100 : 0;
+  const rebatePercentage = values.approvedPrice > 0 ? (values.rebate / values.approvedPrice) * 100 : 0;
 
   // Entry cells in the approved layout.
   // Keep the approved template's box borders and shaded Purchaser / Unit cells.
@@ -94,12 +94,12 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   [[490, 628], [490, 660], [490, 692], [490, 780], [490, 828], [490, 875], [490, 922]].forEach(([x, top]) => clear(x, top, 42, 20));
   clear(820, 660, 60, 30);
   clear(820, 780, 60, 30);
-  write(money(values.listPrice), 565, 646, 8);
+  write(money(values.approvedPrice), 565, 646, 8);
   write(money(values.discount), 565, 678, 8);
   write(money(spaPrice), 565, 710, 8);
   write(money(values.rebate), 565, 797, 8);
   write(money(netPrice), 565, 845, 8, true);
-  write(money(values.otherIncentives), 565, 891, 8);
+  write(money(values.additionalRevenue), 565, 891, 8);
   write(money(totalIncentives), 565, 936, 8, true);
   [646, 678, 710, 797, 845, 891, 936].forEach((top) => write("RM", 500, top, 8));
   // Clear the old purchaser's psf and percentage annotations from the scanned
@@ -121,25 +121,15 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   clear(102, 970, 398, 680);
   clear(470, 970, 620, 680);
   write("1. SBDM/BDM's Proposal:", 135, 1000, 7, true);
-  write("2. Recommendation:", 135, 1175, 7, true);
-  write("3. Feasibility Check:", 135, 1360, 7, true);
-  write("4. Comments/Approval:", 135, 1515, 7, true);
-  rule(135, 455, 1090); rule(135, 455, 1270); rule(135, 455, 1450); rule(135, 455, 1600);
+  write("2. Comments/Approval:", 135, 1515, 7, true);
+  rule(135, 455, 1090); rule(135, 455, 1600);
   write("SBDM/BDM Signature", 135, 1110, 6); write("Date", 400, 1110, 6);
   write(values.salesperson || "N/A", 135, 1134, 6, true); write(compactDate(values.saleDate), 400, 1134, 6);
-  write("Head of Sales", 135, 1290, 6); write("Date", 400, 1290, 6);
-  write("N/A", 135, 1314, 6, true);
-  write("Director of Property", 135, 1470, 6); write("Date", 400, 1470, 6); write(compactDate(values.saleDate), 400, 1494, 6);
   write("Director of Property", 135, 1620, 6); write("Date", 400, 1620, 6); write(compactDate(values.saleDate), 400, 1644, 6);
   writeNote(values.proposalNote, 510, 1010);
-  writeNote(values.recommendationNote, 510, 1175);
-  writeNote(values.feasibilityNote, 510, 1345, 24);
+  writeNote(values.conditionsNote, 510, 1175);
   writeNote(values.commentsNote, 510, 1520);
-  write("Within the Global Discount + Gift Budget", 675, 1360, 6);
-  write("(as shown attached)", 675, 1374, 5.5);
-  write("Outside the Global Discount + Gift Budget", 675, 1445, 6);
-  write("(as shown attached)", 675, 1459, 5.5);
-  box(490, 980, 586, 150); box(490, 1145, 586, 155); box(490, 1330, 166, 52); box(490, 1415, 166, 52); box(490, 1490, 586, 160);
+  box(490, 980, 586, 410); box(490, 1490, 586, 160);
   // The source page already contains both side borders. Only extend their
   // final short segments and close the bottom edge.
   const formGold = rgb(0.83, 0.64, 0.02);

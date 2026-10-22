@@ -19,30 +19,31 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
     const content = document.content;
     const price = number(content.purchase_price);
-    const discount = number(content.discount_amount);
+    const approvedPrice = number(content.approved_selling_price) || price;
+    const discount = number(content.repeat_buyer_discount);
     const rebate = number(content.rebate_amount);
-    const otherIncentives = number(content.other_incentives);
+    const additionalRevenue = number(content.additional_revenue);
     const area = number(content.floor_area);
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(path.join(process.cwd(), "public", "templates", "pop-format.xlsx"));
     const sheet = workbook.worksheets[0];
-    const agent = [text(content, "salesperson_name"), text(content, "agent_company")].filter(Boolean).join(", ");
+    const agent = text(content, "pop_introduction_agent") || "NOT APPLICABLE";
 
     sheet.getCell("E5").value = agent || "AGENT";
-    sheet.getCell("E7").value = "SPSB";
-    sheet.getCell("G9").value = text(content, "salesperson_name");
+    sheet.getCell("E7").value = text(content, "pop_introduction_spsb") || "DIRECT SALES";
+    sheet.getCell("G9").value = [text(content, "salesperson_name"), text(content, "pop_assisting_member_2")].filter(Boolean).join(" / ");
     sheet.getCell("G11").value = text(content, "customer_name");
     sheet.getCell("G13").value = text(content, "unit_number");
     sheet.getCell("G15").value = text(content, "unit_type");
     sheet.getCell("G17").value = area || null;
-    sheet.getCell("H19").value = price;
+    sheet.getCell("H19").value = approvedPrice;
     sheet.getCell("H20").value = discount;
-    sheet.getCell("H21").value = { formula: "H19-H20" };
+    sheet.getCell("H21").value = price;
     sheet.getCell("H24").value = rebate;
     sheet.getCell("H26").value = { formula: "H21-H24" };
     sheet.getCell("H28").value = { formula: "H26" };
-    sheet.getCell("H30").value = otherIncentives;
-    sheet.getCell("H31").value = { formula: "H20+H24+H30" };
+    sheet.getCell("H30").value = additionalRevenue;
+    sheet.getCell("H31").value = { formula: "H20+H24" };
     for (const cell of ["H19", "H20", "H21", "H24", "H26", "H28", "H30", "H31"]) sheet.getCell(cell).numFmt = '#,##0.00';
     sheet.pageSetup.paperSize = 9;
     sheet.pageSetup.fitToPage = true;
@@ -50,7 +51,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     sheet.pageSetup.fitToHeight = 1;
     sheet.pageSetup.orientation = "portrait";
     workbook.calcProperties.fullCalcOnLoad = true;
-    workbook.calcProperties.forceFullCalc = true;
 
     const buffer = await workbook.xlsx.writeBuffer();
     return new NextResponse(buffer, { headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Content-Disposition": 'attachment; filename="pop.xlsx"', "Cache-Control": "private, no-store" } });

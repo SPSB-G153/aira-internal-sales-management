@@ -529,18 +529,19 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
           <span className="template-step">Shown in POP approval boxes</span>
         </div>
         <div className="form-grid">
-          <div className="field full"><label htmlFor="pop_proposal_note">1. SBDM/BDM&apos;s Proposal - note / remark</label><textarea id="pop_proposal_note" name="pop_proposal_note" rows={4} defaultValue={v("pop_proposal_note")}/></div>
-          <div className="field full"><label htmlFor="pop_recommendation_note">2. Recommendation - note / remark</label><textarea id="pop_recommendation_note" name="pop_recommendation_note" rows={4} defaultValue={v("pop_recommendation_note")}/></div>
-          <div className="field full"><label htmlFor="pop_feasibility_note">3. Feasibility Check - note / remark</label><textarea id="pop_feasibility_note" name="pop_feasibility_note" rows={3} defaultValue={v("pop_feasibility_note")}/></div>
-          <div className="field full"><label htmlFor="pop_comments_note">4. Comments/Approval - note / remark</label><textarea id="pop_comments_note" name="pop_comments_note" rows={4} defaultValue={v("pop_comments_note")}/></div>
+          <div className="field full"><label htmlFor="pop_proposal_note">1. SBDM/BDM&apos;s Proposal - notes</label><textarea id="pop_proposal_note" name="pop_proposal_note" rows={4} defaultValue={v("pop_proposal_note")}/></div>
+          <div className="field full"><label htmlFor="pop_conditions_note">Conditions of Sale</label><textarea id="pop_conditions_note" name="pop_conditions_note" rows={5} defaultValue={v("pop_conditions_note")}/></div>
+          <div className="field full"><label htmlFor="pop_comments_note">2. Comments / Approval</label><textarea id="pop_comments_note" name="pop_comments_note" rows={4} defaultValue={v("pop_comments_note")}/></div>
         </div>
       </section>}
       <section className="form-section">
-        <h2>Offer and deposit</h2>
+        <h2>{entryMode === "pop" ? "POP pricing" : "Offer and deposit"}</h2>
+        {entryMode === "pop" && <p className="subtle"><b>POP only:</b> Purchase Price and SPA Price are the same amount. This POP does not change any previous Booking Form record.</p>}
         <div className="form-grid">
+          {entryMode === "pop" && <Field name="approved_selling_price" label="Approved selling price (RM)" type="number" defaultValue={v("approved_selling_price")} />}
           <div className="field">
             <label>
-              Purchase price (RM)<span className="required"> *</span>
+              {entryMode === "pop" ? "Purchase Price / SPA Price (same amount) (RM)" : "Purchase price (RM)"}<span className="required"> *</span>
             </label>
             <input
               name="purchase_price"
@@ -551,27 +552,40 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual" }
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
+            {state.fieldErrors?.purchase_price && <p className="error">{state.fieldErrors.purchase_price}</p>}
           </div>
-          <div className="field">
+          {entryMode === "booking" && <div className="field">
             <label>Booking fee paid (RM)</label>
             <input name="booking_fee" type="number" min="0" step="0.01" value={bookingFee} onChange={(event) => setBookingFee(event.target.value)} />
             <p className="subtle">Use the actual amount shown in the uploaded banking receipt.</p>
             {state.fieldErrors?.booking_fee && <p className="error">{state.fieldErrors.booking_fee}</p>}
-          </div>
+          </div>}
+          {entryMode === "pop" && <>
+            <Field name="additional_revenue" label="Additional revenue (RM)" type="number" defaultValue={v("additional_revenue")} />
+            <Field name="repeat_buyer_discount" label="Repeat buyer discount offered (RM)" type="number" defaultValue={v("repeat_buyer_discount")} />
+          </>}
           <Field
             name="rebate_amount"
-            label="Rebate amount (RM, if any)"
+            label={entryMode === "pop" ? "ID rebate proposed (RM)" : "Rebate amount (RM, if any)"}
             type="number"
             defaultValue={v("rebate_amount")}
           />
-          <Field
+          {entryMode === "booking" && <Field
             name="quoted_id_net_selling_price"
             label="Quoted ID net selling price (RM, if any)"
             type="number"
             defaultValue={v("quoted_id_net_selling_price")}
-          />
+          />}
         </div>
       </section>
+      {entryMode === "pop" && <section className="form-section">
+        <h2>POP introduction and assisting team</h2>
+        <div className="form-grid">
+          <Field name="pop_introduction_agent" label="Introduction by - Agent" defaultValue={v("pop_introduction_agent")} />
+          <Field name="pop_introduction_spsb" label="Introduction by - SPSB" defaultValue={v("pop_introduction_spsb")} />
+          <Field name="pop_assisting_member_2" label="Second team member assisting" defaultValue={v("pop_assisting_member_2")} />
+        </div>
+      </section>}
       <section className="form-section">
         <div className="section-heading">
           <div><h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2><p className="subtle">Upload the POP Form to fill the sales administration details, or edit them manually.</p></div>

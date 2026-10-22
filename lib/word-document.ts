@@ -384,28 +384,29 @@ const popCell=(value:string,bold=false)=>new TableCell({children:[new Paragraph(
 
 async function createPopWord(content:Record<string,unknown>){
   const price=typeof content.purchase_price==="number"?content.purchase_price:0;
-  const discount=typeof content.discount_amount==="number"?content.discount_amount:0;
+  const approved=typeof content.approved_selling_price==="number"?content.approved_selling_price:price;
+  const discount=typeof content.repeat_buyer_discount==="number"?content.repeat_buyer_discount:0;
   const rebate=typeof content.rebate_amount==="number"?content.rebate_amount:0;
-  const other=typeof content.other_incentives==="number"?content.other_incentives:0;
-  const spa=Math.max(0,price-discount), net=Math.max(0,spa-rebate), total=discount+rebate+other;
+  const additional=typeof content.additional_revenue==="number"?content.additional_revenue:0;
+  const spa=price, net=Math.max(0,spa-rebate), total=discount+rebate;
   const size=typeof content.floor_area==="number"?content.floor_area:0;
   const psf=(value:number)=>size?`(RM${popMoney(value/size)} psf)`:"";
   const fields:[string,string][]=[
-    ["Introduction By - Agent",[text(content,"salesperson_name","") ,text(content,"agent_company","")].filter(Boolean).join(", ")],
-    ["SPB","NOT APPLICABLE"],["Team Member Assisting",text(content,"salesperson_name","")],["Purchaser's Name",text(content,"customer_name","")],
+    ["Introduction By - Agent",text(content,"pop_introduction_agent","NOT APPLICABLE")],
+    ["SPSB",text(content,"pop_introduction_spsb","DIRECT SALES")],["Team Member Assisting",[text(content,"salesperson_name",""),text(content,"pop_assisting_member_2","")].filter(Boolean).join(" / ")],["Purchaser's Name",text(content,"customer_name","")],
     ["Unit No.",text(content,"unit_number","")],["Unit Type",text(content,"unit_type","")],["Size",`${popMoney(size)} ft²`],
-    ["List Price of Unit",`RM ${popMoney(price)} ${psf(price)}`],["Discount Offered",`RM ${popMoney(discount)}`],["SPA Price",`RM ${popMoney(spa)} ${psf(spa)}`],
+    ["Approved Selling Price",`RM ${popMoney(approved)} ${psf(approved)}`],["Actual Proposed Selling Price",`RM ${popMoney(price)} ${psf(price)}`],["Additional Revenue",`RM ${popMoney(additional)}`],["Repeat Buyer Discount Offered",`RM ${popMoney(discount)}`],["SPA Price",`RM ${popMoney(spa)} ${psf(spa)}`],
     ["Value of any Rebate being proposed for the Purchaser",`RM ${popMoney(rebate)}`],["Hence, PROPOSED NET SELLING PRICE",`RM ${popMoney(net)} ${psf(net)}`],
-    ["Value of any other incentives/gifts being proposed for/by the Purchaser",`RM ${popMoney(other)}`],["Hence: Total Value of Incentives",`RM ${popMoney(total)}`]
+    ["Hence: Total Value of Incentives",`RM ${popMoney(total)} = A + B`]
   ];
   const border={style:BorderStyle.SINGLE,size:4,color:"000000"};
   const details=new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:fields.map(([label,value])=>new TableRow({children:[popCell(label,label.startsWith("Hence")),popCell(value,label.startsWith("Hence"))]})),borders:{top:border,bottom:border,left:border,right:border,insideHorizontal:border,insideVertical:border}});
-  const approvals=["1. SBDM/BDM's Proposal:","2. Recommendation:","3. Feasibility Check:","4. Comments/Approval:"];
+  const approvals=["1. SBDM/BDM's Proposal:","Conditions of Sale:","2. Comments/Approval:"];
   const document=new Document({sections:[{children:[
     new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:"SALES",bold:true,size:22})]}),
     new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:"PROSPECT OFFER PROPOSAL FORM",bold:true,size:26})]}),details,
     new Paragraph({children:[new TextRun({text:"INCENTIVES",bold:true,color:"C00000"})]}),
-    ...approvals.flatMap((heading,index)=>[new Paragraph({children:[new TextRun({text:heading,bold:true})]}),new Paragraph({children:[new TextRun({text:index===1?"N/A":""})]}),new Paragraph({children:[new TextRun({text:index===0?`SBDM/BDM Signature: ${text(content,"salesperson_name","")}    Date: ${text(content,"sale_date","")}`:index===1?"Head of Sales    Date:":"Director of Property    Date:"})]})])
+    ...approvals.flatMap((heading,index)=>[new Paragraph({children:[new TextRun({text:heading,bold:true})]}),new Paragraph({children:[new TextRun({text:index===0?text(content,"pop_proposal_note",""):index===1?text(content,"pop_conditions_note",""):text(content,"pop_comments_note","")})]}),new Paragraph({children:[new TextRun({text:index===0?`SBDM/BDM: ${text(content,"salesperson_name","")} / ${text(content,"pop_assisting_member_2","")}    Date: ${text(content,"sale_date","")}`:index===2?"Director of Property    Date:":""})]})])
   ]}]});
   return new Uint8Array(await Packer.toBuffer(document));
 }
