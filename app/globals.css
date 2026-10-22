@@ -118,6 +118,9 @@ h3 { margin:0; font-size:16px; }
 .optional-pop-action strong,.optional-pop-action span { display:block; }
 .optional-pop-action strong { font-size:13px; }
 .optional-pop-action span { margin-top:4px; color:var(--muted); font-size:12px; line-height:1.45; }
+.pop-intake-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.pop-intake-actions .booking-upload { display:block; }
+.pop-intake-button { min-height:30px; padding:0 10px; border-radius:6px; font-size:10px; font-weight:750; letter-spacing:0; white-space:nowrap; }
 .new-sale-entry { margin-top:24px; }
 .new-sale-entry-heading { margin-bottom:12px; }
 .detail-grid { display:grid; grid-template-columns:1fr 330px; gap:24px; }
@@ -351,6 +354,8 @@ h3 { margin:0; font-size:16px; }
   .new-sale-intake { padding:20px 16px; }
   .new-sale-intake-actions,.optional-pop-action { align-items:stretch; flex-direction:column; }
   .new-sale-intake-actions .booking-upload,.new-sale-intake-actions .upload-button,.optional-pop-action .button { width:100%; }
+  .pop-intake-actions { width:100%; }
+  .pop-intake-actions .booking-upload { width:100%; }
   .doc-card { min-height:86px; padding:16px; }
   .letter-wrap { width:100%; min-width:0; }
   .letter { min-height:0; padding:30px 20px; font-size:15px; line-height:1.65; overflow-wrap:anywhere; box-shadow:0 7px 24px rgba(24,51,45,.07); }

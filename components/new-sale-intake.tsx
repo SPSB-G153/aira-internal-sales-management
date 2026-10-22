@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BookingFormUpload, type BookingUploadFields } from "@/components/booking-form-upload";
+import { PopAdminUpload } from "@/components/pop-admin-upload";
 import { SaleForm } from "@/components/sale-form";
 import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 import type { Sale } from "@/lib/types";
@@ -91,9 +92,20 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
       </div>
       <div className="optional-pop-action">
         <div><strong>POP is optional</strong><span>Use it only when a proposal is required before the purchaser proceeds with booking.</span></div>
-        <button type="button" className="button secondary" onClick={() => { setValues(undefined); setMode("pop"); setRevision((current) => current + 1); }}>
-          Create POP
-        </button>
+        <div className="pop-intake-actions">
+          <PopAdminUpload
+            showNamecard={false}
+            compact
+            onUseFields={(fields) => {
+              setValues(fields as unknown as Partial<Sale>);
+              setMode("pop");
+              setRevision((current) => current + 1);
+            }}
+          />
+          <button type="button" className="button secondary pop-intake-button" onClick={() => { setValues(undefined); setMode("pop"); setRevision((current) => current + 1); }}>
+            Enter POP manually
+          </button>
+        </div>
       </div>
     </section>
     {mode && <div ref={entryRef} className="new-sale-entry">

@@ -22,10 +22,12 @@ const labels: Record<string, string> = {
 };
 const namecardFields = ["agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_company", "agent_address"];
 
-export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
+export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard = true, compact = false }: {
   saleId?: string;
   unitNumber?: string;
   onUseFields: (fields: PopAdminFields) => void;
+  showNamecard?: boolean;
+  compact?: boolean;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const namecardInput = useRef<HTMLInputElement>(null);
@@ -91,12 +93,12 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields }: {
       const file = event.target.files?.[0];
       if (file) void extract(file, "namecard");
     }} />
-    <button type="button" className="button secondary" disabled={busy} onClick={() => input.current?.click()}>
+    <button type="button" className={`button secondary${compact ? " pop-intake-button" : ""}`} disabled={busy} onClick={() => input.current?.click()}>
       {busySource === "pop" ? "Reading POP Form…" : saleId ? "Replace POP Form" : "Upload POP Form"}
     </button>
-    <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
+    {showNamecard && <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
       {busySource === "namecard" ? "Reading agent namecard…" : saleId ? "Replace agent namecard" : "Upload agent namecard"}
-    </button>
+    </button>}
     {message && <p className="upload-message" role="status">{message}</p>}
     {result && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Review POP administration details">
       <div className="upload-review-card">
