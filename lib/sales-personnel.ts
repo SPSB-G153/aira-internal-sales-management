@@ -1,5 +1,5 @@
 export const salesPersonnel = [
-  { name: "Madihah Hassan", email: "madihah.hassan@selangorproperties.com.my", designation: "Aira Custodial Manager", mobile: "" },
+  { name: "Madihah Hassan", email: "madihah.hassan@selangorproperties.com.my", designation: "Senior Relationship Manager", mobile: "" },
   { name: "Felicia Low", email: "felicia.low@selangorproperties.com.my", designation: "Business Development Manager", mobile: "" },
 ] as const;
 
