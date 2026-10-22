@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { getDocuments } from "@/lib/data/documents";
+import { ensureAgentCommissionDocument, getDocuments } from "@/lib/data/documents";
 import { getSales } from "@/lib/data/sales";
 import { documentNames } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function DocumentsPage() {
-  const [allDocs, sales] = await Promise.all([getDocuments(), getSales()]);
+  const sales = await getSales();
+  await Promise.all(sales.map((sale) => ensureAgentCommissionDocument(sale)));
+  const allDocs = await getDocuments();
   const salesById = new Map(sales.map((sale) => [sale.id, sale]));
   const docs = allDocs.filter((document) => [
     "acceptance_letter",
@@ -21,7 +23,7 @@ export default async function DocumentsPage() {
     <div className="page-header"><div>
       <p className="eyebrow">Document register</p>
       <h1>Generated letters, ready to review.</h1>
-      <p className="subtle">Notice of Acceptance, Agent&apos;s Fee Arrangement (when an agent is stated), Rebate Letter, Confirmation of Inventories (when applicable) and HOVP Letter.</p>
+      <p className="subtle">Notice of Acceptance, Agency Appointment Letter and Agent&apos;s Fee Arrangement (when an agent is stated), Rebate Letter, Confirmation of Inventories (when applicable) and HOVP Letter.</p>
     </div></div>
     <div className="card sales-list">{docs.length ? docs.map((document) => {
       const sale = salesById.get(document.sale_id);
