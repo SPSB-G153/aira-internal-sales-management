@@ -38,4 +38,4 @@ export interface Sale {
   status:SaleStatus; created_at:string;
 }
 export interface SaleDocument { id:string; team_id:string; user_id:string|null; sale_id:string; document_type:DocumentType; content:Record<string,unknown>; status:DocumentStatus; generated_at:string|null; created_at:string; }
-export const documentNames:Record<DocumentType,string>={pre_booking_form:"Prospect Offer Proposal Form",booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",agent_commission_letter:"Agent Commission Letter",rebate_letter:"Rebate Letter",inventory_confirmation_letter:"Confirmation of Inventories",hovp_letter:"HOVP Letter"};
+export const documentNames:Record<DocumentType,string>={pre_booking_form:"Prospect Offer Proposal Form",booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",agent_commission_letter:"Agent's Fee Arrangement",rebate_letter:"Rebate Letter",inventory_confirmation_letter:"Confirmation of Inventories",hovp_letter:"HOVP Letter"};

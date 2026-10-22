@@ -20,7 +20,7 @@ export default async function DocumentsPage() {
     <div className="page-header"><div>
       <p className="eyebrow">Document register</p>
       <h1>Generated letters, ready to review.</h1>
-      <p className="subtle">Notice of Acceptance, Agent Commission Letter, Rebate Letter, Confirmation of Inventories (when applicable) and HOVP Letter.</p>
+      <p className="subtle">Notice of Acceptance, Agent&apos;s Fee Arrangement (when an agent is stated), Rebate Letter, Confirmation of Inventories (when applicable) and HOVP Letter.</p>
     </div></div>
     <div className="card sales-list">{docs.length ? docs.map((document) => {
       const sale = salesById.get(document.sale_id);

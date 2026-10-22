@@ -36,3 +36,19 @@ export function legacyAgencyCompany(source: AgencyFallbackSource) {
   }
   return "";
 }
+
+export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
+  return splitAgencyDetails(source.agent_company).company || legacyAgencyCompany(source);
+}
+
+export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?: unknown }) {
+  return Boolean(agencyCompanyForSale(source).trim());
+}
+
+export function agencyLetterDetails(company: unknown) {
+  const normalized = String(company ?? "").trim();
+  if (/belle\s*&\s*bross/i.test(normalized)) {
+    return { contactName: "Ms Bella Wong", contactPosition: "CEO", greeting: "Dear Ms Bella,", appointmentDate: "8th January, 2024" };
+  }
+  return { contactName: "", contactPosition: "", greeting: "Dear Sir or Madam,", appointmentDate: "" };
+}

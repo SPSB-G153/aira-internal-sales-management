@@ -5,6 +5,7 @@ import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
 import { designationForSalesPersonnel } from "@/lib/sales-personnel";
+import { agencyLetterDetails } from "@/lib/agency-details";
 
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
 const amount=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(value):"—";
@@ -247,43 +248,35 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
+  const agencyDetails=agencyLetterDetails(agency);
   const enteredAgencyAddress=text(content,"agent_address","");
   const agencyAddress=enteredAgencyAddress
     ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)
     : /\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
   const unit=text(content,"unit_number");
-  const tower=towerFromUnit(unit);
   const purchaser=text(content,"customer_name").toUpperCase();
   const price=typeof content.purchase_price==="number"?content.purchase_price:0;
+  const rebate=typeof content.rebate_amount==="number"?content.rebate_amount:0;
+  const netPurchasePrice=Math.max(price-rebate,0);
   const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
+  const netPriceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(netPurchasePrice)}`;
   const salesperson=text(content,"salesperson_name","");
   const letterDate=issuedLetterDate(content);
-  const rows:[string,string][]=[
-    ["Project",text(content,"project_name")],
-    ["Property",`Parcel No. ${unit}${tower?`, Tower ${tower}`:""}`],
-    ["Purchaser",purchaser],
-    ["Purchase Price",priceText],
-  ];
   const facts=new Table({
     width:{size:100,type:WidthType.PERCENTAGE},
     borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
-    rows:rows.map(([label,value],index)=>new TableRow({children:[
-      new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?70:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:label,bold:true})],{spacing:{before:0,after:35,line:280}})]}),
-      new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?70:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:":",bold:true})],{spacing:{before:0,after:35,line:280}})]}),
-      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?70:0,left:0,right:0},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:value,bold:true})],{spacing:{before:0,after:35,line:280}})]}),
-    ]}))
+    rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[exactParagraph("",{spacing:{before:0,after:0,line:40}})]})]})]
   });
   const pageOne:(Paragraph|Table)[]=[
     exactParagraph(letterDate,{spacing:{before:220,after:420,line:300}}),
-    exactParagraph([new TextRun(agency),...agencyAddress.map(address=>new TextRun({text:address,break:1}))],{spacing:{before:0,after:420,line:300}}),
-    exactParagraph("Dear Sir or Madam,",{spacing:{before:0,after:320,line:300}}),
-    exactParagraph([new TextRun({text:"AGENT'S FEE ARRANGEMENT",bold:true,size:20})],{spacing:{before:0,after:0,line:300}}),
+    exactParagraph([...(agencyDetails.contactName?[new TextRun({text:agencyDetails.contactName,bold:true}),new TextRun({text:agencyDetails.contactPosition,bold:true,break:1})]:[]),new TextRun({text:agency,bold:true,break:agencyDetails.contactName?1:0}),...agencyAddress.map(address=>new TextRun({text:address,break:1}))],{spacing:{before:0,after:420,line:300}}),
+    exactParagraph(agencyDetails.greeting,{spacing:{before:0,after:320,line:300}}),
+    exactParagraph([new TextRun({text:"AGENT'S FEE ARRANGEMENT",bold:true,size:20}),new TextRun({text:`UNIT ${unit}`,bold:true,size:20,break:1}),new TextRun({text:`PURCHASER: ${purchaser}`,bold:true,size:20,break:1}),new TextRun({text:`PURCHASE PRICE: ${priceText}`,bold:true,size:20,break:1})],{spacing:{before:0,after:0,line:260}}),
     facts,
-    exactParagraph("We refer to your letter of appointment dated 4th April, 2023 to the abovementioned purchaser.",{spacing:{before:300,after:200,line:300}}),
-    exactParagraph([new TextRun("We are pleased to advise that in the case of this sale only, the agents commission will be "),new TextRun({text:"2%",bold:true}),new TextRun(" of the Net Purchase Price of "),new TextRun({text:priceText,bold:true}),new TextRun(".")],{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph(`We refer to your letter of appointment${agencyDetails.appointmentDate?` dated ${agencyDetails.appointmentDate}`:""} and the recent sale of Unit ${unit} to the abovementioned purchaser.`,{spacing:{before:300,after:200,line:300}}),
+    exactParagraph([new TextRun("We are pleased to advise that in the case of this sale only, the agent's commission will be increased from 2.00% to "),new TextRun({text:"3.00%",bold:true}),new TextRun(" of the Net Purchase Price of "),new TextRun({text:netPriceText,bold:true}),new TextRun(".")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("The Sales Commission will be paid in Ringgit Malaysia within 30 days of our receipt of the following:",{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("•    a stamped copy of the Sales & Purchase Agreement (SPA);",{indent:{left:420,hanging:240},spacing:{before:0,after:100,line:300}}),
-    exactParagraph("•    a copy of the relevant State Authority's Consent Approval for Foreigners; and",{indent:{left:420,hanging:240},spacing:{before:0,after:100,line:300}}),
     exactParagraph("•    the Agent's Tax Invoice.",{indent:{left:420,hanging:240},spacing:{before:0,after:260,line:300}}),
     exactParagraph("We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.",{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and behalf SELANGOR PROPERTIES SDN. BHD.",break:1})],{spacing:{before:300,after:620,line:300}}),
@@ -296,7 +289,7 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:6,color:"333333"},left:noBorder,right:noBorder},margins:{top:0,bottom:130,left:0,right:0},children:[
       exactParagraph([new TextRun({text:`AGENT'S FEE ARRANGEMENT TO THE SALES OF UNIT ${unit},`,bold:true}),new TextRun({text:`${text(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT`,bold:true,break:1}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",break:1})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:341}})
     ]})]})]}),
-    exactParagraph(`I/We, ${agency||"____________________"} acknowledge receipt of this Letter dated ${letterDate} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:130,after:2100,line:341}}),
+    exactParagraph([new TextRun("We, "),new TextRun({text:agency||"____________________",bold:true}),new TextRun(` acknowledge receipt of this Letter dated ${letterDate} from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.`)],{alignment:AlignmentType.JUSTIFIED,spacing:{before:130,after:2100,line:341}}),
     new Table({width:{size:4500,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:{style:BorderStyle.DOTTED,size:5,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder},margins:{top:70,bottom:0,left:0,right:0},children:[
       exactParagraph("Signature and Company Rubber Stamp:",{spacing:{before:0,after:140,line:300}}),
       new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:["Name:","I/C No.:","Date:"].map(label=>new TableRow({children:[

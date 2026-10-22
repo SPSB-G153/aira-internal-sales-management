@@ -5,6 +5,7 @@ import { CurrentLetterDate } from "@/components/current-letter-date";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
 import { designationForSalesPersonnel } from "@/lib/sales-personnel";
+import { agencyLetterDetails } from "@/lib/agency-details";
 
 type Content=Record<string,unknown>;
 function LetterPageNumber({page}:{page:number}){return <div className="notice-page-number"><span>{page}</span></div>}
@@ -106,6 +107,7 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
 
 function AgentCommissionLetter({content}:{content:Content}){
   const agency=value(content,"agent_company","");
+  const agencyDetails=agencyLetterDetails(agency);
   const enteredAgencyAddress=value(content,"agent_address","");
   const agencyAddress=enteredAgencyAddress
     ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)
@@ -113,7 +115,9 @@ function AgentCommissionLetter({content}:{content:Content}){
   const purchaser=value(content,"customer_name").toUpperCase();
   const unit=value(content,"unit_number");
   const price=number(content,"purchase_price");
+  const netPurchasePrice=Math.max(price-number(content,"rebate_amount"),0);
   const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
+  const netPriceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(netPurchasePrice)}`;
   const salesperson=value(content,"salesperson_name","");
   const letterIssuedAt=value(content,"letter_issued_at","");
   return <div className="agent-commission-letter">
@@ -121,19 +125,15 @@ function AgentCommissionLetter({content}:{content:Content}){
       <section className="notice-page agent-commission-page">
         <CompanyHead/>
         <p className="notice-date"><CurrentLetterDate date={letterIssuedAt}/></p>
-        <p className="agent-recipient">{agency}<br/>{agencyAddress.map((line,index)=><span key={line}>{line}{index<agencyAddress.length-1&&<br/>}</span>)}</p>
-        <p>Dear Sir or Madam,</p>
-        <h1>AGENT&apos;S FEE ARRANGEMENT</h1>
+        <p className="agent-recipient">{agencyDetails.contactName&&<><b>{agencyDetails.contactName}</b><br/></>}{agencyDetails.contactPosition&&<><b>{agencyDetails.contactPosition}</b><br/></>}<b>{agency}</b><br/>{agencyAddress.map((line,index)=><span key={line}>{line}{index<agencyAddress.length-1&&<br/>}</span>)}</p>
+        <p>{agencyDetails.greeting}</p>
+        <h1>AGENT&apos;S FEE ARRANGEMENT<br/>UNIT {unit}<br/>PURCHASER: {purchaser}<br/>PURCHASE PRICE: {priceText}</h1>
         <dl className="agent-commission-facts">
-          <Fact label="Project"><b>{value(content,"project_name")}</b></Fact>
-          <Fact label="Property"><b>Parcel No. {unit}{towerFromUnit(unit)?`, Tower ${towerFromUnit(unit)}`:""}</b></Fact>
-          <Fact label="Purchaser"><b>{purchaser}</b></Fact>
-          <Fact label="Purchase Price"><b>{priceText}</b></Fact>
         </dl>
-        <p>We refer to your letter of appointment dated 4th April, 2023 to the abovementioned purchaser.</p>
-        <p>We are pleased to advise that in the case of this sale only, the agents commission will be <b>2%</b> of the Net Purchase Price of <b>{priceText}</b>.</p>
+        <p>We refer to your letter of appointment{agencyDetails.appointmentDate?<> dated {agencyDetails.appointmentDate}</>:null} and the recent sale of Unit {unit} to the abovementioned purchaser.</p>
+        <p>We are pleased to advise that in the case of this sale only, the agent&apos;s commission will be increased from 2.00% to <b>3.00%</b> of the Net Purchase Price of <b>{netPriceText}</b>.</p>
         <p>The Sales Commission will be paid in Ringgit Malaysia within 30 days of our receipt of the following:</p>
-        <ul className="agent-commission-list"><li>a stamped copy of the Sales &amp; Purchase Agreement (SPA);</li><li>a copy of the relevant State Authority&apos;s Consent Approval for Foreigners; and</li><li>the Agent&apos;s Tax Invoice.</li></ul>
+        <ul className="agent-commission-list"><li>a stamped copy of the Sales &amp; Purchase Agreement (SPA);</li><li>the Agent&apos;s Tax Invoice.</li></ul>
         <p>We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.</p>
         <p className="agent-commission-closing">Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p>
         <ApprovalSignature content={content} hideCopy/>
@@ -146,7 +146,7 @@ function AgentCommissionLetter({content}:{content:Content}){
         <CompanyEmblem/>
         <h2>ACCEPTANCE</h2>
         <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALES OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
-        <p>I/We, {agency||"____________________"} acknowledge receipt of this Letter dated <CurrentLetterDate date={letterIssuedAt}/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
+        <p>We, <b>{agency||"____________________"}</b> acknowledge receipt of this Letter dated <CurrentLetterDate date={letterIssuedAt}/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
         <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p><b>Name:</b><i/></p><p><b>I/C No.:</b><i/></p><p><b>Date:</b><i/></p></div>
         <LetterPageNumber page={2}/>
       </section>
