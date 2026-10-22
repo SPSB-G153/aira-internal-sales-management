@@ -9,6 +9,12 @@ export type PopAdminFields = Record<string, string>;
 type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string };
 
 const labels: Record<string, string> = {
+  customer_name: "Purchaser name",
+  purchaser_type: "Purchaser type",
+  project_name: "Project",
+  unit_number: "Unit number",
+  purchase_price: "SPA / purchase price",
+  sale_date: "Proposal date",
   sale_reference: "POP / booking reference",
   salesperson_name: "Sales personnel name",
   salesperson_designation: "Sales personnel designation",
@@ -114,8 +120,7 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
         return;
       }
       if (saved.previewDocumentId) { setResult(null); setMessage("POP saved. No agent was indicated, so no agent letters were created."); return; }
-      onUseFields(fields);
-      setMessage(saved.error || "The uploaded POP could not be saved.");
+      setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
       return;
     }
     setBusy(true);
@@ -128,7 +133,6 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
       setMessage("Details saved. Both agent letters are ready to preview and download.");
       return;
     }
-    onUseFields(fields);
     setMessage(saved.error || "POP administration details saved and reflected in the booking and letters.");
   }
 
