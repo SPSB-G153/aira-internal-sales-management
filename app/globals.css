@@ -464,6 +464,9 @@ h3 { margin:0; font-size:16px; }
 /* Match the approved HOVP source document without changing the other letters. */
 .hovp-letter { position:relative; box-sizing:border-box; min-height:1000px; padding:48px 58px 42px!important; display:flex; flex-direction:column; color:#111; font-family:Helvetica,Arial,sans-serif; font-size:13.333px!important; line-height:1.25; }
 .hovp-letter .source-letter-head { margin-bottom:20px; }
+.hovp-letter-head { display:flex; align-items:flex-start; justify-content:space-between; min-height:56px; margin:0 0 20px; }
+.hovp-letter-head img:first-child { width:122px; height:auto; }
+.hovp-letter-head img:last-child { width:168px; height:47px; object-fit:contain; }
 .hovp-letter p { margin:0 0 12px; text-align:left; }
 .hovp-letter .source-subject { margin:6px 0 14px; padding-bottom:4px; border-bottom:1px solid #333; font-size:13.333px; font-weight:700; line-height:1.25; text-decoration:none; }
 .hovp-terms { margin:0 0 5px; padding:0; list-style:none; counter-reset:hovp-term; }
@@ -532,6 +535,20 @@ h3 { margin:0; font-size:16px; }
 .agent-commission-page .notice-greeting { margin-bottom:14px; text-align:left; }
 .agent-commission-page .notice-subject { margin:0 0 18px; text-align:left; }
 .agent-subject-address { display:inline-block; margin-left:52px; }
+.agent-appointment-subject { margin:8px 0 16px; padding-bottom:7px; border-bottom:1px solid #333; font-size:13px; line-height:1.35; text-align:left; }
+.agency-definition { margin:0; padding-left:34px; }
+.agency-definition li { margin:0 0 12px; padding-left:8px; text-align:justify; }
+.agency-commission-table { width:100%; margin:7px 0 17px; border-collapse:collapse; table-layout:fixed; font-size:11px; line-height:1.12; }
+.agency-commission-table th,.agency-commission-table td { padding:4px 7px; border:1px solid #222; text-align:center; vertical-align:middle; }
+.agency-commission-table thead th { background:#d9d9d9; font-size:11px; }
+.agency-commission-table thead th:first-child { width:30%; }
+.agency-commission-table thead th span { font-weight:400; }
+.agency-commission-table tbody th { text-align:left; }
+.agency-commission-table tbody tr:not(.agency-international) td:first-child { text-align:left; padding-left:30px; }
+.agency-commission-table .agency-international th { text-align:left; }
+.agency-table-page .agent-commission-list { margin-bottom:0; }
+.agency-closing-page .agent-commission-page p { margin-bottom:20px; }
+.agency-closing-page .approval-signature { margin-top:34px; }
 .agent-recipient { min-height:78px; text-align:left!important; }
 .agent-commission-page h1 { margin:22px 0 0; font-size:14px; line-height:1.35; text-align:left; }
 .agent-commission-facts { margin:0 0 18px; padding:7px 0 8px; border-bottom:1px solid #333; }

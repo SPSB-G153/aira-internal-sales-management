@@ -35,6 +35,15 @@ const letterHeader=(image:Uint8Array,emblem=false)=>new Header({children:[new Pa
   children:[new ImageRun({type:"png",data:image,transformation:emblem?{width:52,height:41}:{width:168,height:47},altText:{title:emblem?"SPB emblem":"Selangor Properties Berhad",description:"Selangor Properties Berhad",name:emblem?"SPB emblem":"Selangor Properties Berhad"}})]
 })]});
 
+const hovpHeader=(airaLogo:Uint8Array,companyLogo:Uint8Array)=>new Header({children:[new Table({
+  width:{size:100,type:WidthType.PERCENTAGE},
+  borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
+  rows:[new TableRow({children:[
+    new TableCell({width:{size:50,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({alignment:AlignmentType.LEFT,spacing:{before:0,after:0},children:[new ImageRun({type:"png",data:airaLogo,transformation:{width:122,height:50},altText:{title:"AIRA Residence",description:"AIRA Residence",name:"AIRA Residence"}})]})]}),
+    new TableCell({width:{size:50,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},children:[new Paragraph({alignment:AlignmentType.RIGHT,spacing:{before:0,after:0},children:[new ImageRun({type:"png",data:companyLogo,transformation:{width:168,height:47},altText:{title:"Selangor Properties Sdn. Bhd.",description:"Selangor Properties Sdn. Bhd.",name:"Selangor Properties Sdn. Bhd."}})]})]}),
+  ]})]
+})]});
+
 const acceptanceFirstFooter=()=>new Footer({children:[new Table({
   width:{size:100,type:WidthType.PERCENTAGE},
   rows:[new TableRow({children:[
@@ -172,12 +181,12 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
   }]
 });
 
-const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array)=>new Document({
+const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,airaLogo:Uint8Array)=>new Document({
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Helvetica",size:20},paragraph:{spacing:{line:260,after:0}}}}},
   sections:[{
     properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1220,right:1440,bottom:700,left:1440,header:720,footer:360}}},
-    headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
+    headers:{first:hovpHeader(airaLogo,fullLogo),default:hovpHeader(airaLogo,fullLogo)},
     footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
     children,
   }]
@@ -246,22 +255,48 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
 }
 
+const agencyCommissionWordTable=()=>{
+  const border={style:BorderStyle.SINGLE,size:5,color:"333333"};
+  const richCell=(runs:TextRun[],fill?:string)=>new TableCell({shading:fill?{fill}:undefined,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph(runs,{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:230}})]});
+  const plain=(value:string,bold=false,fill?:string)=>richCell([new TextRun({text:value,bold})],fill);
+  const row=(values:[string,string,string,string],boldFirst=false)=>new TableRow({children:values.map((v,i)=>plain(v,boldFirst&&i===0))});
+  return new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:border,bottom:border,left:border,right:border,insideHorizontal:border,insideVertical:border},rows:[
+    new TableRow({children:[richCell([new TextRun({text:"TOWER / UNIT TYPE",bold:true})],"D9D9D9"),richCell([new TextRun({text:"SALES COMMISSION",bold:true}),new TextRun({text:"% Net Purchase Price",break:1})],"D9D9D9"),richCell([new TextRun({text:"LIST PRICE",bold:true}),new TextRun({text:"RM million",break:1})],"D9D9D9"),richCell([new TextRun({text:"AV COMMISSION",bold:true}),new TextRun({text:"RM",break:1})],"D9D9D9")]}),
+    new TableRow({children:[new TableCell({columnSpan:4,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"Domestic Sales:",bold:true})],{spacing:{before:0,after:0,line:230}})]})]}),
+    row(["TOWER A","","",""],true),row(["Type A1","2.00","10.25","205,000"]),row(["Type B","2.00","8.53 – 9.21","178,500"]),row(["Type A2","2.00","10.00 – 12.58","112,580"]),row(["Types D, E & F","2.00","9.37 – 11.53","209,000"]),row(["TOWER B","","",""],true),row(["Types G & H","2.00","3.08 avg","61,600"]),
+    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"International Sales (Towers A & B):",bold:true})],{spacing:{before:0,after:0,line:230}})]}),new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"2.0%-3.0%",bold:true}),new TextRun(" of the Net Purchase Price")],{spacing:{before:0,after:0,line:230}})]})]})
+  ]});
+};
+
 async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
   const details=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
   const address=noticeAddressLines(text(content,"agent_address",""));
+  const salesperson=text(content,"salesperson_name","");
+  const salespersonMobile=text(content,"salesperson_mobile","");
+  const salespersonEmail=text(content,"salesperson_email","");
   const pageBreak=()=>new Paragraph({children:[new PageBreak()]});
   const children:(Paragraph|Table)[]=[
     exactParagraph(issuedLetterDate(content),{spacing:{before:220,after:420,line:300}}),
-    exactParagraph([...(details.contactName?[new TextRun({text:details.contactName,bold:true}),new TextRun({text:details.contactPosition,bold:true,break:1})]:[]),new TextRun({text:agency,bold:true,break:details.contactName?1:0}),...address.map(line=>new TextRun({text:line,break:1}))]),
+    exactParagraph([...(details.contactName?[new TextRun({text:details.contactName,bold:true})]:[]),new TextRun({text:agency,bold:true,break:details.contactName?1:0}),...address.map(line=>new TextRun({text:line,break:1}))]),
     exactParagraph(details.greeting),
-    exactParagraph([new TextRun({text:"RE:     AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"             No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true,break:1,underline:{type:UnderlineType.SINGLE}})]),
-    exactParagraph("We would like to thank you for introducing a prospect for the AIRA Residence project and wish to take this opportunity to formalize your agency appointment."),
-    exactParagraph("As an Appointed Agent for AIRA Residence, each prospect must first be registered with SPSB through the approved CRM process. The agent's representative is required to escort the prospect through the show unit and lead the sales presentation, supported by our Relationship Managers when required."),
-    pageBreak(),exactParagraph([new TextRun({text:"SALES COMMISSION STRUCTURE",bold:true,size:22})],{alignment:AlignmentType.CENTER}),
-    exactParagraph("Domestic Sales: 2.00% of the Net Purchase Price, unless a separate fee arrangement is issued for a particular unit."),exactParagraph("International Sales (Towers A & B): 2.00% of the Net Purchase Price."),exactParagraph("Net Purchase Price means the approved selling price less any discounts or rebates offered to the buyer with SPSB's approval."),exactParagraph("The Sales Commission will be paid in Ringgit Malaysia within 30 days after receipt of the stamped Sale and Purchase Agreement and the Agent's Tax Invoice."),
-    pageBreak(),exactParagraph("The sale of units is on a first-come-first-served basis. The Appointed Agent must confirm unit availability and current list prices with SPSB."),exactParagraph("The Appointed Agent must not advertise AIRA Residence on any media platform without SPSB's prior approval."),exactParagraph(`For clarification, please contact ${text(content,"salesperson_name","")}, ${text(content,"salesperson_designation","")}, ${text(content,"salesperson_mobile","")}, ${text(content,"salesperson_email","")}.`),exactParagraph("We look forward to working with you and your team and trust that our collaboration on AIRA Residence will be productive and successful."),exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and on behalf of SELANGOR PROPERTIES SDN BHD",bold:true,break:1})],{spacing:{before:300,after:620,line:300}}),acceptanceSignature(content),
-    pageBreak(),exactParagraph([new TextRun({text:"ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER}),exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",break:1})],{alignment:AlignmentType.CENTER}),exactParagraph([new TextRun("We, "),new TextRun({text:agency||"____________________",bold:true}),new TextRun(", agree to become an Appointed Agent for AIRA Residence on the terms and conditions contained in this letter and to comply with the policies and sales procedures of Selangor Properties Sdn Bhd.")],{spacing:{before:500,after:1400,line:341}}),exactParagraph("________________________________\nSignature and Company Rubber Stamp:\n\nName: __________________________\n\nI/C No.: ________________________\n\nDate: __________________________"),
+    exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true,break:1})],{spacing:{before:0,after:220,line:260},border:{bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"}}}),
+    exactParagraph("We would like to thank you for introducing a prospect for the AIRA Residence project and herein wish to take the opportunity to formalize your agency appointment.",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph("As you know, AIRA Residence is a very special project due to its unique location, low density and harmonious fusion of Asian and European design aesthetics. AIRA has been almost exclusively designed for owner-occupiers and already houses a marquee family of residents from all segments of local and international society. Our brand speaks to those who instinctively understand our language and our way of being.",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph("Your firm's representative will be required to escort the Prospect through the development and to lead the sales pitch. One of our Relationship Managers will accompany the Prospect/Salesperson and provide support whenever required. Our RMs are very well trained in the product, thus their presence will reinforce SPSB's commitment to your Prospect(s).",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph("We welcome your initiative to introduce both local and foreign buyers. With regards international sales, we define a ‘foreign buyer’ in the following manner:",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph([new TextRun({text:"International Sales – Definition of a Foreign Buyer",bold:true})]),
+    ...[
+      "Any individual, corporation or company that is a foreign national and wishes to purchase a property in Malaysia for investment or dwelling purposes and is subject to restrictions or guidelines set by FIC or by any other related guideline related to foreign property purchase.",
+      "Individuals who are not Malaysian citizens seeking to purchase for vacation/second home market under Malaysia My Second Home (MM2H).",
+      "International Sales do not include individual purchasers bearing NRIC, red IC, PR holders, UN special pass holders or foreign nationals via marriage, work assignments or the like.",
+    ].map((item,index)=>exactParagraph(`${index+1}.    ${item}`,{alignment:AlignmentType.JUSTIFIED,indent:{left:360,hanging:260},spacing:{before:0,after:130,line:260}})),
+    pageBreak(),exactParagraph([new TextRun({text:"Sales Commission Structure",bold:true,size:22})]),exactParagraph("As an Appointed Agent you will gain entitlement to the following Sales Commission structure:"),agencyCommissionWordTable(),
+    exactParagraph([new TextRun({text:"NB: The Commission structure shown in the above Table is valid for ",italics:true}),new TextRun({text:"12 months",bold:true,italics:true}),new TextRun({text:" from the date of this letter.",italics:true})],{spacing:{before:240,after:240,line:280}}),
+    exactParagraph("The Sales Commission for both Towers ‘A’ & ‘B’ will be paid in Ringgit Malaysia within 30 days of our receipt of the following:"),
+    exactParagraph("•    a stamped copy of the Sales & Purchase Agreement (SPA)",{indent:{left:360,hanging:240},spacing:{before:0,after:90,line:260}}),exactParagraph("•    a copy of the relevant State Authority's Consent Approval for Foreigners; and",{indent:{left:360,hanging:240},spacing:{before:0,after:90,line:260}}),exactParagraph("•    the Agent's Tax Invoice",{indent:{left:360,hanging:240},spacing:{before:0,after:0,line:260}}),
+    pageBreak(),exactParagraph("You shall at all times sell the units at the List Price approved by us and shall not adjust, revise, increase or amend the selling price for the units. Given the scarcity of units available for purchase in AIRA Residence and our philosophy of protecting purchaser's investment, the List Prices quoted are fix and non-negotiable.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:100,after:260,line:300}}),exactParagraph("The sale of units to a Prospect is on a first-come-first-serve basis. The Appointed Agent is to check with SPSB on the availability of the units and the confirmation of the List Prices from time to time.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:260,line:300}}),exactParagraph("You are strictly prohibited to advertise AIRA in any media platform without our approval.",{spacing:{before:0,after:320,line:300}}),exactParagraph(`I trust that the above explanation is clear, however, should you require any further clarification please contact ${salesperson} at ${salespersonMobile} or via email at ${salespersonEmail}. Alternatively, you can also contact Ms Katherine Chew at +60193901491 or via email at katherine.chew@selangorproperties.com.my for further assistance.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:280,line:300}}),exactParagraph("We look forward to working with you and your team and feel sure that our collaboration on AIRA Residence can be the starting point of a longer-term productive and profitable relationship for both companies.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:360,line:300}}),exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and on behalf of SELANGOR PROPERTIES SDN BHD",bold:true,italics:true,break:1})],{spacing:{before:0,after:800,line:300}}),acceptanceSignature(content),
+    pageBreak(),exactParagraph([new TextRun({text:"ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:620,line:300}}),exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true,break:1})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:800,line:300},border:{bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"}}}),exactParagraph([new TextRun("We, "),new TextRun({text:agency||"____________________",bold:true}),new TextRun(" agree to become an Appointed Agent for AIRA Residence condominium project on the basis of the terms and conditions outlined herein and further, agree to adhere to the policies and sales procedures set forth by Selangor Properties Sdn Bhd and to always represent the project honestly and with the highest levels of professional conduct.")],{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:1000,line:341}}),exactParagraph("________________________________________\nSignature:\n\nName: __________________________________\n\nI/C No.:__________________________________\n\nDate:   __________________________________"),
   ];
   return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true,360,1360,760)));
 }
@@ -347,10 +382,11 @@ const hovpAcknowledgementTable=(leftRows:[string,string][],rightRows:[string,str
 });
 
 async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
+  const airaLogo=new Uint8Array(await readFile(path.join(process.cwd(),"public","aira-residence-logo.png")));
   const purchaser=text(content,"customer_name");
   const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const unit=text(content,"unit_number");
-  const handover=currentLetterDate();
+  const handover=text(content,"hovp_date","")||currentLetterDate();
   const salesperson=text(content,"salesperson_name","");
   const salespersonDesignation=text(content,"salesperson_designation","");
   const salespersonMobile=text(content,"salesperson_mobile","");
@@ -388,7 +424,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
       [["Signature",""],["Name",""],["Designation",""],["Date",""]],
     ),
   ];
-  return new Uint8Array(await Packer.toBuffer(hovpDocument(children,fullLogo,emblemLogo)));
+  return new Uint8Array(await Packer.toBuffer(hovpDocument(children,fullLogo,airaLogo)));
 }
 
 const popMoney=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-MY",{maximumFractionDigits:2}).format(value):"0";
