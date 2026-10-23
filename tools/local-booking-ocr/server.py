@@ -140,6 +140,28 @@ def health():
     return {"ok": True, "private": True, "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b")}
 
 
+def structured_model_response(payload, timeout, retry_num_predict=None):
+    """Return complete structured JSON, retrying once when Ollama truncates it."""
+    response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=timeout)
+    if not response.ok:
+        raise RuntimeError(f"Private model error: {response.text}")
+    content = response.json()["message"]["content"]
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as first_error:
+        if not retry_num_predict:
+            raise RuntimeError("The private model returned an incomplete response. Please retry the upload.") from first_error
+        retry_payload = dict(payload)
+        retry_payload["options"] = {**payload.get("options", {}), "num_predict": retry_num_predict}
+        retry = requests.post("http://127.0.0.1:11434/api/chat", json=retry_payload, timeout=timeout)
+        if not retry.ok:
+            raise RuntimeError(f"Private model retry error: {retry.text}")
+        try:
+            return json.loads(retry.json()["message"]["content"])
+        except json.JSONDecodeError as retry_error:
+            raise RuntimeError("The private model returned an incomplete response twice. Please retry the upload.") from retry_error
+
+
 def normalize_booking_fee(amount, displayed_text):
     raw = str(displayed_text or "").strip()
     compact = re.sub(r"[\s,]", "", raw)
@@ -709,12 +731,9 @@ async def extract(file: UploadFile = File(...)):
             "format": SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 900},
+            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 1800},
         }
-        result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=900)
-        if not result.ok:
-            raise RuntimeError(f"Private model error: {result.text}")
-        parsed = json.loads(result.json()["message"]["content"])
+        parsed = structured_model_response(payload, timeout=900, retry_num_predict=2600)
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
