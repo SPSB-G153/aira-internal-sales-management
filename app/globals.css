@@ -549,7 +549,7 @@ h3 { margin:0; font-size:16px; }
 .agency-table-page .agent-commission-list { margin-bottom:0; }
 .agency-closing-page .agent-commission-page p { margin-bottom:24px; }
 .agency-closing-page .approval-signature { margin-top:34px; }
-.agency-closing-page .approval-signature .signature-space { height:340px; }
+.notice-page.agency-closing-page .approval-signature .signature-space { height:210px; }
 .agent-recipient { min-height:78px; text-align:left!important; }
 .agent-commission-page h1 { margin:22px 0 0; font-size:14px; line-height:1.35; text-align:left; }
 .agent-commission-facts { margin:0 0 18px; padding:7px 0 8px; border-bottom:1px solid #333; }
