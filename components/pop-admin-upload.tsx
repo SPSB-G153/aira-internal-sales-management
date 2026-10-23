@@ -152,9 +152,15 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
       {busySource === "namecard" ? "Reading agent namecard…" : saleId ? "Replace agent namecard" : "Upload agent namecard"}
     </button>}
     {message && <p className="upload-message" role="status">{message}</p>}
-    {(agentDocuments.appointment || agentDocuments.fee) && <div className="form-actions agent-letter-actions">
-      {agentDocuments.appointment && <a className="button accent" href={`/documents/${agentDocuments.appointment}`}>Preview Agency Appointment Letter</a>}
-      {agentDocuments.fee && <a className="button secondary" href={`/documents/${agentDocuments.fee}`}>Preview Agent&apos;s Fee Arrangement</a>}
+    {(agentDocuments.appointment || agentDocuments.fee) && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Agent letters ready">
+      <div className="upload-review-card agent-letter-ready-card">
+        <h2>Agent letters are ready</h2>
+        <p className="subtle">Choose either letter to preview. The preview page provides both PDF/print and Word download.</p>
+        <div className="form-actions agent-letter-actions">
+          {agentDocuments.appointment && <a className="button accent" href={`/documents/${agentDocuments.appointment}`}>Agency Appointment Letter</a>}
+          {agentDocuments.fee && <a className="button secondary" href={`/documents/${agentDocuments.fee}`}>Agent&apos;s Fee Arrangement</a>}
+        </div>
+      </div>
     </div>}
     {result && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Review POP administration details">
       <div className="upload-review-card">

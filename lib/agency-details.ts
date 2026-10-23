@@ -61,7 +61,13 @@ export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_comp
 }
 
 export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?: unknown }) {
-  return Boolean(agencyCompanyForSale(source).trim());
+  const details = splitAgencyDetails(source.agent_company);
+  return Boolean(
+    agencyCompanyForSale(source).trim() ||
+    details.agent_name ||
+    details.agent_email ||
+    details.agent_mobile,
+  );
 }
 
 export function agencyLetterDetails(company: unknown, stored?: ReturnType<typeof splitAgencyDetails>) {

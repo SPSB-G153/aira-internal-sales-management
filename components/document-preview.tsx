@@ -240,18 +240,17 @@ function HovpLetterExact({content}:{content:Content}){
       <p className="notice-date"><CurrentLetterDate/></p>
       <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
-      <h1 className="source-subject">RE: &nbsp; AIRA RESIDENCE &ndash; HANDOVER OF VACANT POSSESSION</h1>
+      <h1 className="source-subject">Re: &nbsp; AIRA Residence &ndash; Handover of Vacant Possession</h1>
       <p>We refer to your purchase of Unit <b>{unit}</b>, AIRA Residence (&ldquo;Unit&rdquo;).</p>
       <p>We are pleased to inform you that vacant possession of the Unit is available for handover on <b><CurrentLetterDate/></b>.</p>
       <p>The handover of the Unit shall be on the following basis:</p>
       <ol className="hovp-terms">
-        <li><span>As-Is, Where-Is Basis and No DLP</span><p>The Unit, including all fixtures, fittings, furniture, appliances and other items within the Unit, is handed over and accepted on an &ldquo;as-is, where-is&rdquo; basis in its existing condition at the time of handover, in accordance with the terms of the Sale and Purchase Agreement (&ldquo;SPA&rdquo;).</p></li>
-        <li><span>Handover Items</span><p>The applicable keys, access cards, remote controls and other handover items relating to the Unit will be handed over upon completion of the handover formalities.</p></li>
-        <li><span>Renovation and Alteration</span><p>Following handover, any renovation, alteration or modification carried out within the Unit shall be at your own cost and responsibility.</p></li>
-        <li><span>Building Management</span><p>Following handover, matters relating to the building, common areas, facilities and building management shall be referred to AIRA Building Management.</p></li>
+        <li><span>As-Is, Where-Is Basis and No Defect Liability Period</span><p>The Unit, including all fixtures, fittings, furniture, appliances and other items within the Unit, is handed over and accepted on an &ldquo;as-is, where-is&rdquo; basis in its existing condition at the time of handover, in accordance with the terms of the Sale and Purchase Agreement (&ldquo;SPA&rdquo;).</p></li>
+        <li><span>Handover Items</span><p>The applicable keys, access cards, remote controls and other handover items relating to the Unit will be handed over upon the completion of procedures and documentation required for the handover of vacant possession of the Unit, including the signing of the relevant handover documents, delivery of keys, access cards and remotes, and fulfilment of the applicable handover requirements imposed by SPSB.</p></li>
+        <li><span>Building Management</span><p>Following handover, matters relating to the building, common areas, facilities and services should be referred to AIRA Building Management.</p></li>
       </ol>
-      <p className="management-contact"><b>AIRA Building Management</b><br/>Tel: 03-2011 5908<br/>Email: <a href="mailto:airaresidencemgmt@gmail.com">airaresidencemgmt@gmail.com</a></p>
-      <ol className="hovp-terms hovp-contact-term" start={5}>
+      <p className="management-contact"><b>AIRA Building Management</b><br/>AIRA Residence Lobby (Ground Floor)<br/>Tel: 03-2011 5908<br/>Email: <a href="mailto:airaresidencemgmt@gmail.com">airaresidencemgmt@gmail.com</a></p>
+      <ol className="hovp-terms hovp-contact-term" start={4}>
         <li><span>Handover Coordination</span><p>For matters relating to the HOVP and handover arrangements, please contact:</p><p className="hovp-contact">Name: {salesperson}<br/>Designation: {salespersonDesignation}<br/>Mobile: {salespersonMobile}<br/>Email: {salespersonEmail}</p></li>
       </ol>
       <p>Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession.</p>

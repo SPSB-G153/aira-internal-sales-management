@@ -99,8 +99,8 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
           Enter booking manually
         </button>
       </div>
-      <div className="optional-pop-action">
-        <div><strong>POP is optional</strong><span>Use it only when a proposal is required before the purchaser proceeds with booking.</span></div>
+      <div className="optional-pop-action required-pop-action">
+        <div><strong>POP Form is required</strong><span>Upload both the POP Form and Booking Form. They are linked by unit number.</span></div>
         <div className="pop-intake-actions">
           <PopAdminUpload
             showNamecard={false}
@@ -120,7 +120,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
     </section>
     {mode && <div ref={entryRef} className="new-sale-entry">
       <div className="new-sale-entry-heading">
-        <p className="eyebrow">{mode === "booking" ? "Booking Form" : "Optional POP"}</p>
+        <p className="eyebrow">{mode === "booking" ? "Booking Form" : "POP Form"}</p>
         <h2>{mode === "booking" ? "Review booking details" : "Prepare proposal details"}</h2>
       </div>
       <SaleForm key={`${mode}-${revision}`} initialValues={values} mode={mode} bookingSource={bookingSource} popSource={popSource}/>
