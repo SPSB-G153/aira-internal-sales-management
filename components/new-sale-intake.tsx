@@ -82,25 +82,11 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
     <section className="card new-sale-intake">
       <div className="new-sale-intake-copy">
         <p className="eyebrow">Start here</p>
-        <h2>Upload the completed Booking Form</h2>
-        <p className="subtle">The form will be read and its details placed into the booking record for you to review before saving.</p>
-      </div>
-      <div className="new-sale-intake-actions">
-        <BookingFormUpload
-          buttonLabel="Upload Booking Form"
-          onUseFields={(fields) => {
-            setValues(bookingValues(fields));
-            setMode("booking");
-            setBookingSource("uploaded");
-            setRevision((current) => current + 1);
-          }}
-        />
-        <button type="button" className="button secondary" onClick={() => { setValues(initialValues); setMode("booking"); setBookingSource("manual"); setRevision((current) => current + 1); }}>
-          Enter booking manually
-        </button>
+        <h2>1. Upload the completed POP Form</h2>
+        <p className="subtle">Save the POP first. If agent details are shown, the two agent letters will be available immediately.</p>
       </div>
       <div className="optional-pop-action required-pop-action">
-        <div><strong>POP Form is required</strong><span>Upload both the POP Form and Booking Form. They are linked by unit number.</span></div>
+        <div><strong>POP Form first</strong><span>The later Booking Form will update the same sale using its unit number.</span></div>
         <div className="pop-intake-actions">
           <PopAdminUpload
             showNamecard={false}
@@ -114,6 +100,23 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
           />
           <button type="button" className="button secondary pop-intake-button" onClick={() => { setValues(undefined); setMode("pop"); setPopSource("manual"); setRevision((current) => current + 1); }}>
             Enter POP manually
+          </button>
+        </div>
+      </div>
+      <div className="optional-pop-action booking-second-action">
+        <div><strong>2. Booking Form</strong><span>Upload this after the POP stage is completed.</span></div>
+        <div className="new-sale-intake-actions">
+          <BookingFormUpload
+            buttonLabel="Upload Booking Form"
+            onUseFields={(fields) => {
+              setValues(bookingValues(fields));
+              setMode("booking");
+              setBookingSource("uploaded");
+              setRevision((current) => current + 1);
+            }}
+          />
+          <button type="button" className="button secondary" onClick={() => { setValues(initialValues); setMode("booking"); setBookingSource("manual"); setRevision((current) => current + 1); }}>
+            Enter booking manually
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NewSaleIntake } from "@/components/new-sale-intake";
+import { getSale } from "@/lib/data/sales";
 import type { Sale } from "@/lib/types";
 
 const testSale: Partial<Sale> = {
@@ -19,8 +20,10 @@ const testAg01: Partial<Sale> = {
   solicitor_name: "Jeff Leong, Poon & Wong",
 };
 
-export default async function NewSale({ searchParams }: { searchParams: Promise<{ prefill?: string }> }) {
-  const { prefill } = await searchParams;
-  const initialValues = prefill === "ag01" ? testAg01 : prefill === "test" ? testSale : undefined;
-  return <div className="page"><div className="page-header new-sale-page-header"><div><p className="eyebrow">New sale</p><h1>Create a booking</h1><p className="subtle">Upload the completed Booking Form, review the extracted details, then create the booking.</p></div><Link href="/sales" className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
+export default async function NewSale({ searchParams }: { searchParams: Promise<{ prefill?: string; continue?: string }> }) {
+  const { prefill, continue: continueId } = await searchParams;
+  let continuedSale: Partial<Sale> | undefined;
+  if (continueId) try { continuedSale = await getSale(continueId); } catch { continuedSale = undefined; }
+  const initialValues = continuedSale ?? (prefill === "ag01" ? testAg01 : prefill === "test" ? testSale : undefined);
+  return <div className="page"><div className="page-header new-sale-page-header"><div><p className="eyebrow">New sale</p><h1>{continuedSale ? "Upload the Booking Form" : "Create a sale"}</h1><p className="subtle">POP first, followed by the Booking Form for the same unit.</p></div><Link href={continuedSale ? `/sales/${continuedSale.id}` : "/sales"} className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
 }

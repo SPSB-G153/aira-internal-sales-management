@@ -13,7 +13,7 @@ export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:
 export type ConfirmState={error?:string};
 export type DeleteSaleState={error?:string};
 export type PopAdminSaveState={error?:string;saved?:boolean;agentLetterId?:string;agencyAppointmentLetterId?:string};
-export type UploadedPopSaveState={error?:string;previewDocumentId?:string;agentLetterId?:string;agencyAppointmentLetterId?:string};
+export type UploadedPopSaveState={error?:string;saleId?:string;previewDocumentId?:string;agentLetterId?:string;agencyAppointmentLetterId?:string};
 export type SavedAgentDetails={agent_company:string;agent_address:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string};
 export type SavedSalespersonDetails={salesperson_name:string;salesperson_designation:string;salesperson_mobile:string;salesperson_email:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
@@ -180,7 +180,7 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",types);if(documentsError)throw documentsError;
     const agencyAppointmentLetterId=documents?.find(item=>item.document_type==="agency_appointment_letter")?.id;const agentLetterId=documents?.find(item=>item.document_type==="agent_commission_letter")?.id;const popDocumentId=documents?.find(item=>item.document_type==="pre_booking_form")?.id;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
-    return{previewDocumentId:agencyAppointmentLetterId||agentLetterId||popDocumentId,agentLetterId,agencyAppointmentLetterId};
+    return{saleId:sale.id,previewDocumentId:agencyAppointmentLetterId||agentLetterId||popDocumentId,agentLetterId,agencyAppointmentLetterId};
   }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{

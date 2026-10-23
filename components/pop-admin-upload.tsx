@@ -118,11 +118,18 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
         ]);
         if (saved.agencyAppointmentLetterId || saved.agentLetterId) {
           setResult(null);
+          if (saved.saleId) {
+            window.location.assign(`/sales/${saved.saleId}#generated-letters`);
+            return;
+          }
           setAgentDocuments({ appointment: saved.agencyAppointmentLetterId, fee: saved.agentLetterId });
-          setMessage("");
           return;
         }
         if (saved.previewDocumentId) {
+          if (saved.saleId) {
+            window.location.assign(`/sales/${saved.saleId}#generated-letters`);
+            return;
+          }
           setMessage("The POP was saved, but no agent letter was created. Check that the agent name, mobile or email is filled above.");
           return;
         }
