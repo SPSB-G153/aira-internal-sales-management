@@ -133,6 +133,10 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
           setMessage("The POP was saved, but no agent letter was created. Check that the agent name, mobile or email is filled above.");
           return;
         }
+        if (saved.saleId) {
+          window.location.assign(`/sales/${saved.saleId}#generated-letters`);
+          return;
+        }
         setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "The uploaded POP could not be saved.");

@@ -31,7 +31,7 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   const isPop = sale.status === "draft";
   const isBookingDraft = sale.status === "booking_draft";
   const hasAgent = hasExternalAgent(sale);
-  const expectedDocuments = 1 + (canAccessAgentLetter && hasAgent ? 2 : 0) + (docs.some((document) => document.document_type === "booking_form") ? 1 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
+  const expectedDocuments = (isPop ? 0 : 1) + (canAccessAgentLetter && hasAgent ? 2 : 0) + (docs.some((document) => document.document_type === "booking_form") ? 1 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = isPop ? "POP details" : "Booking details";
   const statusLabel = isPop ? "POP" : isBookingDraft ? "Booking draft" : sale.status === "spa_signed" ? "confirmed" : sale.status.replace("_", " ");

@@ -174,13 +174,14 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const values:Partial<Sale>={sale_reference:clean("sale_reference")||existing?.sale_reference||`S-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,customer_name:customer||existing?.customer_name||"Purchaser pending",purchaser_type:clean("purchaser_type").toLowerCase().includes("company")?"company":"individual",project_name:clean("project_name")||"Aira Residence",unit_number:unit,purchase_price:price||existing?.purchase_price||0,status:"draft",sale_date:clean("sale_date")||null,salesperson_name:clean("salesperson_name")||null,salesperson_designation:clean("salesperson_designation")||null,salesperson_mobile:clean("salesperson_mobile")||null,salesperson_email:clean("salesperson_email")||null,agent_company:agentDetails,solicitor_name:clean("solicitor_name")||null,authorised_signatory_name:clean("authorised_signatory_name")||null,authorised_signatory_position:clean("authorised_signatory_position")||null};
     const sale=existing?await updateSale(existing.id,values):await createSale(values);
     const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);const generated_at=new Date().toISOString();
-    const types:DocumentType[]=["pre_booking_form"];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
+    const types:DocumentType[]=[];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
-    const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
-    const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",types);if(documentsError)throw documentsError;
-    const agencyAppointmentLetterId=documents?.find(item=>item.document_type==="agency_appointment_letter")?.id;const agentLetterId=documents?.find(item=>item.document_type==="agent_commission_letter")?.id;const popDocumentId=documents?.find(item=>item.document_type==="pre_booking_form")?.id;
+    if(rows.length){const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}
+    const{error:uploadedPopError}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form");if(uploadedPopError)throw uploadedPopError;
+    const{data:documents,error:documentsError}=types.length?await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",types):{data:[],error:null};if(documentsError)throw documentsError;
+    const agencyAppointmentLetterId=documents?.find(item=>item.document_type==="agency_appointment_letter")?.id;const agentLetterId=documents?.find(item=>item.document_type==="agent_commission_letter")?.id;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
-    return{saleId:sale.id,previewDocumentId:agencyAppointmentLetterId||agentLetterId||popDocumentId,agentLetterId,agencyAppointmentLetterId};
+    return{saleId:sale.id,previewDocumentId:agencyAppointmentLetterId||agentLetterId,agentLetterId,agencyAppointmentLetterId};
   }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
