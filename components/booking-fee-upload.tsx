@@ -81,8 +81,8 @@ export function BookingFeeUpload({
       {busy ? "Reading receipt…" : "Upload Booking Fee Receipt"}
     </button>
     {message && <p className="upload-message">{message}</p>}
-    {result && <div className="upload-review-backdrop" role="dialog" aria-modal="true" aria-label="Review booking-fee details">
-      <div className="upload-review-card">
+    {result && <div className="upload-modal" role="dialog" aria-modal="true" aria-label="Review booking-fee details">
+      <div className="card upload-review">
         <h2>Review booking-fee details</h2>
         <p className="subtle">Check the privately extracted receipt details before auto-filling the booking.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
