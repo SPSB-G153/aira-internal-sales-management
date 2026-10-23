@@ -249,7 +249,7 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
   const details=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
-  const address=text(content,"agent_address","").split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const address=noticeAddressLines(text(content,"agent_address",""));
   const pageBreak=()=>new Paragraph({children:[new PageBreak()]});
   const children:(Paragraph|Table)[]=[
     exactParagraph(issuedLetterDate(content),{spacing:{before:220,after:420,line:300}}),
@@ -271,7 +271,7 @@ async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo
   const agencyDetails=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
   const enteredAgencyAddress=text(content,"agent_address","");
   const agencyAddress=enteredAgencyAddress
-    ? enteredAgencyAddress.split(/\r?\n/).map((line)=>line.trim()).filter(Boolean)
+    ? noticeAddressLines(enteredAgencyAddress)
     : /\bIQI\b/i.test(agency)?["9-3, 3rd Floor, Medan Klang Lama 28,","Jalan Klang Lama,","58000 Kuala Lumpur."]:[];
   const unit=text(content,"unit_number");
   const purchaser=text(content,"customer_name").toUpperCase();
