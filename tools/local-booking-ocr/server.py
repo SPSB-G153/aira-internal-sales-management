@@ -632,6 +632,7 @@ async def extract_pop_admin(
 async def extract_namecard_admin(
     file: UploadFile = File(...),
     unit_number: str = Form(""),
+    expected_company: str = Form(""),
 ):
     data = await file.read()
     if len(data) > 20_000_000:
@@ -651,12 +652,23 @@ async def extract_namecard_admin(
             images = [page_png(card[0], zoom=2.0)]
         else:
             images = [base64.b64encode(data).decode("ascii")]
+        company_rule = (
+            f'The POP states the agency/company as "{expected_company}". '
+            "If the image contains several namecards, select ONLY the single card whose printed "
+            "company matches that agency/company (including a clear abbreviation). Never combine a "
+            "person from one card with the company or address from another card. If no matching card "
+            "is visible, return empty strings for every field. "
+            if expected_company.strip() else
+            "If the image contains several namecards, extract only one internally consistent card and "
+            "never combine a person from one card with the company or address from another card. "
+        )
         payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this real-estate agent namecard privately. Extract the person's name as "
+                    "Read this real-estate agent namecard privately. " + company_rule +
+                    "Extract the person's name as "
                     "agent_name, job title as agent_designation, mobile or telephone "
                     "number as agent_mobile, email as agent_email, and the printed "
                     "agency or company name as agent_company and its printed mailing address as "

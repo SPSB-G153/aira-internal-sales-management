@@ -29,9 +29,10 @@ const labels: Record<string, string> = {
 };
 const namecardFields = ["agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_company", "agent_address"];
 
-export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard = true, compact = false }: {
+export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseFields, showNamecard = true, compact = false }: {
   saleId?: string;
   unitNumber?: string;
+  expectedCompany?: string;
   onUseFields: (fields: PopAdminFields) => void;
   showNamecard?: boolean;
   compact?: boolean;
@@ -61,6 +62,9 @@ export function PopAdminUpload({ saleId, unitNumber, onUseFields, showNamecard =
       const body = new FormData();
       body.set("file", file);
       body.set("unit_number", unitNumber || "");
+      if (source === "namecard") {
+        body.set("expected_company", result?.fields.agent_company || expectedCompany || "");
+      }
       const localUrl = privateReaderUrl();
       const endpoint = source === "pop" ? "extract-pop-admin" : "extract-namecard-admin";
       const response = await fetch(`${localUrl}/${endpoint}`, { method: "POST", body });

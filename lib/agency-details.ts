@@ -72,8 +72,11 @@ export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?
 
 export function agencyLetterDetails(company: unknown, stored?: ReturnType<typeof splitAgencyDetails>) {
   if (stored?.agent_name) {
-    const firstName = stored.agent_name.replace(/^(mr|mrs|ms|miss|dr)\.?\s+/i, "").split(/\s+/)[0];
-    return { contactName: stored.agent_name, contactPosition: stored.agent_designation, greeting: firstName ? `Dear ${firstName},` : "Dear Sir or Madam,", appointmentDate: "" };
+    const unprefixed = stored.agent_name.replace(/^(mr|mrs|ms|miss|dr)\.?\s+/i, "");
+    const rawFirstName = unprefixed.split(/\s+/)[0];
+    const firstName = rawFirstName ? rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase() : "";
+    const honorific = /\bbinti\b/i.test(unprefixed) ? "Cik " : /\bbin\b/i.test(unprefixed) ? "En " : "";
+    return { contactName: stored.agent_name, contactPosition: stored.agent_designation, greeting: firstName ? `Dear ${honorific}${firstName},` : "Dear Sir or Madam,", appointmentDate: "" };
   }
   const normalized = String(company ?? "").trim();
   if (/belle\s*&\s*bross/i.test(normalized)) {

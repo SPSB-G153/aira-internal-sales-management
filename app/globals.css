@@ -528,6 +528,10 @@ h3 { margin:0; font-size:16px; }
 .agent-commission-page p { max-width:100%; margin:0 0 13px; text-align:justify; white-space:normal; overflow-wrap:break-word; }
 .agent-commission-page:not(.agent-commission-acceptance) p { margin-bottom:10px; }
 .agent-commission-page .notice-date { margin-bottom:13px!important; }
+.agent-commission-page .notice-recipient { margin-bottom:18px; text-align:left; }
+.agent-commission-page .notice-greeting { margin-bottom:14px; text-align:left; }
+.agent-commission-page .notice-subject { margin:0 0 18px; text-align:left; }
+.agent-subject-address { display:inline-block; margin-left:52px; }
 .agent-recipient { min-height:78px; text-align:left!important; }
 .agent-commission-page h1 { margin:22px 0 0; font-size:14px; line-height:1.35; text-align:left; }
 .agent-commission-facts { margin:0 0 18px; padding:7px 0 8px; border-bottom:1px solid #333; }

@@ -599,7 +599,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
       <section className="form-section">
         <div className="section-heading">
           <div><h2>{entryMode === "booking" ? "Booking administration" : "POP administration"}</h2><p className="subtle">{entryMode === "pop" && popSource === "uploaded" ? "POP and agent details from the uploaded form are shown below. Edit only if needed." : "Upload the POP Form to fill the sales and agent details, or edit them manually."}</p></div>
-          {!(entryMode === "pop" && popSource === "uploaded" && !sale) && <PopAdminUpload saleId={sale?.id} unitNumber={unitNumber} onUseFields={applyPopAdmin} />}
+          {!(entryMode === "pop" && popSource === "uploaded" && !sale) && <PopAdminUpload saleId={sale?.id} unitNumber={unitNumber} expectedCompany={popAdmin.agent_company} onUseFields={applyPopAdmin} />}
         </div>
         <div className="form-grid">
           <Field
