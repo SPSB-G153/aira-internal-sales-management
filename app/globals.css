@@ -548,12 +548,15 @@ h3 { margin:0; font-size:16px; }
 .agency-commission-table .agency-international th { text-align:left; }
 .agency-commission-table-revised thead th:first-child { width:60%; }
 .agency-commission-table-revised thead th:last-child { width:40%; }
+.agency-commission-table-revised { font-size:12px; }
+.agency-commission-table-revised thead th { font-size:12px; }
 .agency-commission-table-revised tbody tr:not(.agency-international) td:first-child { text-align:left; padding-left:54px; }
+.agency-commission-table-revised .agency-table-spacer td { height:5px; padding:0; line-height:0; }
 .agency-commission-table-revised .agency-international th { text-align:left; padding-left:10px; }
 .agency-table-page .agent-commission-list { margin-bottom:0; }
 .agency-closing-page .agent-commission-page p { margin-bottom:24px; }
 .agency-closing-page .approval-signature { margin-top:34px; }
-.agency-closing-page .notice-page .approval-signature .signature-space { height:110px; }
+.agency-closing-page .notice-page .approval-signature .signature-space { height:64px; }
 .agent-recipient { min-height:78px; text-align:left!important; }
 .agent-commission-page h1 { margin:22px 0 0; font-size:14px; line-height:1.35; text-align:left; }
 .agent-commission-facts { margin:0 0 18px; padding:7px 0 8px; border-bottom:1px solid #333; }
@@ -568,9 +571,9 @@ h3 { margin:0; font-size:16px; }
 .agent-commission-page>.approval-signature { margin-top:18px; }
 .agent-commission-page>.approval-signature .signature-space { height:36px; }
 .agent-commission-cc { margin-top:20px!important; text-align:left!important; }
-.agent-commission-acceptance h2 { margin:26px 0 30px; font-size:15px; text-align:center; }
+.agent-commission-acceptance h2 { margin:18px 0 30px; font-size:15px; text-align:center; }
 .agent-acceptance-subject { margin:0 0 10px; padding-bottom:10px; border-bottom:1px solid #333; font-size:13px; line-height:1.48; text-align:center; }
-.agent-acceptance-signature { width:333px; max-width:54%; margin-top:140px; }
+.agent-acceptance-signature { width:333px; max-width:54%; margin-top:72px; }
 .agent-acceptance-signature>span { display:block; border-top:1px dotted #333; }
 .agent-acceptance-signature p { margin:6px 0!important; text-align:left!important; }
 .agent-acceptance-signature p:has(i) { display:grid; grid-template-columns:max-content 1fr; gap:5px; align-items:end; }
