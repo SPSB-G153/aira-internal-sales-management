@@ -140,7 +140,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-27-v9-joint-purchaser-verification"
+CACHE_VERSION = "booking-reader-2026-10-27-v10-complete-property-table"
 
 
 @app.middleware("http")
@@ -293,8 +293,11 @@ def booking_cover_section(page):
 
 def appendix_property_section(page):
     rect = page.rect
-    clip = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.04, rect.x1, rect.y0 + rect.height * 0.34)
-    return page_png(page, clip, zoom=2.6)
+    # Include the complete Property Details table through the Purchase Price
+    # and Car Parking Bay rows. The former 34% cutoff could end above a price
+    # written low in the row, making a visibly completed price look blank.
+    clip = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.04, rect.x1, rect.y0 + rect.height * 0.50)
+    return page_png(page, clip, zoom=2.4)
 
 
 def appendix_purchaser_section(page):
@@ -860,9 +863,12 @@ async def extract(file: UploadFile = File(...)):
                 "messages": [{
                     "role": "user",
                     "content": (
-                        "Inspect only the handwritten entry box beside the printed label "
+                        "Inspect only the complete horizontal row beside the printed label "
                         "'Purchase Price' in this Property Details table. Set is_filled to true "
-                        "only when digits are visibly written inside that exact box. If the box "
+                        "when a handwritten amount appears on that row after the printed RM, "
+                        "including handwriting extending across the row rather than staying in "
+                        "a small box. For example, RM followed by handwritten 3,270,000.00 means "
+                        "purchase_price 3270000.00. If the entire Purchase Price row "
                         "is blank, crossed out, unreadable, or the number appears elsewhere, set "
                         "is_filled to false and purchase_price to an empty string. Do not infer, "
                         "calculate, copy a prior example, or use printed text. When filled, return "
