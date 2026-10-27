@@ -40,11 +40,19 @@ const detailsByUnit: Record<string, UnitDetails> = {
 export const squareFeetToSquareMetres = (squareFeet: number) =>
   Math.round(squareFeet * 0.09290304);
 
+export const canonicalUnitNumber = (unit: string) => {
+  const entered = unit.trim().toUpperCase();
+  const compact = entered.replace(/[^A-Z0-9]/g, "");
+  return Object.keys(detailsByUnit).find(
+    approved => approved.replace(/[^A-Z0-9]/g, "") === compact,
+  ) ?? entered;
+};
+
 export const detailsForUnit = (unit: string) =>
-  detailsByUnit[unit.trim().toUpperCase()];
+  detailsByUnit[canonicalUnitNumber(unit)];
 
 export const storeyForUnit = (unit: string) => {
-  const level = unit.trim().toUpperCase().split("-")[1] ?? "";
+  const level = canonicalUnitNumber(unit).split("-")[1] ?? "";
   if (!level) return "";
   return /^\d+$/.test(level) ? String(Number(level)) : level.replace(/^0+(?=\d)/, "");
 };

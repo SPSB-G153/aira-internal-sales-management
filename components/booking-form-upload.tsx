@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookingFeeUpload } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
-import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
+import { canonicalUnitNumber, detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { findSavedUnitAdministration } from "@/lib/actions/sales";
 
@@ -96,7 +96,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const response=await fetch(`${localUrl}/extract`,{method:"POST",body});
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||data.detail||"The Booking Form could not be read.");
-      const unit=String(data.fields?.unit_number||"").trim().toUpperCase();
+      const unit=canonicalUnitNumber(String(data.fields?.unit_number||""));
       const solicitor=solicitorForUnit(unit);
       const savedAdministration=await findSavedUnitAdministration(unit);
       const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor,...(savedAdministration||{})};
