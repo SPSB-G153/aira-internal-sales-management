@@ -161,7 +161,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   ];
   const pageTwo=[
     new Paragraph({children:[new PageBreak()]}),
-    acceptanceParagraph([new TextRun("1.   A cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Berhad",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{indent:{left:420,hanging:420}}),
+    acceptanceParagraph([new TextRun("1.   A cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Berhad",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{spacing:{before:510,after:180,line:320},indent:{left:420,hanging:420}}),
     ...(isCompany?[
       acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For a corporation",italics:true}),new TextRun(":")],{indent:{left:420,hanging:420}}),
       acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the Memorandum of Transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
