@@ -122,6 +122,11 @@ AGENT_CARD_SCHEMA = {
     "properties": {name: {"type": "string"} for name in AGENT_CARD_FIELDS},
     "required": AGENT_CARD_FIELDS,
 }
+POP_SALESPERSON_SCHEMA = {
+    "type": "object",
+    "properties": {"salesperson_name": {"type": "string"}},
+    "required": ["salesperson_name"],
+}
 PROMPT = """Read only handwritten or manually entered information from these enlarged sections of an Aira Booking Form. For the approved five-page form, the images show the completed first page, the Property Details table on page 5, and the Purchaser's Particulars table on page 5. Cross-check repeated values and prefer the clearest or most complete occurrence. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
@@ -215,6 +220,15 @@ def normalize_payment_date(value):
             return datetime.strptime(raw, pattern).strftime("%Y-%m-%d")
         except ValueError:
             continue
+    return ""
+
+
+def canonical_salesperson(value):
+    normalized = re.sub(r"[^a-z]", "", str(value or "").lower())
+    if "madihah" in normalized or "madiha" in normalized:
+        return "Madihah Hassan"
+    if "felicia" in normalized or "felicia" in normalized:
+        return "Felicia Low"
     return ""
 
 
@@ -626,12 +640,51 @@ async def extract_pop_admin(
             raise RuntimeError(f"Private model error: {response.text}")
         parsed = json.loads(response.json()["message"]["content"])
         fields = {name: str(parsed.get(name, "") or "").strip() for name in POP_ADMIN_FIELDS}
+        # The internal salesperson is always the value beside Team Member
+        # Assisting. Verify that single row independently so the external
+        # introducer in the AGENT row cannot be mistaken for SPSB personnel.
+        salesperson_payload = {
+            "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Read only the value inside the box beside the printed label "
+                    "'Team Member Assisting' on this AIRA POP Form. The only valid "
+                    "internal salesperson is Madihah Hassan or Felicia Low. Return "
+                    "Madihah Hassan when the box says MADIHAH HASSAN, or Felicia Low "
+                    "when it says FELICIA LOW. Do not use any name from Introduction "
+                    "By: AGENT, purchaser, approver or signature rows. Return an empty "
+                    "string if neither valid name is visibly present. Return only JSON."
+                ),
+                "images": [images[0]],
+            }],
+            "format": POP_SALESPERSON_SCHEMA,
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 2048, "num_predict": 80},
+        }
+        salesperson = ""
+        try:
+            checked = structured_model_response(
+                salesperson_payload, timeout=300, retry_num_predict=120
+            )
+            salesperson = canonical_salesperson(checked.get("salesperson_name", ""))
+        except (KeyError, TypeError, ValueError, RuntimeError):
+            salesperson = ""
+        # Also accept the broad pass only when it resolves to the same strict
+        # two-person allowlist. Never retain an agent or purchaser as staff.
+        fields["salesperson_name"] = salesperson or canonical_salesperson(
+            fields.get("salesperson_name", "")
+        )
         fields["agent_company"] = normalize_agent_company(fields["agent_company"])
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "pop-form.pdf").suffix or ".pdf"
         path = folder / f"POP_Form_{safe_part(unit_number, 'Unidentified')}{suffix}"
         path.write_bytes(data)
-        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+        warnings = [] if fields["salesperson_name"] else [
+            "Team Member Assisting could not be confirmed as Madihah Hassan or Felicia Low."
+        ]
+        return {"fields": fields, "warnings": warnings, "saved_path": str(path)}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:
