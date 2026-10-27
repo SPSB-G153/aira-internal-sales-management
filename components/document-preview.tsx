@@ -18,6 +18,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
   const nameCase=(name:string)=>isCompany?name:name.toLocaleLowerCase("en-MY").replace(/(^|[\s'-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`);
   const purchaser=nameCase(value(content,"customer_name"));
   const purchaser2=nameCase(value(content,"customer_name_2",""));
+  const recipients=purchaser2?`${purchaser} & ${purchaser2}`:purchaser;
   const salutation=value(content,"customer_salutation","Purchaser");
   const contact=value(content,"salesperson_name","Booking contact");
   const designation=designationForSalesPersonnel(contact);
@@ -27,7 +28,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
     <section className="notice-page">
       <CompanyHead/>
       <p className="notice-date"><CurrentLetterDate/></p>
-      <p className="notice-recipient"><b>{purchaser}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
+      <p className="notice-recipient"><b>{recipients}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
       <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
@@ -56,6 +57,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
   const deposit=price*.1;
   const purchaser=value(content,"customer_name");
   const purchaser2=value(content,"customer_name_2","");
+  const recipients=purchaser2?`${purchaser} & ${purchaser2}`:purchaser;
   const salutation=value(content,"customer_salutation","Purchaser");
   const isCompany=value(content,"purchaser_type","individual")==="company";
   const salesperson=value(content,"salesperson_name","your sales and marketing agent");
@@ -63,7 +65,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
   return <article className="letter source-letter acceptance-letter">
     <CompanyHead/>
     <p><CurrentLetterDate/></p>
-    <p><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
+    <p><b>{recipients}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
     <p className="notice-greeting">{purchaserGreeting(content)}</p>
     <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
     <dl className="acceptance-facts">
