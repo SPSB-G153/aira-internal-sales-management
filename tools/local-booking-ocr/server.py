@@ -743,9 +743,12 @@ async def extract(file: UploadFile = File(...)):
             "format": SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 1800},
+            # Handwritten multi-page forms can make the vision model use more
+            # output tokens than the compact schema normally needs. Leave
+            # enough context and response room so its JSON is not cut off.
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 2600},
         }
-        parsed = structured_model_response(payload, timeout=900, retry_num_predict=2600)
+        parsed = structured_model_response(payload, timeout=900, retry_num_predict=4096)
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]

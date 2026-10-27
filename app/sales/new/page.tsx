@@ -25,5 +25,5 @@ export default async function NewSale({ searchParams }: { searchParams: Promise<
   let continuedSale: Partial<Sale> | undefined;
   if (continueId) try { continuedSale = await getSale(continueId); } catch { continuedSale = undefined; }
   const initialValues = continuedSale ?? (prefill === "ag01" ? testAg01 : prefill === "test" ? testSale : undefined);
-  return <div className="page"><div className="page-header new-sale-page-header"><div><p className="eyebrow">New sale</p><h1>{continuedSale ? "Upload the Booking Form" : "Create a sale"}</h1><p className="subtle">POP first, followed by the Booking Form for the same unit.</p></div><Link href={continuedSale ? `/sales/${continuedSale.id}` : "/sales"} className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
+  return <div className="page"><div className="page-header new-sale-page-header"><div><p className="eyebrow">New sale</p><h1>{continuedSale ? "Add sale documents" : "Create a sale"}</h1><p className="subtle">Upload the POP Form or Booking Form in either order. The unit number keeps both with the same sale.</p></div><Link href={continuedSale ? `/sales/${continuedSale.id}` : "/sales"} className="button secondary">Cancel</Link></div><NewSaleIntake initialValues={initialValues}/></div>;
 }
