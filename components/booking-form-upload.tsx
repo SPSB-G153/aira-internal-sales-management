@@ -6,6 +6,7 @@ import { BookingFeeUpload } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import { privateReaderUrl } from "@/lib/private-reader";
+import { findSavedUnitAdministration } from "@/lib/actions/sales";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string;cached?:boolean};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
@@ -97,7 +98,8 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       if(!response.ok)throw new Error(data.error||data.detail||"The Booking Form could not be read.");
       const unit=String(data.fields?.unit_number||"").trim().toUpperCase();
       const solicitor=solicitorForUnit(unit);
-      const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor};
+      const savedAdministration=await findSavedUnitAdministration(unit);
+      const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor,...(savedAdministration||{})};
       fields.customer_sex=fullSex(String(fields.customer_sex||""));
       fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));

@@ -8,6 +8,7 @@ import { getTeamContext } from "@/lib/tenancy";
 import { detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import type { DocumentType,Sale } from "@/lib/types";
 import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
+import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
@@ -16,6 +17,7 @@ export type PopAdminSaveState={error?:string;saved?:boolean;agentLetterId?:strin
 export type UploadedPopSaveState={error?:string;saleId?:string;previewDocumentId?:string;agentLetterId?:string;agencyAppointmentLetterId?:string};
 export type SavedAgentDetails={agent_company:string;agent_address:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string};
 export type SavedSalespersonDetails={salesperson_name:string;salesperson_designation:string;salesperson_mobile:string;salesperson_email:string};
+export type SavedUnitAdministration=SavedSalespersonDetails&{agent_company:string;agent_name:string;agent_designation:string;agent_mobile:string;agent_email:string;agent_address:string};
 const text=(f:FormData,k:string)=>String(f.get(k)??"").trim();
 const numeric=(f:FormData,k:string)=>{const v=text(f,k);return v===""?null:Number(v)};
 const optionalBoolean=(f:FormData,k:string)=>{const v=text(f,k);return v==="true"?true:v==="false"?false:null};
@@ -40,6 +42,22 @@ export async function findSavedSalespersonDetails(name:string):Promise<SavedSale
   const saved=withMobile??matches.find(sale=>Boolean(sale.salesperson_email?.trim()||sale.salesperson_designation?.trim()));
   if(!saved)return null;
   return{salesperson_name:saved.salesperson_name||name,salesperson_designation:saved.salesperson_designation||"",salesperson_mobile:saved.salesperson_mobile||"",salesperson_email:saved.salesperson_email||""};
+}
+
+export async function findSavedUnitAdministration(unitNumber:string):Promise<SavedUnitAdministration|null>{
+  const normalized=(value:string|null|undefined)=>String(value||"").replace(/[^a-z0-9]/gi,"").toUpperCase();
+  const wanted=normalized(unitNumber);if(!wanted)return null;
+  const sale=(await getSales()).find(item=>normalized(item.unit_number)===wanted);if(!sale)return null;
+  const staff=profileForSalesPersonnel(sale.salesperson_name||"");
+  const agency=splitAgencyDetails(sale.agent_company);
+  return{
+    salesperson_name:staff?.name||sale.salesperson_name||"",
+    salesperson_designation:staff?.designation||sale.salesperson_designation||"",
+    salesperson_mobile:staff?.mobile||sale.salesperson_mobile||"",
+    salesperson_email:staff?.email||sale.salesperson_email||"",
+    agent_company:agency.company||"",agent_name:agency.agent_name||"",agent_designation:agency.agent_designation||"",
+    agent_mobile:agency.agent_mobile||"",agent_email:agency.agent_email||"",agent_address:agency.address||"",
+  };
 }
 export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   const fields=Object.fromEntries([...form.entries()].map(([k,v])=>[k,String(v)]));
