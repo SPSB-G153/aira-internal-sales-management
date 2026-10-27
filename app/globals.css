@@ -608,6 +608,7 @@ h3 { margin:0; font-size:16px; }
 
 /* Final approved Notice size: 11 pt, with the compact spacing above. */
 .acceptance-exact { font-size:14.667px; }
+.acceptance-exact .notice-subject { font-size:inherit; }
 @media print { .notice-sheet { font-size:14.667px!important; } }
 .notice-page > .source-letter-head-emblem + p { margin-top:16px!important; }
 .notice-page .approval-signature .signature-space { height:64px; }
