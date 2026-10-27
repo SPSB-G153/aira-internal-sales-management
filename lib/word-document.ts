@@ -272,14 +272,14 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 const agencyCommissionWordTable=()=>{
   const border={style:BorderStyle.SINGLE,size:5,color:"333333"};
   const richCell=(runs:TextRun[],fill?:string)=>new TableCell({shading:fill?{fill}:undefined,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph(runs,{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:240}})]});
-  const plain=(value:string,bold=false,fill?:string)=>richCell([new TextRun({text:value,bold,size:24})],fill);
+  const plain=(value:string,bold=false,fill?:string)=>richCell([new TextRun({text:value,bold,size:26})],fill);
   const row=(values:[string,string],boldFirst=false)=>new TableRow({children:values.map((v,i)=>plain(v,boldFirst&&i===0))});
   const spacerRow=()=>new TableRow({height:{value:100,rule:"atLeast"},children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:0,bottom:0,left:0,right:0},children:[exactParagraph("",{spacing:{before:0,after:0,line:80}})]})]});
   return new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:border,bottom:border,left:border,right:border,insideHorizontal:border,insideVertical:border},rows:[
-    new TableRow({children:[richCell([new TextRun({text:"TOWER / UNIT TYPE",bold:true,size:24})],"D9D9D9"),richCell([new TextRun({text:"SALES COMMISSION",bold:true,size:24}),new TextRun({text:"% Purchase Price",break:1,size:24})],"D9D9D9")]}),
-    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"Domestic Sales:",bold:true,size:24})],{spacing:{before:0,after:0,line:240}})]})]}),
+    new TableRow({children:[richCell([new TextRun({text:"TOWER / UNIT TYPE",bold:true,size:26})],"D9D9D9"),richCell([new TextRun({text:"SALES COMMISSION",bold:true,size:26}),new TextRun({text:"% Purchase Price",break:1,size:26})],"D9D9D9")]}),
+    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"Domestic Sales:",bold:true,size:26})],{spacing:{before:0,after:0,line:250}})]})]}),
     row(["TOWER A",""],true),row(["Type A1","2.00"]),row(["Type B","2.00"]),row(["Type A2","2.00"]),row(["Types D, E & F","2.00"]),row(["TOWER B",""],true),row(["Types G & H","3.00"]),spacerRow(),
-    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"International Sales (Towers A & B):     ",bold:true,size:24}),new TextRun({text:"3.0%",bold:true,size:24}),new TextRun({text:" of the Purchase Price",size:24})],{spacing:{before:0,after:0,line:240}})]})]})
+    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"International Sales (Towers A & B):     ",bold:true,size:26}),new TextRun({text:"3.0%",bold:true,size:26}),new TextRun({text:" of the Purchase Price",size:26})],{spacing:{before:0,after:0,line:250}})]})]})
   ]});
 };
 
