@@ -408,7 +408,7 @@ h3 { margin:0; font-size:16px; }
     box-sizing: border-box;
     width: 100%;
     min-height: 297mm;
-    padding: 15mm;
+    padding: 0 15mm 15mm;
   }
 }
 
