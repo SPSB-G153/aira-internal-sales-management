@@ -105,6 +105,10 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));
       fields.customer_nationality_2=normalizeNationality(String(fields.customer_nationality_2||""));
       fields.purchaser_type=normalizePurchaserType(String(fields.purchaser_type||""),String(fields.customer_name||""),String(fields.customer_salutation||""));
+      if(fields.purchaser_type==="Individual"){
+        fields.customer_name=toNormalCase(String(fields.customer_name||""));
+        fields.customer_name_2=toNormalCase(String(fields.customer_name_2||""));
+      }
       fields.bumi_status=isMalayRace(String(fields.customer_race||""))?"yes":"no";
       if(fields.customer_name_2?.trim()||fields.customer_ic_2?.trim())fields.bumi_status_2=isMalayRace(String(fields.customer_race_2||""))?"yes":"no";
       const unitDetails=detailsForUnit(unit);
