@@ -273,6 +273,7 @@ h3 { margin:0; font-size:16px; }
 .booking-template-document { display:grid; gap:20px; }.booking-template-page { position:relative; width:100%; margin:0; overflow:hidden; container-type:inline-size; background:#fff; box-shadow:0 12px 38px #0005; aspect-ratio:595/842; }.booking-template-page>img { display:block; width:100%; height:100%; }.booking-template-field { position:absolute; z-index:1; max-width:35%; padding:0 2px; color:#111; background:#fff; font-family:Arial,sans-serif; line-height:1.15; white-space:nowrap; transform:translateY(-20%); }
 .acceptance-letter { max-width:760px; margin:0 auto; font-size:12px; line-height:1.42; }.acceptance-letter .source-letter-head { margin-bottom:22px; }.acceptance-letter p { margin:0 0 13px; text-align:justify; }.notice-subject { margin:16px 0 12px!important; font-size:13px; text-align:left!important; text-decoration:underline; text-underline-offset:3px; }.acceptance-facts { margin:0 0 15px; padding:0 0 10px; border-bottom:1px solid #777; }.acceptance-facts>div { display:grid; grid-template-columns:120px 1fr; gap:8px; margin:2px 0; }.acceptance-facts dt,.acceptance-facts dd { margin:0; }.acceptance-facts dt { font-weight:700; }.acceptance-facts dt::after { content:":"; float:right; }.acceptance-requirements { break-before:page; page-break-before:always; padding-top:0; }.acceptance-requirements ol { margin:0 0 13px; padding-left:25px; }.acceptance-requirements li { margin:0 0 10px; padding-left:5px; text-align:justify; }.acceptance-requirements .approval-signature { margin-top:52px; }
 .acceptance-exact { max-width:760px; margin:0 auto; font-size:16px; line-height:1.3; }.notice-page { position:relative; min-height:860px; display:flex; flex-direction:column; page-break-after:always; break-after:page; }.notice-page:last-child { page-break-after:auto; break-after:auto; }.notice-page .source-letter-head { margin-bottom:22px; }.notice-page p { margin:0 0 11px; text-align:justify; }.notice-date { margin-top:0!important; }.notice-recipient { min-height:0; margin-bottom:12px!important; }.notice-greeting { margin-bottom:8px!important; }.notice-subject { margin-top:0!important; }.notice-facts { margin:0 0 13px; padding:0 0 8px; border-bottom:1px solid #555; }.notice-facts>div { display:grid; grid-template-columns:120px 1fr; gap:8px; margin:1px 0; }.notice-facts dt,.notice-facts dd { margin:0; }.notice-facts dt { font-weight:700; }.notice-facts dt::after { content:":"; float:right; }.notice-requirements { margin:3px 0 14px; padding-left:26px; list-style:none; counter-reset:notice-item; }.notice-requirements>li { position:relative; display:block; counter-increment:notice-item; }.notice-requirements>li::before { position:absolute; right:100%; width:22px; margin-right:2px; content:counter(notice-item) "."; text-align:right; }.notice-requirements li { margin:0 0 10px; padding-left:7px; text-align:justify; }.notice-requirements li ol { margin-top:12px; padding-left:28px; list-style:none; counter-reset:notice-subitem; }.notice-requirements li ol>li { position:relative; display:block; counter-increment:notice-subitem; }.notice-requirements li ol>li::before { position:absolute; right:100%; width:26px; margin-right:2px; content:"(" counter(notice-subitem,lower-alpha) ")"; text-align:right; }.notice-page .notice-closing { margin-top:12px!important; }.notice-page .approval-signature { margin-top:34px; }.notice-page .source-footer { margin-top:auto; }.notice-page-number { position:absolute; right:28px; bottom:58px; box-sizing:border-box; width:34px; padding-top:4px; font-size:11px; line-height:1; text-align:center; }
+.notice-acceptance-sheet { font-size:14.667px; line-height:1.3333; }.notice-acceptance-sheet .notice-page .source-letter-head { margin-bottom:0; }.notice-acceptance-sheet .notice-page p { margin-bottom:9pt; }.notice-acceptance-sheet .notice-date { margin-bottom:10pt!important; line-height:1.4208!important; }.notice-acceptance-sheet .notice-recipient { margin-bottom:12pt!important; line-height:1.25!important; }.notice-acceptance-sheet .notice-greeting { margin-bottom:12pt!important; line-height:1.25!important; }.notice-acceptance-sheet .notice-subject { margin:6pt 0 11pt!important; }.notice-acceptance-sheet .notice-facts { margin:0 0 9pt; padding:0 0 10pt; }.notice-acceptance-sheet .notice-facts>div { grid-template-columns:20% 80%; gap:0; margin:0; }.notice-acceptance-sheet .notice-facts dt { display:flex; justify-content:space-between; padding-right:2%; }.notice-acceptance-sheet .notice-facts dt::after { float:none; }.notice-acceptance-sheet .notice-requirements { margin:0 0 9pt; padding-left:.2917in; }.notice-acceptance-sheet .notice-requirements-continuation { counter-reset:notice-item 1; }.notice-acceptance-sheet .notice-requirements>li::before { width:.2917in; margin-right:0; text-align:left; }.notice-acceptance-sheet .notice-requirements li { margin-bottom:9pt; padding-left:0; }.notice-acceptance-sheet .notice-requirements li ol { margin-top:9pt; padding-left:.3333in; }.notice-acceptance-sheet .notice-requirements li ol>li::before { width:.3125in; margin-right:0; text-align:left; }.notice-acceptance-sheet .notice-page .notice-closing { margin-top:12pt!important; margin-bottom:60pt!important; line-height:1.25!important; }.notice-acceptance-sheet .notice-page .approval-signature { margin-top:0; }
 .rebate-letter,.hovp-letter { max-width:760px; margin:0 auto; font-size:12px; line-height:1.48; }.rebate-letter .source-letter-head,.hovp-letter .source-letter-head { margin-bottom:22px; }.rebate-letter p,.hovp-letter p { margin:0 0 13px; text-align:justify; }.rebate-letter .source-subject,.hovp-letter .source-subject { margin:16px 0 18px; font-size:13px; text-align:left; }.hovp-letter h3 { margin:20px 0 7px; font-size:13px; }.rebate-letter .approval-signature,.hovp-letter>.approval-signature { margin-top:55px; }
 .inventory-page { font-size:12px; line-height:1.42; }.inventory-page p { margin:0 0 13px; text-align:justify; }.inventory-page .notice-subject { line-height:1.35; }.inventory-closing { margin-top:28px!important; text-align:left!important; }.inventory-page .approval-signature { margin-top:18px; }.inventory-ack-page h2 { margin:88px 0 64px; font-size:15px; text-align:center; }.inventory-ack-page>p { max-width:620px; }.inventory-ack-signature { margin-top:112px; width:310px; }.inventory-ack-signature span { display:block; border-top:1px dotted #555; margin-bottom:10px; }.inventory-ack-signature p { margin:5px 0!important; text-align:left!important; }
 .approval-signature { margin-top:42px; font-size:12px; line-height:1.35; }.approval-signature .signature-space { height:52px; }.approval-signature .signature-rule { width:265px; max-width:100%; border-top:1px dotted #333; margin-bottom:3px; }.approval-signature .copy-line { margin-top:35px; }
@@ -398,17 +399,17 @@ h3 { margin:0; font-size:16px; }
 
 /* Keep the browser preview on the same approved A4 canvas as PDF/print. */
 @media screen {
-  .acceptance-exact.notice-sheet {
+  .notice-acceptance-sheet {
     box-sizing: border-box;
     width: 210mm;
     max-width: 100%;
     margin-inline: auto;
   }
-  .acceptance-exact.notice-sheet .notice-page {
+  .notice-acceptance-sheet .notice-page {
     box-sizing: border-box;
     width: 100%;
     min-height: 297mm;
-    padding: 0 15mm 15mm;
+    padding: 15.45mm 20mm 17.64mm;
   }
 }
 
@@ -417,6 +418,7 @@ h3 { margin:0; font-size:16px; }
   .notice-sheet { font-size:16px!important; }
   .hovp-sheet,.rebate-exact { font-size:12px!important; }
   .notice-sheet { position:relative; box-sizing:border-box; width:210mm; height:297mm; padding:15mm!important; overflow:hidden; break-inside:avoid-page!important; page-break-inside:avoid!important; break-after:page!important; page-break-after:always!important; }
+  .notice-acceptance-sheet { padding:15.45mm 20mm 17.64mm!important; }
   .notice-sheet:last-of-type { break-after:auto!important; page-break-after:auto!important; }
   .notice-sheet + .notice-sheet { break-before:page!important; page-break-before:always!important; }
   .notice-sheet .notice-page { box-sizing:border-box; height:100%; min-height:0!important; display:flex!important; flex-direction:column; break-after:auto!important; page-break-after:auto!important; }
@@ -611,6 +613,7 @@ h3 { margin:0; font-size:16px; }
 .acceptance-exact .notice-subject { font-size:inherit; }
 @media print { .notice-sheet { font-size:14.667px!important; } }
 .notice-page > .source-letter-head-emblem + p { margin-top:16px!important; }
+.notice-acceptance-sheet .notice-page > .source-letter-head-emblem + p { margin-top:1.9mm!important; }
 .notice-page .approval-signature .signature-space { height:64px; }
 .notice-facts + p { margin-top:0!important; }
 sup.ordinal-suffix { position:relative; top:.1em; font-size:.62em; line-height:0; vertical-align:super; }
