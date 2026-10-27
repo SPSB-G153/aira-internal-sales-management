@@ -27,7 +27,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
     <section className="notice-page">
       <CompanyHead/>
       <p className="notice-date"><CurrentLetterDate/></p>
-      <p className="notice-recipient"><b>{purchaser}{purchaser2&&<><br/>{purchaser2}</>}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
+      <p className="notice-recipient"><b className="notice-recipient-names">{purchaser}{purchaser2&&<><br/>{purchaser2}</>}</b><span className="notice-recipient-address"><NoticeAddress address={value(content,"customer_address")}/></span></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
       <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Berhad</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
