@@ -22,6 +22,7 @@ button,a,input,select,textarea { -webkit-tap-highlight-color:transparent; }
 .sidebar .workspace-switcher+nav { margin-top:22px; }
 .sidebar-action { width:100%; margin-top:24px; }
 .app-shell { margin-left:246px; min-height:100vh; padding:42px clamp(24px,5vw,72px); }
+.document-scroll-shell { max-height:calc(100dvh - 84px); overflow-x:hidden; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; scrollbar-gutter:stable; }
 .mobile-header,.nav-toggle,.nav-scrim,.mobile-bottom-nav { display:none; }
 .page { max-width:1180px; margin:0 auto; }
 .page-header { display:flex; gap:20px; align-items:flex-start; justify-content:space-between; margin-bottom:28px; }
@@ -289,6 +290,7 @@ h3 { margin:0; font-size:16px; }
 @media(max-width:800px){
   .landing-hero { min-height:100svh; }.landing-nav { padding:22px 20px; }.landing-building { width:100%; opacity:.6; background:linear-gradient(0deg,#26302d 4%,#26302db0 55%,#26302d20 100%),url('https://edparchitects.com.my/wp-content/uploads/2018/08/Aira-2-TB-Side.jpg') center/cover no-repeat; }.landing-content { align-self:end; padding:30px 20px 96px; }.landing h1 { font-size:clamp(40px,12vw,58px); }.landing-intro { font-size:16px; margin:22px 0 28px; }.landing-actions>* { flex:1 1 165px; }
   body { overflow-x:hidden; }
+  .document-scroll-shell { max-height:calc(100dvh - 148px); padding-bottom:16px; }
   .mobile-header { display:flex; position:sticky; top:0; height:64px; padding:0 16px; background:#111319ee; color:var(--ink); border-bottom:1px solid var(--line); backdrop-filter:blur(14px); z-index:15; align-items:center; justify-content:space-between; box-shadow:0 8px 22px #0004; }
   .brand.compact { min-width:0; font-size:15px; }
   .menu-button { display:grid; place-items:center; width:44px; height:44px; margin-right:-8px; border-radius:10px; font-size:25px; line-height:1; cursor:pointer; user-select:none; }
