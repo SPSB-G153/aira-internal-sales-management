@@ -24,9 +24,9 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   await ensureAgentCommissionDocument(sale);
   const allDocs = await getDocuments(id);
   const docs = allDocs.filter((document) =>
+    document.document_type !== "pre_booking_form" &&
     (document.document_type !== "hovp_letter" || sale.status === "hovp_ready") &&
-    (document.document_type !== "booking_form" || document.content.booking_source === "manual") &&
-    !(sale.status === "draft" && document.document_type === "pre_booking_form")
+    (document.document_type !== "booking_form" || document.content.booking_source === "manual")
   );
   const score = scoreSale(sale, docs);
   const isPop = sale.status === "draft";
