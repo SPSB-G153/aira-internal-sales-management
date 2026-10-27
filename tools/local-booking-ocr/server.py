@@ -63,6 +63,16 @@ UNIT_SCHEMA = {
     "properties": {"unit_number": {"type": "string"}},
     "required": ["unit_number"],
 }
+PURCHASER_IDENTITY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "customer_name": {"type": "string"},
+        "customer_ic": {"type": "string"},
+        "customer_name_2": {"type": "string"},
+        "customer_ic_2": {"type": "string"},
+    },
+    "required": ["customer_name", "customer_ic", "customer_name_2", "customer_ic_2"],
+}
 PRICE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -125,7 +135,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-22-v8-price-verification"
+CACHE_VERSION = "booking-reader-2026-10-27-v9-joint-purchaser-verification"
 
 
 @app.middleware("http")
@@ -752,6 +762,41 @@ async def extract(file: UploadFile = File(...)):
         source = parsed.get("fields", {})
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
+        # Purchaser names and identity numbers are business-critical and the
+        # broad multi-page read can overlook the second handwritten row. Read
+        # the numbered 1/2 rows on the cover independently, then use those
+        # values to complete (not erase) the broad extraction.
+        purchaser_payload = {
+            "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Inspect only the two numbered handwritten rows under Purchaser's Name "
+                    "and the matching two numbered rows under Purchaser's NRIC / Passport / "
+                    "Company No. Read row 1 into customer_name and customer_ic. Read row 2 "
+                    "into customer_name_2 and customer_ic_2. A visibly completed second row "
+                    "must never be merged into purchaser 1 or omitted. Preserve spelling, "
+                    "letters, digits and hyphens exactly. Ignore the address and all printed "
+                    "labels. Return an empty string only for a genuinely blank row. Return "
+                    "only the requested JSON."
+                ),
+                "images": [booking_cover_section(pdf[0])],
+            }],
+            "format": PURCHASER_IDENTITY_SCHEMA,
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 300},
+        }
+        try:
+            purchaser_rows = structured_model_response(
+                purchaser_payload, timeout=300, retry_num_predict=500
+            )
+            for key in ("customer_name", "customer_ic", "customer_name_2", "customer_ic_2"):
+                focused_value = str(purchaser_rows.get(key, "") or "").strip()
+                if focused_value:
+                    fields[key] = focused_value
+        except (KeyError, TypeError, ValueError, RuntimeError):
+            warnings.append("The numbered purchaser rows need manual review.")
         # Price is too important to accept from the broad whole-form reading.
         # Verify only the actual Purchase Price row. A blank box must remain
         # blank; it must never inherit a previous sale or a model guess.
