@@ -137,16 +137,15 @@ function AgentCommissionLetter({content}:{content:Content}){
   const netPurchasePrice=Math.max(price-number(content,"rebate_amount"),0);
   const priceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(price)}`;
   const netPriceText=`RM${new Intl.NumberFormat("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}).format(netPurchasePrice)}`;
-  const salesperson=value(content,"salesperson_name","");
   const letterIssuedAt=value(content,"letter_issued_at","");
   return <div className="agent-commission-letter">
     <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet agent-commission-page-one">
       <section className="notice-page agent-commission-page">
-        <CompanyHead/>
+        <CompanyEmblem/>
         <p className="notice-date"><CurrentLetterDate date={letterIssuedAt}/></p>
         <p className="notice-recipient agent-recipient">{agencyDetails.contactName&&<><b>{agencyDetails.contactName}</b><br/></>}{agencyDetails.contactPosition&&<><b>{agencyDetails.contactPosition}</b><br/></>}<b>{agency}</b><br/>{agencyAddress.map((line,index)=><span key={line}>{line}{index<agencyAddress.length-1&&<br/>}</span>)}</p>
         <p className="notice-greeting">{agencyDetails.greeting}</p>
-        <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AGENT&apos;S FEE ARRANGEMENT<br/><span className="agent-subject-address">UNIT {unit}<br/>PURCHASER: {purchaser}<br/>PURCHASE PRICE: {priceText}</span></b></p>
+        <p className="notice-subject agent-fee-subject"><b>AGENT&apos;S FEE ARRANGEMENT<br/>UNIT {unit}<br/>PURCHASER: {purchaser}<br/>PURCHASE PRICE: {priceText}</b></p>
         <dl className="agent-commission-facts">
         </dl>
         <p>We refer to your letter of appointment{agencyDetails.appointmentDate?<> dated {agencyDetails.appointmentDate}</>:null} and the recent sale of Unit {unit} to the abovementioned purchaser.</p>
@@ -154,20 +153,9 @@ function AgentCommissionLetter({content}:{content:Content}){
         <p>The Sales Commission will be paid in Ringgit Malaysia within 30 days of our receipt of the following:</p>
         <ul className="agent-commission-list"><li>a stamped copy of the Sales &amp; Purchase Agreement (SPA);</li><li>the Agent&apos;s Tax Invoice.</li></ul>
         <p>We look forward to continuing our working collaboration and wish you every success in supporting our sales efforts during the year ahead.</p>
-        <p className="agent-commission-closing">Yours faithfully,<br/>For and behalf SELANGOR PROPERTIES SDN. BHD.</p>
-        <ApprovalSignature content={content} hideCopy/>
-        {salesperson&&<p className="agent-commission-cc">c.c. &nbsp; {salesperson}</p>}
-        <CompanyFooter/><LetterPageNumber page={1}/>
-      </section>
-    </article>
-    <article className="letter source-letter acceptance-exact notice-sheet agent-commission-sheet">
-      <section className="notice-page agent-commission-page agent-commission-acceptance">
-        <CompanyEmblem/>
-        <h2>ACCEPTANCE</h2>
-        <div className="agent-acceptance-subject"><b>AGENT&apos;S FEE ARRANGEMENT TO THE SALES OF UNIT {unit},<br/>{value(content,"project_name","AIRA RESIDENCE").toUpperCase()} DEVELOPMENT</b><br/>No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur</div>
-        <p>We, <b>{agency||"____________________"}</b> acknowledge receipt of this Letter dated <CurrentLetterDate date={letterIssuedAt}/> from SELANGOR PROPERTIES SDN. BHD. and agree to the terms and conditions contained herein.</p>
-        <div className="agent-acceptance-signature"><span/><p>Signature and Company Rubber Stamp:</p><p><b>Name:</b><i/></p><p><b>I/C No.:</b><i/></p><p><b>Date:</b><i/></p></div>
-        <LetterPageNumber page={2}/>
+        <p className="agent-commission-closing">Yours faithfully,<br/><i>For and behalf <b>SELANGOR PROPERTIES SDN. BHD.</b></i></p>
+        <ApprovalSignature content={content} hideCopy templateSignatory/>
+        <CompanyFooter/>
       </section>
     </article>
   </div>;

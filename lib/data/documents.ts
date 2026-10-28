@@ -5,7 +5,7 @@ import { buildDocumentSnapshot, documentOrder } from "@/lib/templates";
 import { mergeDocumentContent } from "@/lib/document-content";
 import { hasExternalAgent } from "@/lib/agency-details";
 const agentDocumentTypes=["agency_appointment_letter","agent_commission_letter"] as const;
-export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type)&&(!agentDocumentTypes.includes(doc.document_type as typeof agentDocumentTypes[number])||canAccessAgentLetter));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
+export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type)&&(!agentDocumentTypes.includes(doc.document_type as typeof agentDocumentTypes[number])||(canAccessAgentLetter&&hasExternalAgent(doc.content))));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
 export async function ensureAgentCommissionDocument(sale:Sale){
   const db=await createClient();const{team}=await getTeamContext();
   const{data:existing,error:lookupError}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",agentDocumentTypes);
@@ -39,6 +39,7 @@ export async function getDocument(id:string){
   ]);
   if(relatedError)throw new Error(relatedError.message);
   if(saleError)throw new Error(saleError.message);
+  if(agentDocumentTypes.includes(document.document_type as typeof agentDocumentTypes[number])&&!hasExternalAgent(sale as Sale))throw new Error("Agent details are required before this letter can be generated.");
   const historical=(related??[]).reduce<Record<string,unknown>>(
     (content,row)=>mergeDocumentContent(content,(row.content??{}) as Record<string,unknown>),
     {},

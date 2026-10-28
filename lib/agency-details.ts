@@ -62,12 +62,11 @@ export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_comp
 
 export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?: unknown }) {
   const details = splitAgencyDetails(source.agent_company);
-  return Boolean(
-    agencyCompanyForSale(source).trim() ||
-    details.agent_name ||
-    details.agent_email ||
-    details.agent_mobile,
-  );
+  const company = agencyCompanyForSale(source).trim();
+  const contactName = agencyLetterDetails(company, details).contactName.trim();
+  // A company name alone is not an agent. Both the agency and its named
+  // representative are required before either agent letter may be created.
+  return Boolean(company && contactName);
 }
 
 export function agencyLetterDetails(company: unknown, stored?: ReturnType<typeof splitAgencyDetails>) {
