@@ -247,7 +247,7 @@ h3 { margin:0; font-size:16px; }
 .source-band span { padding:4px 7px; border-radius:999px; background:#18332b; color:white; font-weight:800; text-transform:uppercase; }
 .source-band b { flex:1; }.source-band small { color:#666; text-transform:uppercase; letter-spacing:.08em; }
 .source-letter-head { display:flex; align-items:flex-start; justify-content:flex-end; min-height:47px; margin:0 0 28px; }.source-letter-head img { display:block; width:168px; height:47px; max-width:42%; object-fit:contain; }
-.source-letter-head.source-letter-head-emblem { min-height:41px; }.source-letter-head.source-letter-head-emblem img { width:52px; height:41px; max-width:none; }
+.source-letter-head.source-letter-head-emblem { min-height:41px; }.source-letter-head.source-letter-head-emblem img { width:147px; height:41px; max-width:42%; }
 .source-title { margin:0 0 24px; color:#000; font:800 24px/1.2 Arial,sans-serif; text-align:center; letter-spacing:.04em; }
 .source-title.compact { margin-bottom:18px; font-size:20px; }
 .source-subject { margin:22px 0; color:#000; font:800 16px/1.45 Arial,sans-serif; text-decoration:underline; text-underline-offset:3px; letter-spacing:.01em; }
@@ -428,7 +428,7 @@ h3 { margin:0; font-size:16px; }
   .notice-sheet .source-letter-head { display:flex!important; min-height:47px; flex:0 0 47px; align-items:flex-start; justify-content:flex-end; visibility:visible!important; }
   .notice-sheet .source-letter-head img { position:static; display:block!important; width:168px; height:47px; max-width:42%; visibility:visible!important; }
   .notice-sheet .source-letter-head-emblem { min-height:41px; flex-basis:41px; }
-  .notice-sheet .source-letter-head-emblem img { width:52px; height:41px; max-width:none; }
+  .notice-sheet .source-letter-head-emblem img { width:147px; height:41px; max-width:42%; }
   .notice-sheet .notice-page .source-footer { margin-top:auto!important; }
   .notice-sheet .notice-page-number { position:absolute!important; right:8mm; bottom:0; margin:0!important; text-align:center!important; }
   .rebate-exact { position:relative!important; box-sizing:border-box!important; width:210mm!important; height:297mm!important; min-height:297mm!important; padding:15mm!important; overflow:hidden!important; display:flex!important; flex-direction:column!important; }
