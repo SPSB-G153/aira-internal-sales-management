@@ -3,10 +3,13 @@ function standardizeAddressPart(part: string) {
   const number = part.match(/^no\.?\s*(\d+[a-z]?)$/i);
   if (number) return `No. ${number[1].toUpperCase()}`;
 
-  return part.replace(/[A-Za-z]+/g, (word) => {
+  const hasStreetNumberPrefix = /^no\.?\s+/i.test(part);
+  const normalizedPart = hasStreetNumberPrefix ? part.replace(/^no\.?\s+/i, "No. ") : part;
+  const standardized = normalizedPart.replace(/[A-Za-z]+/g, (word) => {
     if (word.length <= 3) return word.toUpperCase();
     return `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}`;
   });
+  return hasStreetNumberPrefix ? standardized.replace(/^NO\.\s/, "No. ") : standardized;
 }
 
 export function noticeAddressLines(address: string, maxLength = 34) {
