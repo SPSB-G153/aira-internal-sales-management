@@ -149,8 +149,11 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const pageOne=[
     acceptanceParagraph(ordinalDateRuns(new Date(),true),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
-    acceptanceParagraph([new TextRun({text:purchaser,bold:true}),...(purchaser2?[new TextRun({text:purchaser2,bold:true,break:1})]:[])],{alignment:AlignmentType.LEFT,spacing:{before:0,after:510,line:300}}),
-    acceptanceParagraph(addressLines.map((address,index)=>new TextRun({text:address,break:index?1:0})),{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
+    acceptanceParagraph([
+      new TextRun({text:purchaser,bold:true}),
+      ...(purchaser2?[new TextRun({text:purchaser2,bold:true,break:1})]:[]),
+      ...addressLines.map((address)=>new TextRun({text:address,break:1})),
+    ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
     acceptanceParagraph(purchaserGreeting(content),{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
     acceptanceParagraph([new TextRun({text:"RE:      NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE",bold:true,underline:{type:UnderlineType.SINGLE}})],{alignment:AlignmentType.LEFT,spacing:{before:120,after:220,line:300}}),
     acceptanceFactTable(content),
