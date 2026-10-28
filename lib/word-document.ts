@@ -15,6 +15,7 @@ const currentLetterDate=()=>new Intl.DateTimeFormat("en-MY",{day:"numeric",month
 const ordinalDateRuns=(value:unknown,current=false)=>{const parsed=value instanceof Date?value:typeof value==="string"&&value?new Date(`${value}T00:00:00`):new Date();if(Number.isNaN(parsed.getTime()))return [new TextRun("—")];const formatter=new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",...(current?{timeZone:"Asia/Kuala_Lumpur"}:{})});const parts=formatter.formatToParts(parsed);const day=Number(parts.find((part)=>part.type==="day")?.value||0);const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";const month=parts.find((part)=>part.type==="month")?.value||"";const year=parts.find((part)=>part.type==="year")?.value||"";return [new TextRun(String(day)),new TextRun({text:suffix,superScript:true}),new TextRun(` ${month} ${year}`)];};
 const issuedLetterDate=(content:Record<string,unknown>)=>{const value=text(content,"letter_issued_at","");if(!value)return currentLetterDate();const parsed=new Date(value);return Number.isNaN(parsed.getTime())?currentLetterDate():new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(parsed);};
 const towerFromUnit=(unit:string)=>{const tower=unit.split("-")[0]?.toUpperCase();return tower==="A"||tower==="B"?tower:"";};
+const individualIdDocument=(identifier:unknown)=>/^\d{6}-?\d{2}-?\d{4}$/.test(String(identifier??"").replace(/\s/g,""))?"identity card":"passport";
 const line=(value:string)=>new Paragraph({children:[new TextRun(value)]});
 
 const noBorder={style:BorderStyle.NONE,size:0,color:"FFFFFF"};
@@ -55,7 +56,7 @@ const acceptanceFirstFooter=()=>new Footer({children:[new Table({
         new TextRun({text:"SELANGOR PROPERTIES SDN. BHD.   ",bold:true,size:14}),
         new TextRun({text:"Registration No. 196301000340 (5199-X)",size:12}),
         new TextRun({text:"Level 3, Block D, The FIVE @ KPD, Kompleks Pejabat Damansara, Jalan Dungun, Damansara Heights, 50490 Kuala Lumpur,",break:1,size:14}),
-        new TextRun({text:"Malaysia. (P.O. Box 12267, 50772 Kuala Lumpur, Malaysia)        t +603 2094 1122        f +603 2095 0150",break:1,size:14}),
+        new TextRun({text:"Malaysia.        t +603 2094 1122        f +603 2095 0150",break:1,size:14}),
       ]})]
     }),
     new TableCell({
@@ -167,7 +168,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
       acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the Memorandum of Transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
       acceptanceParagraph("(b)   a certified true copy of the latest Certificate of Incorporation, Change of Name Form (if applicable), Memorandum and Articles of Association, and Forms 24, 44 and 49; and",{indent:{left:900,hanging:450}}),
       acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
-    ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For an individual",italics:true}),new TextRun(": your identity card / passport;")],{indent:{left:420,hanging:420}})]),
+    ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For an individual",italics:true}),new TextRun(`: your ${individualIdDocument(content.customer_ic)};`)],{indent:{left:420,hanging:420}})]),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase.",{spacing:{before:120,after:120,line:341}}),
     acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:500,line:300}}),
     acceptanceSignature(content),
