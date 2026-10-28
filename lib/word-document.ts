@@ -169,7 +169,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
       acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
     ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For an individual",italics:true}),new TextRun(": your identity card / passport;")],{indent:{left:420,hanging:420}})]),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase.",{spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1100,line:300}}),
+    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:500,line:300}}),
     acceptanceSignature(content),
     acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
   ];

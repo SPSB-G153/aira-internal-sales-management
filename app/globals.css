@@ -615,6 +615,8 @@ h3 { margin:0; font-size:16px; }
 .acceptance-exact { font-size:14.667px; }
 .acceptance-exact .notice-subject { font-size:inherit; }
 @media print { .notice-sheet { font-size:14.667px!important; } }
+.notice-acceptance-sheet .notice-page .notice-closing { margin-bottom:30pt!important; }
+.notice-acceptance-sheet .notice-page .approval-signature .signature-space { height:44px; }
 .notice-page > .source-letter-head-emblem + p { margin-top:16px!important; }
 .notice-acceptance-sheet .notice-page > .source-letter-head-emblem + p { margin-top:1.9mm!important; }
 .notice-acceptance-sheet .notice-page > .source-letter-head-emblem + .notice-requirements { margin-top:9mm!important; }
