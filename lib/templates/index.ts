@@ -1,11 +1,11 @@
 import type { DocumentType,Sale } from "@/lib/types";
-import { legacyAgencyCompany, splitAgencyDetails } from "@/lib/agency-details";
+import { agencyDetailsForSale, legacyAgencyCompany } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","acceptance_letter","agency_appointment_letter","agent_commission_letter","rebate_letter","inventory_confirmation_letter","hovp_letter"];
 export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,agency_appointment_letter:3,agent_commission_letter:3,rebate_letter:3,inventory_confirmation_letter:3,hovp_letter:5};
 const properPersonName=(name:string|null)=>name?name.toLocaleLowerCase("en-MY").replace(/(^|[\s'-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`):null;
 const common=(s:Sale)=>{
-  const agency=splitAgencyDetails(s.agent_company);
+  const agency=agencyDetailsForSale(s);
   const agencyCompany=agency.company||legacyAgencyCompany(s);
   const salesperson=profileForSalesPersonnel(s.salesperson_name||"");
   return ({

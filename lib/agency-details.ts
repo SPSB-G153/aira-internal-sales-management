@@ -41,6 +41,7 @@ export function combineAgencyDetails(company: unknown, address: unknown, agentNa
 type AgencyFallbackSource = {
   unit_number?: unknown;
   salesperson_name?: unknown;
+  pop_introduction_agent?: unknown;
 };
 
 /**
@@ -60,8 +61,16 @@ export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_comp
   return splitAgencyDetails(source.agent_company).company || legacyAgencyCompany(source);
 }
 
+export function agencyDetailsForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
+  const stored = splitAgencyDetails(source.agent_company);
+  const introduction = String(source.pop_introduction_agent ?? "").trim();
+  const introducedName = introduction.split(",")[0]?.trim() ?? "";
+  if (!stored.agent_name && introducedName && !/^(n\/?a|not applicable|none)$/i.test(introducedName)) return { ...stored, agent_name: introducedName };
+  return stored;
+}
+
 export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?: unknown }) {
-  const details = splitAgencyDetails(source.agent_company);
+  const details = agencyDetailsForSale(source);
   const company = agencyCompanyForSale(source).trim();
   const contactName = agencyLetterDetails(company, details).contactName.trim();
   // A company name alone is not an agent. Both the agency and its named
