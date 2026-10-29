@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, SectionType, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
@@ -187,7 +187,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
         children:pageOne,
       },
       {
-        properties:{page:{size:{width:11906,height:16838},margin:{top:2020,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
+        properties:{type:SectionType.NEXT_PAGE,page:{size:{width:11906,height:16838},margin:{top:2020,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
         headers:{default:letterHeader(emblemLogo,true)},
         footers:{default:pageNumberFooter()},
         children:pageTwo,
