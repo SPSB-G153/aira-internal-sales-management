@@ -164,7 +164,8 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:"),
   ];
   const pageTwo=[
-    new Paragraph({spacing:{before:0,after:420,line:20},children:[new PageBreak()]}),
+    new Paragraph({children:[new PageBreak()]}),
+    new Paragraph({spacing:{before:0,after:420,line:20},children:[]}),
     acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{spacing:{before:510,after:180,line:320},indent:{left:420,hanging:420}}),
     ...(isCompany?[
       acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For a corporation",italics:true}),new TextRun(":")],{indent:{left:420,hanging:420}}),
@@ -173,7 +174,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
       acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
     ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For an individual",italics:true}),new TextRun(`: your ${individualIdDocument(content.customer_ic)};`)],{indent:{left:420,hanging:420}})]),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase.",{spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1160,line:300}}),
+    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1710,line:300}}),
     acceptanceSignature(content),
     acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
   ];
