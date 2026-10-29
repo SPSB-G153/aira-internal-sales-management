@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, Packer, PageBreak, PageNumber, Paragraph, SectionType, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LineRuleType, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
@@ -164,7 +164,9 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:"),
   ];
   const pageTwo=[
-    acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{spacing:{before:930,after:180,line:320},indent:{left:420,hanging:420}}),
+    new Paragraph({children:[new PageBreak()]}),
+    new Paragraph({spacing:{before:0,after:0,line:420,lineRule:LineRuleType.EXACT},children:[new TextRun({text:"\u00a0",size:2})]}),
+    acceptanceParagraph([new TextRun("1.   a cheque or bank draft made in favour of “"),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true}),new TextRun("” for a sum equivalent to "),new TextRun({text:amount(deposit),bold:true}),new TextRun(", being payment of the first ten per centum (10%) of the Purchase Price as prescribed in the Third Schedule of the SPA; and")],{spacing:{before:0,after:180,line:320},indent:{left:420,hanging:420}}),
     ...(isCompany?[
       acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For a corporation",italics:true}),new TextRun(":")],{indent:{left:420,hanging:420}}),
       acceptanceParagraph("(a)   a certified true copy of your company’s board of directors’ and shareholders’ (if applicable) resolution authorizing (i) the purchase of the Property, and (ii) the execution of the Sale Documents, the Memorandum of Transfer in respect of the Property together with all relevant documents thereto and in respect of the sale and purchase of the Property, by way of affixation of your company’s common seal and execution by your company’s authorized signatories;",{indent:{left:900,hanging:450}}),
@@ -172,27 +174,19 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
       acceptanceParagraph("(c)   the company’s rubber stamp.",{indent:{left:900,hanging:450}}),
     ]:[acceptanceParagraph([new TextRun("2.   "),new TextRun({text:"For an individual",italics:true}),new TextRun(`: your ${individualIdDocument(content.customer_ic)};`)],{indent:{left:420,hanging:420}})]),
     acceptanceParagraph("Once again, welcome to the AIRA Residence family - we look forward to the culmination of your purchase.",{spacing:{before:120,after:120,line:341}}),
-    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1210,line:300}}),
+    acceptanceParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"On behalf of Selangor Properties Sdn. Bhd.",bold:true,break:1})],{alignment:AlignmentType.LEFT,spacing:{before:240,after:1290,line:300}}),
     acceptanceSignature(content),
     acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
   ];
   const document=new Document({
     features:{updateFields:true},
     styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:320,after:0}}}}},
-    sections:[
-      {
-        properties:{page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
-        headers:{default:letterHeader(fullLogo)},
-        footers:{default:acceptanceFirstFooter()},
-        children:pageOne,
-      },
-      {
-        properties:{type:SectionType.NEXT_PAGE,page:{size:{width:11906,height:16838},margin:{top:2020,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
-        headers:{default:letterHeader(emblemLogo,true)},
-        footers:{default:pageNumberFooter()},
-        children:pageTwo,
-      },
-    ]
+    sections:[{
+      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
+      headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
+      footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
+      children:[...pageOne,...pageTwo],
+    }]
   });
   return new Uint8Array(await Packer.toBuffer(document));
 }
