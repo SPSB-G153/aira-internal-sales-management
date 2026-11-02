@@ -117,17 +117,20 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
     const{team}=await getTeamContext();
     const{data:{user}}=await db.auth.getUser();
     const generated_at=new Date().toISOString();
+    const{data:existingDocuments,error:existingDocumentsError}=await db.from("documents").select("document_type,generated_at").eq("team_id",team.id).eq("sale_id",sale.id);
+    if(existingDocumentsError)throw existingDocumentsError;
+    const generationDateFor=(documentType:DocumentType)=>existingDocuments?.find(document=>document.document_type===documentType)?.generated_at||generated_at;
     if(sale.status==="draft"){
       const types:DocumentType[]=["pre_booking_form"];
       if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
-      const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
+      const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:generationDateFor(document_type)}));
       const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
     }else if(sale.status==="booking_draft"){
       const types:DocumentType[]=[];
       if(bookingSource==="manual")types.push("booking_form");
       if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
       if(types.length){
-        const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:document_type==="booking_form"?"pending":"generated",generated_at}));
+        const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:document_type==="booking_form"?"pending":"generated",generated_at:generationDateFor(document_type)}));
         const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
       }
     }else{
@@ -136,7 +139,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
       if(bookingSource==="manual")types.unshift("booking_form");
       if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
       if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");
-      const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at}));
+      const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at:generationDateFor(document_type)}));
       const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
     }
     if(hasExternalAgent(sale)){
@@ -194,8 +197,9 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const values:Partial<Sale>={sale_reference:clean("sale_reference")||existing?.sale_reference||`S-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,customer_name:customer||existing?.customer_name||"Purchaser pending",purchaser_type:popPurchaserType?(popPurchaserType.toLowerCase().includes("company")?"company":"individual"):(existing?.purchaser_type||"individual"),project_name:clean("project_name")||existing?.project_name||"Aira Residence",unit_number:unit,purchase_price:price||existing?.purchase_price||0,status:existing?.status||"draft",sale_date:clean("sale_date")||existing?.sale_date||null,salesperson_name:clean("salesperson_name")||existing?.salesperson_name||null,salesperson_designation:clean("salesperson_designation")||existing?.salesperson_designation||null,salesperson_mobile:clean("salesperson_mobile")||existing?.salesperson_mobile||null,salesperson_email:clean("salesperson_email")||existing?.salesperson_email||null,agent_company:agentDetails||existing?.agent_company||null,solicitor_name:clean("solicitor_name")||existing?.solicitor_name||null,authorised_signatory_name:clean("authorised_signatory_name")||existing?.authorised_signatory_name||null,authorised_signatory_position:clean("authorised_signatory_position")||existing?.authorised_signatory_position||null};
     const sale=existing?await updateSale(existing.id,values):await createSale(values);
     const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);const generated_at=new Date().toISOString();
+    const{data:existingDocuments,error:existingDocumentsError}=await db.from("documents").select("document_type,generated_at").eq("team_id",team.id).eq("sale_id",sale.id);if(existingDocumentsError)throw existingDocumentsError;
     const types:DocumentType[]=[];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
-    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
+    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:existingDocuments?.find(document=>document.document_type===document_type)?.generated_at||generated_at}));
     if(rows.length){const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}
     const{error:uploadedPopError}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form");if(uploadedPopError)throw uploadedPopError;
     const{data:documents,error:documentsError}=types.length?await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",types):{data:[],error:null};if(documentsError)throw documentsError;
@@ -213,7 +217,9 @@ export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Prom
     if(manualBooking?.content?.booking_source==="manual")types.unshift("booking_form");
     if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
     if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");
-    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at:new Date().toISOString()}));
+    const{data:existingDocuments,error:existingDocumentsError}=await db.from("documents").select("document_type,generated_at").eq("team_id",team.id).eq("sale_id",id);if(existingDocumentsError)throw existingDocumentsError;
+    const generatedAt=new Date().toISOString();
+    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at:existingDocuments?.find(document=>document.document_type===document_type)?.generated_at||generatedAt}));
     const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw new Error(error.message);
     await updateSale(id,{status:"confirmed"});
   } catch {
@@ -229,7 +235,8 @@ export async function generateHovp(id:string,_:ConfirmState,__form:FormData):Pro
   try {
     const sale=await getSale(id);if(sale.status!=="confirmed"&&sale.status!=="spa_signed")return{error:"Confirm the booking and upload the clearance letter before issuing the HOVP letter."};
     const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"hovp_letter",content:buildDocumentSnapshot(sale,"hovp_letter"),status:"generated",generated_at:new Date().toISOString()},{onConflict:"sale_id,document_type"});if(error)throw error;
+    const{data:existingHovp,error:existingHovpError}=await db.from("documents").select("generated_at").eq("team_id",team.id).eq("sale_id",id).eq("document_type","hovp_letter").maybeSingle();if(existingHovpError)throw existingHovpError;
+    const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"hovp_letter",content:buildDocumentSnapshot(sale,"hovp_letter"),status:"generated",generated_at:existingHovp?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});if(error)throw error;
     await updateSale(id,{status:"hovp_ready"});
   } catch { return {error:"Could not issue the HOVP letter."}; }
   revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");return {};

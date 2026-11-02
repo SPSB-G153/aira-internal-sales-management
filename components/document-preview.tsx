@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { documentSteps } from "@/lib/templates";
 import type { DocumentType } from "@/lib/types";
-import { CurrentLetterDate } from "@/components/current-letter-date";
+import { CurrentLetterDate, LetterDateProvider } from "@/components/current-letter-date";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
 import { designationForSalesPersonnel } from "@/lib/sales-personnel";
@@ -27,7 +27,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
     <article className="letter source-letter acceptance-exact notice-sheet notice-acceptance-sheet">
     <section className="notice-page">
       <CompanyHead/>
-      <p className="notice-date"><CurrentLetterDate/></p>
+      <p className="notice-date"><CurrentLetterDate date={value(content,"letter_issued_at","")}/></p>
       <p className="notice-recipient"><b className="notice-recipient-names">{purchaser}{purchaser2&&<><br/>{purchaser2}</>}</b><span className="notice-recipient-address"><NoticeAddress address={value(content,"customer_address")}/></span></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
@@ -64,7 +64,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
   const agency=value(content,"agent_company","");
   return <article className="letter source-letter acceptance-letter">
     <CompanyHead/>
-    <p><CurrentLetterDate/></p>
+    <p><CurrentLetterDate date={value(content,"letter_issued_at","")}/></p>
     <p><b>{recipients}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
     <p className="notice-greeting">{purchaserGreeting(content)}</p>
     <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
@@ -99,14 +99,15 @@ const formattedOrdinalDate=(input:unknown)=>{if(typeof input!=="string"||!input)
 const approvalDate=(input:unknown)=>typeof input==="string"&&input?input.split("-").reverse().map((part,index)=>index===2?part.slice(-2):part).join("."):"";
 
 export function DocumentPreview({type,content}:{type:DocumentType;content:Content}){
-  if(type==="pre_booking_form")return <ProspectOfferForm content={content}/>;
-  if(type==="booking_form")return <BookingFormExact content={content}/>;
-  if(type==="acceptance_letter")return <AcceptanceLetterExact content={content}/>;
-  if(type==="agency_appointment_letter")return <AgencyAppointmentLetter content={content}/>;
-  if(type==="agent_commission_letter")return <AgentCommissionLetter content={content}/>;
-  if(type==="rebate_letter")return <RebateLetter content={content}/>;
-  if(type==="inventory_confirmation_letter")return <InventoryConfirmationLetter content={content}/>;
-  return <HovpLetterExact content={content}/>;
+  const preview=type==="pre_booking_form"?<ProspectOfferForm content={content}/>
+    :type==="booking_form"?<BookingFormExact content={content}/>
+    :type==="acceptance_letter"?<AcceptanceLetterExact content={content}/>
+    :type==="agency_appointment_letter"?<AgencyAppointmentLetter content={content}/>
+    :type==="agent_commission_letter"?<AgentCommissionLetter content={content}/>
+    :type==="rebate_letter"?<RebateLetter content={content}/>
+    :type==="inventory_confirmation_letter"?<InventoryConfirmationLetter content={content}/>
+    :<HovpLetterExact content={content}/>;
+  return <LetterDateProvider date={value(content,"letter_issued_at","")}>{preview}</LetterDateProvider>;
 }
 
 function AgencyCommissionTable(){return <table className="agency-commission-table agency-commission-table-revised"><thead><tr><th>TOWER / UNIT TYPE</th><th>SALES COMMISSION<br/><span>% Purchase Price</span></th></tr></thead><tbody><tr><th colSpan={2}>Domestic Sales:</th></tr><tr><th>TOWER A</th><td/></tr><tr><td>Type A1</td><td>2.00</td></tr><tr><td>Type B</td><td>2.00</td></tr><tr><td>Type A2</td><td>2.00</td></tr><tr><td>Types D, E &amp; F</td><td>2.00</td></tr><tr><th>TOWER B</th><td/></tr><tr><td>Types G &amp; H</td><td>3.00</td></tr><tr className="agency-table-spacer"><td colSpan={2} aria-hidden="true"/></tr><tr className="agency-international"><th colSpan={2}>International Sales (Towers A &amp; B): &nbsp;&nbsp;&nbsp; <b>3.0%</b> of the Purchase Price</th></tr></tbody></table>}
@@ -191,7 +192,7 @@ function InventoryConfirmationLetter({content}:{content:Content}){
     <article className="letter source-letter acceptance-exact notice-sheet">
       <section className="notice-page inventory-page">
         <CompanyHead/>
-        <p className="notice-date"><CurrentLetterDate/></p>
+        <p className="notice-date"><CurrentLetterDate date={value(content,"letter_issued_at","")}/></p>
         <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
         <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
         <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AIRA RESIDENCE<br/>CONFIRMATION OF INVENTORIES FOR UNIT {unit}</b></p>
@@ -231,7 +232,7 @@ function HovpLetterExact({content}:{content:Content}){
   return <div className="hovp-exact">
     <article className="letter source-letter hovp-letter hovp-sheet">
       <HovpHead/>
-      <p className="notice-date"><CurrentLetterDate/></p>
+      <p className="notice-date"><CurrentLetterDate date={value(content,"letter_issued_at","")}/></p>
       <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <h1 className="source-subject">Re: &nbsp; AIRA Residence &ndash; Handover of Vacant Possession</h1>

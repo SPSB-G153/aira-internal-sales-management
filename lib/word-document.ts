@@ -12,7 +12,7 @@ const amount=(value:unknown)=>typeof value==="number"?new Intl.NumberFormat("en-
 const date=(value:unknown)=>{if(typeof value!=="string"||!value)return "—";return new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric"}).format(new Date(`${value}T00:00:00`));};
 const ordinalDate=(value:unknown)=>{if(typeof value!=="string"||!value)return "—";const parsed=new Date(`${value}T00:00:00`);if(Number.isNaN(parsed.getTime()))return "—";const day=parsed.getDate();const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";return `${day}${suffix} ${new Intl.DateTimeFormat("en-MY",{month:"long",year:"numeric"}).format(parsed)}`;};
 const currentLetterDate=()=>new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
-const ordinalDateRuns=(value:unknown,current=false)=>{const parsed=value instanceof Date?value:typeof value==="string"&&value?new Date(`${value}T00:00:00`):new Date();if(Number.isNaN(parsed.getTime()))return [new TextRun("—")];const formatter=new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",...(current?{timeZone:"Asia/Kuala_Lumpur"}:{})});const parts=formatter.formatToParts(parsed);const day=Number(parts.find((part)=>part.type==="day")?.value||0);const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";const month=parts.find((part)=>part.type==="month")?.value||"";const year=parts.find((part)=>part.type==="year")?.value||"";return [new TextRun(String(day)),new TextRun({text:suffix,superScript:true}),new TextRun(` ${month} ${year}`)];};
+const ordinalDateRuns=(value:unknown,current=false)=>{const parsed=value instanceof Date?value:typeof value==="string"&&value?(/^\d{4}-\d{2}-\d{2}$/.test(value)?new Date(`${value}T00:00:00`):new Date(value)):new Date();if(Number.isNaN(parsed.getTime()))return [new TextRun("—")];const formatter=new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",...(current?{timeZone:"Asia/Kuala_Lumpur"}:{})});const parts=formatter.formatToParts(parsed);const day=Number(parts.find((part)=>part.type==="day")?.value||0);const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";const month=parts.find((part)=>part.type==="month")?.value||"";const year=parts.find((part)=>part.type==="year")?.value||"";return [new TextRun(String(day)),new TextRun({text:suffix,superScript:true}),new TextRun(` ${month} ${year}`)];};
 const issuedLetterDate=(content:Record<string,unknown>)=>{const value=text(content,"letter_issued_at","");if(!value)return currentLetterDate();const parsed=new Date(value);return Number.isNaN(parsed.getTime())?currentLetterDate():new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(parsed);};
 const towerFromUnit=(unit:string)=>{const tower=unit.split("-")[0]?.toUpperCase();return tower==="A"||tower==="B"?tower:"";};
 const individualIdDocument=(identifier:unknown)=>/^\d{6}-?\d{2}-?\d{4}$/.test(String(identifier??"").replace(/\s/g,""))?"identity card":"passport";
@@ -148,7 +148,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const deposit=price*.1;
   const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const pageOne=[
-    acceptanceParagraph(ordinalDateRuns(new Date(),true),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
+    acceptanceParagraph(ordinalDateRuns(text(content,"letter_issued_at",""),true),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
     acceptanceParagraph([
       new TextRun({text:purchaser,bold:true}),
       ...(purchaser2?[new TextRun({text:purchaser2,bold:true,break:1})]:[]),
@@ -229,7 +229,7 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:420,after:540,line:300}}),
+    exactParagraph(issuedLetterDate(content),{spacing:{before:420,after:540,line:300}}),
     exactParagraph([
       new TextRun({text:text(content,"customer_name").toUpperCase(),bold:true}),
       ...noticeAddressLines(text(content,"customer_address")).map((address)=>new TextRun({text:address,break:1})),
@@ -257,7 +257,7 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
   const purchaser=text(content,"customer_name");
   const unit=text(content,"unit_number");
   const children:(Paragraph|Table)[]=[
-    exactParagraph(currentLetterDate(),{spacing:{before:220,after:200,line:300}}),exactRecipient(content),
+    exactParagraph(issuedLetterDate(content),{spacing:{before:220,after:200,line:300}}),exactRecipient(content),
     exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
     exactParagraph([new TextRun({text:"RE:      AIRA RESIDENCE",bold:true,underline:{type:UnderlineType.SINGLE}}),new TextRun({text:`CONFIRMATION OF INVENTORIES FOR UNIT ${unit}`,bold:true,underline:{type:UnderlineType.SINGLE},break:1})],{spacing:{before:120,after:240,line:300}}),
     exactParagraph("Greetings from AIRA Residence."),
@@ -392,7 +392,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const purchaser=text(content,"customer_name");
   const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const unit=text(content,"unit_number");
-  const handover=text(content,"hovp_date","")||currentLetterDate();
+  const handover=text(content,"hovp_date","")||issuedLetterDate(content);
   const salesperson=text(content,"salesperson_name","");
   const salespersonDesignation=text(content,"salesperson_designation","");
   const salespersonMobile=text(content,"salesperson_mobile","");
@@ -401,7 +401,7 @@ async function createHovpWord(content:Record<string,unknown>,fullLogo:Uint8Array
   const heading=(number:number,value:string)=>paragraph([new TextRun(`${number}.    `),new TextRun({text:value,underline:{type:UnderlineType.SINGLE}})],{spacing:{before:0,after:75,line:250}});
   const term=(value:string,after=120)=>paragraph(value,{alignment:AlignmentType.JUSTIFIED,indent:{left:430},spacing:{before:0,after,line:250}});
   const children:(Paragraph|Table)[]=[
-    paragraph(currentLetterDate()),
+    paragraph(issuedLetterDate(content)),
     paragraph([new TextRun({text:purchaser.toUpperCase(),bold:true}),...addressLines.map((address)=>new TextRun({text:address,break:1}))]),
     paragraph(purchaserGreeting(content)),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({margins:{top:0,bottom:60,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"Re:  AIRA Residence – Handover of Vacant Possession",bold:true})],{spacing:{before:90,after:0,line:250}})]})]})]}),
@@ -486,7 +486,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
   const signer=text(content,"authorised_signatory_name","");
   const designation=text(content,"authorised_signatory_position","");
   const common=[
-    new Paragraph({children:[new TextRun(type==="booking_form"?date(content.sale_date):currentLetterDate())]}),
+    new Paragraph({children:[new TextRun(type==="booking_form"?date(content.sale_date):issuedLetterDate(content))]}),
     line(purchaser),line(text(content,"customer_address")),
   ];
   let title="";let body:string[]=[];

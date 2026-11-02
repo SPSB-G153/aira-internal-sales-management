@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+
+const LetterDateContext = createContext("");
+
+export function LetterDateProvider({ date, children }: { date?: string; children: ReactNode }) {
+  return <LetterDateContext.Provider value={date || ""}>{children}</LetterDateContext.Provider>;
+}
 
 const malaysiaDate = (date = new Date()) => {
   const parts = new Intl.DateTimeFormat("en-MY", {
@@ -17,12 +23,14 @@ const malaysiaDate = (date = new Date()) => {
 };
 
 export function CurrentLetterDate({ date }: { date?: string }) {
-  const issuedDate = date ? malaysiaDate(new Date(date)) : "";
+  const inheritedDate = useContext(LetterDateContext);
+  const effectiveDate = date || inheritedDate;
+  const issuedDate = effectiveDate ? malaysiaDate(new Date(effectiveDate)) : "";
   const [value, setValue] = useState(() => issuedDate || malaysiaDate());
 
   useEffect(() => {
-    if (date) {
-      setValue(malaysiaDate(new Date(date)));
+    if (effectiveDate) {
+      setValue(malaysiaDate(new Date(effectiveDate)));
       return;
     }
     const refresh = () => setValue(malaysiaDate());
@@ -32,7 +40,7 @@ export function CurrentLetterDate({ date }: { date?: string }) {
       window.removeEventListener("beforeprint", refresh);
       document.removeEventListener("visibilitychange", refresh);
     };
-  }, [date]);
+  }, [effectiveDate]);
 
   return <>{value.day}<sup className="ordinal-suffix">{value.suffix}</sup> {value.remainder}</>;
 }
