@@ -26,6 +26,12 @@ const purchaser2Fields=new Set([
   "customer_occupation_2","contact_person_2","customer_phone_2","customer_email_2",
   "customer_address_2",
 ]);
+const purchaser1Fields=new Set([
+  "customer_name","customer_ic","customer_salutation","customer_tin",
+  "customer_nationality","customer_sex","customer_race","bumi_status",
+  "customer_occupation","contact_person","customer_phone","customer_email",
+  "customer_address",
+]);
 const normalCaseFields=new Set([
   "customer_name","customer_salutation","customer_nationality","customer_race",
   "bumi_status","customer_occupation","contact_person","customer_address",
@@ -60,6 +66,9 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
   const hasPurchaser2=Boolean(result&&(result.fields.customer_name_2?.trim()||result.fields.customer_ic_2?.trim()));
   const reviewFields=Object.keys(labels).filter(key=>hasPurchaser2||!purchaser2Fields.has(key));
+  const purchaser1ReviewFields=reviewFields.filter(key=>purchaser1Fields.has(key));
+  const purchaser2ReviewFields=reviewFields.filter(key=>purchaser2Fields.has(key));
+  const otherReviewFields=reviewFields.filter(key=>!purchaser1Fields.has(key)&&!purchaser2Fields.has(key));
 
   useEffect(()=>{
     try{
@@ -87,6 +96,9 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
     const value=result?.fields[key]||"";
     return normalCaseFields.has(key)?reviewValue(key,value):value;
   }
+
+  function personLabel(key:string){return labels[key].replace(/^Purchaser [12] /,"").replace(/ [12]$/,"");}
+  function reviewField(key:string,shortLabel=false){return <div key={key} className="upload-review-field"><label><span>{shortLabel?personLabel(key):labels[key]}</span>{key.includes("address")?<textarea rows={2} value={displayValue(key)} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={displayValue(key)} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>{key==="booking_fee"&&<div className="booking-fee-inline"><small>Upload the cheque or payment receipt to auto-fill the fee, payment date, method and reference.</small><BookingFeeUpload unitNumber={result?.fields.unit_number||""} purchasePrice={result?.fields.purchase_price||""} onUseFields={(fields)=>setResult(current=>current?{...current,fields:{...current.fields,...fields}}:current)}/></div>}</div>}
 
   async function extract(file:File){
     setBusy(true);setMessage("Reading privately on this computer… The first read may take a few minutes.");setDisplayValues({});setResult(null);
@@ -180,7 +192,11 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         <h2>Review extracted information</h2>
         <p className="subtle">Check the handwriting results and fill in any missing items before saving them to the sale and refreshing the letters.</p>
         {result.saved_path&&<p className="upload-saved-path">Saved locally: <strong>{result.saved_path}</strong></p>}
-        <div className="upload-review-fields">{reviewFields.map(key=><div key={key} className="upload-review-field"><label><span>{labels[key]}</span>{key.includes("address")?<textarea rows={2} value={displayValue(key)} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={displayValue(key)} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>{key==="booking_fee"&&<div className="booking-fee-inline"><small>Upload the cheque or payment receipt to auto-fill the fee, payment date, method and reference.</small><BookingFeeUpload unitNumber={result.fields.unit_number||""} purchasePrice={result.fields.purchase_price||""} onUseFields={(fields)=>setResult(current=>current?{...current,fields:{...current.fields,...fields}}:current)}/></div>}</div>)}</div>
+        <div className={`upload-review-purchasers ${hasPurchaser2?"has-second":""}`}>
+          <section className="upload-review-person"><div className="purchaser-column-title"><span>01</span><h3>Purchaser 1</h3></div><div className="upload-review-person-fields">{purchaser1ReviewFields.map(key=>reviewField(key,true))}</div></section>
+          {hasPurchaser2&&<section className="upload-review-person upload-review-person-secondary"><div className="purchaser-column-title"><span>02</span><h3>Purchaser 2</h3></div><div className="upload-review-person-fields">{purchaser2ReviewFields.map(key=>reviewField(key,true))}</div></section>}
+        </div>
+        <div className="upload-review-fields">{otherReviewFields.map(key=>reviewField(key))}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>{documentId?"Save information":"Use these details"}</button></div>
       </div>

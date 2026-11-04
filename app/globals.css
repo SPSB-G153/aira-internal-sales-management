@@ -111,6 +111,14 @@ h3 { margin:0; font-size:16px; }
 .upload-review-fields label span { color:var(--muted); font-size:11px; font-weight:800; }
 .upload-review-fields input,.upload-review-fields textarea { width:100%; min-width:0; }
 .upload-review-field { min-width:0; }
+.upload-review-purchasers { display:grid; grid-template-columns:1fr; gap:14px; margin:0 0 18px; }
+.upload-review-purchasers.has-second { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.upload-review-person { min-width:0; padding:16px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.018); }
+.upload-review-person-secondary { background:rgba(226,185,62,.035); }
+.upload-review-person-fields { display:grid; gap:10px; margin-top:14px; }
+.upload-review-person-fields label { display:grid; gap:5px; }
+.upload-review-person-fields label span { color:var(--muted); font-size:11px; font-weight:800; }
+.upload-review-person-fields input,.upload-review-person-fields textarea { width:100%; min-width:0; }
 .booking-fee-inline { display:grid; gap:7px; margin-top:9px; }
 .booking-fee-inline small { color:var(--muted); line-height:1.4; }
 .booking-fee-inline .button { width:100%; }
@@ -365,6 +373,7 @@ h3 { margin:0; font-size:16px; }
   .confirm-form { justify-items:stretch; width:100%; }
   .action-error { max-width:none; text-align:left; }
   .upload-review-fields { grid-template-columns:1fr; }
+  .upload-review-purchasers.has-second { grid-template-columns:1fr; }
   .new-sale-intake { padding:20px 16px; }
   .new-sale-intake-actions,.optional-pop-action { align-items:stretch; flex-direction:column; }
   .new-sale-intake-actions .booking-upload,.new-sale-intake-actions .upload-button,.optional-pop-action .button { width:100%; }
