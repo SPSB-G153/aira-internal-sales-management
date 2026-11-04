@@ -89,7 +89,7 @@ export function BookingFeeUpload({
         <div className="upload-review-fields">
           <label><span>{labels.booking_fee}</span><input type="number" value={result.fields.booking_fee || ""} placeholder="Not found — enter manually" onChange={(event) => updateField("booking_fee", event.target.value)} /></label>
           <label><span>{labels.sale_date}</span><input type="date" value={result.fields.sale_date || ""} onChange={(event) => updateField("sale_date", event.target.value)} /></label>
-          <label><span>{labels.payment_method}</span><select value={result.fields.payment_method || ""} onChange={(event) => updateField("payment_method", event.target.value)}><option value="">Not found — select manually</option><option value="bank_transfer">Bank transfer</option><option value="cheque">Cheque</option></select></label>
+          <label><span>{labels.payment_method}</span><select value={result.fields.payment_method || ""} onChange={(event) => updateField("payment_method", event.target.value)}><option value="">Not found — select manually</option><option value="bank_transfer">Bank transfer</option><option value="cheque">Cheque</option><option value="cash">Cash</option></select></label>
           <label><span>{labels.payment_reference}</span><input value={result.fields.payment_reference || ""} placeholder="Not found — enter manually" onChange={(event) => updateField("payment_reference", event.target.value)} /></label>
         </div>
         {feeMismatch && <div className="alert"><strong>Cheque total does not match the required 2% booking fee.</strong><p>Expected: {money(expectedFee)} · Extracted total: {Number.isFinite(extractedFee) ? money(extractedFee) : "Not found"}. Please correct the amount before using these details.</p></div>}

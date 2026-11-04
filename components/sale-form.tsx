@@ -2,6 +2,7 @@
 import { useActionState, useState } from "react";
 import { saveSale, type FormState } from "@/lib/actions/sales";
 import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
+import { BookingFeeUpload, type BookingFeeFields } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
 import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
@@ -174,6 +175,15 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     const supplied = sale?.booking_fee ?? initialValues?.booking_fee;
     return supplied == null ? "" : String(supplied);
   });
+  const [paymentMethod, setPaymentMethod] = useState(String(sale?.payment_method ?? initialValues?.payment_method ?? ""));
+  const [paymentReference, setPaymentReference] = useState(String(sale?.payment_reference ?? initialValues?.payment_reference ?? ""));
+  const [paymentDate, setPaymentDate] = useState(String(sale?.sale_date ?? initialValues?.sale_date ?? ""));
+  const applyBookingFee = (fields: BookingFeeFields) => {
+    if (fields.booking_fee?.trim()) setBookingFee(fields.booking_fee);
+    if (fields.payment_method?.trim()) setPaymentMethod(fields.payment_method);
+    if (fields.payment_reference?.trim()) setPaymentReference(fields.payment_reference);
+    if (fields.sale_date?.trim()) setPaymentDate(fields.sale_date);
+  };
   const [areaFt, setAreaFt] = useState(String(sale?.floor_area ?? initialValues?.floor_area ?? ""));
   const [areaM, setAreaM] = useState(String(sale?.floor_area_sqm ?? initialValues?.floor_area_sqm ?? ""));
   const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? "").toUpperCase());
@@ -568,6 +578,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <label>Booking fee paid (RM)</label>
             <input name="booking_fee" type="number" min="0" step="0.01" value={bookingFee} onChange={(event) => setBookingFee(event.target.value)} />
             <p className="subtle">Use the actual amount shown in the uploaded banking receipt.</p>
+            <BookingFeeUpload unitNumber={unitNumber} purchasePrice={price} onUseFields={applyBookingFee} />
             {state.fieldErrors?.booking_fee && <p className="error">{state.fieldErrors.booking_fee}</p>}
           </div>}
           {entryMode === "pop" && <>
@@ -671,25 +682,31 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             name="sale_date"
             label={entryMode === "booking" ? "Booking date" : "Proposal date"}
             type="date"
-            defaultValue={v("sale_date")}
+            value={paymentDate}
+            onChange={setPaymentDate}
           />
           <div className="field">
             <label>Deposit payment method</label>
             <div className="payment-method-options" role="radiogroup" aria-label="Deposit payment method">
               <label>
-                <input type="radio" name="payment_method" value="cheque" defaultChecked={v("payment_method") === "cheque"} />
+                <input type="radio" name="payment_method" value="cheque" checked={paymentMethod === "cheque"} onChange={(event) => setPaymentMethod(event.target.value)} />
                 <span>Cheque</span>
               </label>
               <label>
-                <input type="radio" name="payment_method" value="bank_transfer" defaultChecked={v("payment_method") === "bank_transfer"} />
+                <input type="radio" name="payment_method" value="bank_transfer" checked={paymentMethod === "bank_transfer"} onChange={(event) => setPaymentMethod(event.target.value)} />
                 <span>Bank transfer</span>
+              </label>
+              <label>
+                <input type="radio" name="payment_method" value="cash" checked={paymentMethod === "cash"} onChange={(event) => setPaymentMethod(event.target.value)} />
+                <span>Cash</span>
               </label>
             </div>
           </div>
           <Field
             name="payment_reference"
-            label="Cheque no. / bank-transfer reference"
-            defaultValue={v("payment_reference")}
+            label="Cheque no. / bank-transfer / cash receipt reference"
+            value={paymentReference}
+            onChange={setPaymentReference}
           />
         </div>
       </section>
