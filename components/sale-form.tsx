@@ -52,6 +52,12 @@ const Field = ({
     {error && <p className="error">{error}</p>}
   </div>
 );
+const RecordedField = ({ label, value, wide = false }: { label: string; value: unknown; wide?: boolean }) => (
+  <div className={`field recorded-field ${wide ? "full" : ""}`}>
+    <label>{label}</label>
+    <div className="recorded-field-value">{String(value || "—")}</div>
+  </div>
+);
 const Select = ({
   name,
   label,
@@ -287,6 +293,17 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           {hasSecond ? <>
             <Field name="customer_name_2" label="Purchaser 2 full name" defaultValue={v("customer_name_2")} />
             <Field name="customer_ic_2" label="Purchaser 2 IC / Passport / Company No." defaultValue={v("customer_ic_2")} />
+            <RecordedField label="Purchaser 2 TIN number" value={v("customer_tin_2")} />
+            <RecordedField label="Purchaser 2 nationality" value={v("customer_nationality_2")} />
+            <RecordedField label="Purchaser 2 sex" value={v("customer_sex_2")} />
+            <RecordedField label="Purchaser 2 race" value={v("customer_race_2")} />
+            <RecordedField label="Purchaser 2 Bumiputera status" value={v("bumi_status_2") === "true" ? "Yes" : v("bumi_status_2") === "false" ? "No" : "—"} />
+            <RecordedField label="Purchaser 2 occupation" value={v("customer_occupation_2")} />
+            <RecordedField label="Purchaser 2 contact person" value={v("contact_person_2")} />
+            <RecordedField label="Purchaser 2 mobile number" value={v("customer_phone_2")} />
+            <RecordedField label="Purchaser 2 email" value={v("customer_email_2")} />
+            {String(v("customer_address_2") || "").trim() && String(v("customer_address_2") || "").trim().toLowerCase() !== String(v("customer_address") || "").trim().toLowerCase() &&
+              <RecordedField label="Purchaser 2 correspondence address" value={v("customer_address_2")} wide />}
             <div className="field">
               <label>Purchaser 2 details</label>
               <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Edit purchaser 2</button>
