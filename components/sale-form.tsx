@@ -284,17 +284,19 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             label="Purchaser 1 IC / Passport / Company No."
             defaultValue={v("customer_ic")}
           />
-          <div className="field">
+          {hasSecond ? <>
+            <Field name="customer_name_2" label="Purchaser 2 full name" defaultValue={v("customer_name_2")} />
+            <Field name="customer_ic_2" label="Purchaser 2 IC / Passport / Company No." defaultValue={v("customer_ic_2")} />
+            <div className="field">
+              <label>Purchaser 2 details</label>
+              <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Edit purchaser 2</button>
+              <p className="subtle">View or edit the remaining purchaser 2 information.</p>
+            </div>
+          </> : <div className="field">
             <label>Joint purchase</label>
-            <button
-              type="button"
-              className="button secondary compact-button"
-              onClick={() => setSecondOpen(true)}
-            >
-              {hasSecond ? "Edit purchaser 2" : "Add purchaser 2"}
-            </button>
+            <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Add purchaser 2</button>
             <p className="subtle">For spouses or another joint purchaser.</p>
-          </div>
+          </div>}
           <Field
             name="customer_tin"
             label="TIN number"
