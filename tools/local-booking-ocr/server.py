@@ -364,14 +364,14 @@ def apply_inferred_salutations(fields):
 
 
 def unit_folder(unit_number):
-    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Booking"))
+    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Sales Management\Uploads"))
     folder = root / safe_part(unit_number, f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}")
     folder.mkdir(parents=True, exist_ok=True)
     return folder
 
 
 def cache_path(data):
-    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Booking")) / ".reader-cache"
+    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Sales Management\Uploads")) / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(CACHE_VERSION.encode("utf-8") + data).hexdigest()
     return root / f"{digest}.json"
