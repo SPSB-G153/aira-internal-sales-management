@@ -13,6 +13,18 @@ type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string
 export type BookingUploadFields=Record<string,string>;
 const isMalayRace=(race:string)=>/\b(malay|melayu)\b/i.test(race.trim());
 const fullSex=(value:string)=>{const normalized=value.trim().toUpperCase();return normalized==="M"||normalized==="MALE"?"Male":normalized==="F"||normalized==="FEMALE"?"Female":value.trim();};
+const salutationFromSex=(salutation:string,sex:string)=>{
+  const existing=salutation.trim();
+  if(existing)return existing;
+  const normalized=fullSex(sex).toLowerCase();
+  return normalized==="male"?"Mr":normalized==="female"?"Ms":"";
+};
+const salutations=["","Mr","Ms","Mrs","Dr","Dato'","Datin","Tan Sri","Puan Sri"];
+const withDerivedSalutations=(fields:Record<string,string>)=>({
+  ...fields,
+  customer_salutation:salutationFromSex(String(fields.customer_salutation||""),String(fields.customer_sex||"")),
+  customer_salutation_2:salutationFromSex(String(fields.customer_salutation_2||""),String(fields.customer_sex_2||"")),
+});
 
 const labels:Record<string,string>={
   customer_name:"Purchaser 1 name",customer_ic:"Purchaser 1 NRIC / passport",customer_salutation:"Purchaser 1 salutation",customer_tin:"Purchaser 1 TIN",customer_nationality:"Purchaser 1 nationality",customer_sex:"Purchaser 1 sex",customer_race:"Purchaser 1 race",bumi_status:"Purchaser 1 Bumi status",customer_occupation:"Purchaser 1 occupation",contact_person:"Contact person 1",customer_phone:"Mobile number 1",customer_email:"Email 1",customer_address:"Correspondence address 1",
@@ -74,7 +86,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
     try{
       if(!reviewStorageKey){sessionStorage.removeItem("aira-booking-review:new-sale");return;}
       const saved=sessionStorage.getItem(reviewStorageKey);
-      if(saved){const parsed=JSON.parse(saved) as Extraction;if(parsed&&parsed.fields&&Array.isArray(parsed.warnings))setResult(parsed);}
+      if(saved){const parsed=JSON.parse(saved) as Extraction;if(parsed&&parsed.fields&&Array.isArray(parsed.warnings))setResult({...parsed,fields:withDerivedSalutations(parsed.fields)});}
     }catch{/* Ignore an invalid or unavailable browser-session draft. */}
     finally{setReviewRestored(true);}
   },[reviewStorageKey]);
@@ -98,7 +110,12 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   }
 
   function personLabel(key:string){return labels[key].replace(/^Purchaser [12] /,"").replace(/ [12]$/,"");}
-  function reviewField(key:string,shortLabel=false){return <div key={key} className="upload-review-field"><label><span>{shortLabel?personLabel(key):labels[key]}</span>{key.includes("address")?<textarea rows={2} value={displayValue(key)} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={displayValue(key)} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>{key==="booking_fee"&&<div className="booking-fee-inline"><small>Upload the cheque or payment receipt to auto-fill the fee, payment date, method and reference.</small><BookingFeeUpload unitNumber={result?.fields.unit_number||""} purchasePrice={result?.fields.purchase_price||""} onUseFields={(fields)=>setResult(current=>current?{...current,fields:{...current.fields,...fields}}:current)}/></div>}</div>}
+  function reviewField(key:string,shortLabel=false){
+    const isSalutation=key==="customer_salutation"||key==="customer_salutation_2";
+    const value=displayValue(key);
+    const options=value&&!salutations.includes(value)?[...salutations,value]:salutations;
+    return <div key={key} className="upload-review-field"><label><span>{shortLabel?personLabel(key):labels[key]}</span>{isSalutation?<select value={value} onChange={event=>updateField(key,event.target.value)}>{options.map(option=><option key={option} value={option}>{option||"Select"}</option>)}</select>:key.includes("address")?<textarea rows={2} value={value} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={value} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>{key==="booking_fee"&&<div className="booking-fee-inline"><small>Upload the cheque or payment receipt to auto-fill the fee, payment date, method and reference.</small><BookingFeeUpload unitNumber={result?.fields.unit_number||""} purchasePrice={result?.fields.purchase_price||""} onUseFields={(fields)=>setResult(current=>current?{...current,fields:{...current.fields,...fields}}:current)}/></div>}</div>
+  }
 
   async function extract(file:File){
     setBusy(true);setMessage("Reading privately on this computer… The first read may take a few minutes.");setDisplayValues({});setResult(null);
@@ -114,6 +131,8 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor,...(savedAdministration||{})};
       fields.customer_sex=fullSex(String(fields.customer_sex||""));
       fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
+      fields.customer_salutation=salutationFromSex(String(fields.customer_salutation||""),String(fields.customer_sex||""));
+      fields.customer_salutation_2=salutationFromSex(String(fields.customer_salutation_2||""),String(fields.customer_sex_2||""));
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));
       fields.customer_nationality_2=normalizeNationality(String(fields.customer_nationality_2||""));
       fields.purchaser_type=normalizePurchaserType(String(fields.purchaser_type||""),String(fields.customer_name||""),String(fields.customer_salutation||""));
