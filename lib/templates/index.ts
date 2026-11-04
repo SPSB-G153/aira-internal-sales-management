@@ -25,4 +25,8 @@ const common=(s:Sale)=>{
   authorised_signatory_name:s.authorised_signatory_name,authorised_signatory_position:s.authorised_signatory_position,
   pop_proposal_note:s.pop_proposal_note,pop_conditions_note:s.pop_conditions_note,pop_recommendation_note:s.pop_recommendation_note,pop_feasibility_note:s.pop_feasibility_note,pop_comments_note:s.pop_comments_note,
 });};
-export function buildDocumentSnapshot(sale:Sale,type:DocumentType){return{...common(sale),document_type:type,verified_at:new Date().toISOString()}}
+export function buildDocumentSnapshot(sale:Sale,type:DocumentType){
+  const snapshot=common(sale);
+  const requiresPaymentDate=type==="booking_form"||type==="acceptance_letter";
+  return{...snapshot,...(requiresPaymentDate&&!sale.booking_fee?{sale_date:null}:{}),document_type:type,verified_at:new Date().toISOString()};
+}

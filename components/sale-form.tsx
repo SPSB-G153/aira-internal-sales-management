@@ -190,7 +190,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   });
   const [paymentMethod, setPaymentMethod] = useState(String(sale?.payment_method ?? initialValues?.payment_method ?? ""));
   const [paymentReference, setPaymentReference] = useState(String(sale?.payment_reference ?? initialValues?.payment_reference ?? ""));
-  const [paymentDate, setPaymentDate] = useState(String(sale?.sale_date ?? initialValues?.sale_date ?? ""));
+  const hasRecordedBookingFee=Number(sale?.booking_fee ?? initialValues?.booking_fee ?? 0)>0;
+  const [paymentDate, setPaymentDate] = useState(hasRecordedBookingFee?String(sale?.sale_date ?? initialValues?.sale_date ?? ""):"");
   const applyBookingFee = (fields: BookingFeeFields) => {
     if (fields.booking_fee?.trim()) setBookingFee(fields.booking_fee);
     if (fields.payment_method?.trim()) setPaymentMethod(fields.payment_method);
