@@ -132,7 +132,7 @@ POP_SALESPERSON_SCHEMA = {
 PROMPT = """Read only handwritten or manually entered information from these enlarged sections of an Aira Booking Form. For the approved five-page form, the images show the completed first page, the Property Details table on page 5, and the Purchaser's Particulars table on page 5. Cross-check repeated values and prefer the clearest or most complete occurrence. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
-- The first completed purchaser row is purchaser 1. Map its Contact Person's Name, Mobile No. and Email Address from the first contact row to contact_person, customer_phone and customer_email.
+- Assign each Contact Person's Name, Mobile No. and Email Address to the purchaser whose name matches the contact name. When the contact row names purchaser 2, map it to contact_person_2, customer_phone_2 and customer_email_2, never purchaser 1.
 - When purchaser 1 is a company and the next line in the same purchaser-name cell identifies a director, keep the company as customer_name, set customer_occupation to Company Director and purchaser_type to company. Do not treat the director as purchaser 2.
 - Set purchaser_type to company when the purchaser is a registered entity (including names ending in Sdn. Bhd., S/B, Berhad, Ltd., LLP or similar); otherwise set it to individual.
 - Populate purchaser 2 fields only when the second purchaser row in section A or B contains an actual purchaser name or identity number. A second contact-person row by itself is not a second purchaser.
@@ -142,7 +142,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-10-27-v10-complete-property-table"
+CACHE_VERSION = "booking-reader-2026-11-04-v11-contact-owner"
 
 
 @app.middleware("http")
@@ -360,6 +360,29 @@ def apply_inferred_salutations(fields):
             fields[salutation_key] = "Mr"
         elif sex in {"F", "FEMALE"}:
             fields[salutation_key] = "Ms"
+    return fields
+
+
+def assign_contact_to_matching_purchaser(fields):
+    """Move a contact row to purchaser 2 when its written name matches purchaser 2."""
+    def first_name(value):
+        words = re.findall(r"[A-Za-z]+", str(value or "").upper())
+        ignored = {"DATO", "DATUK", "MR", "MS", "MRS", "DR"}
+        return next((word for word in words if word not in ignored), "")
+
+    contact_first = first_name(fields.get("contact_person"))
+    purchaser_1_first = first_name(fields.get("customer_name"))
+    purchaser_2_first = first_name(fields.get("customer_name_2"))
+    if not contact_first or contact_first != purchaser_2_first or contact_first == purchaser_1_first:
+        return fields
+    for source, destination in (
+        ("contact_person", "contact_person_2"),
+        ("customer_phone", "customer_phone_2"),
+        ("customer_email", "customer_email_2"),
+    ):
+        if not str(fields.get(destination, "") or "").strip():
+            fields[destination] = fields.get(source, "")
+        fields[source] = ""
     return fields
 
 
@@ -941,6 +964,7 @@ async def extract(file: UploadFile = File(...)):
                     fields["customer_occupation"] = "Company Director"
                 except (KeyError, TypeError, ValueError):
                     warnings.append("The company director line could not be read automatically; review the director/contact fields.")
+        fields = assign_contact_to_matching_purchaser(fields)
         fields = apply_inferred_salutations(fields)
         if not fields.get("unit_number"):
             # Parcel No. is a small handwritten value inside the Property line
