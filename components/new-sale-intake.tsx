@@ -109,7 +109,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
           <BookingFormUpload
             buttonLabel="Upload Booking Form"
             onUseFields={(fields) => {
-              setValues(bookingValues(fields));
+              setValues({ ...initialValues, ...bookingValues(fields) });
               setMode("booking");
               setBookingSource("uploaded");
               setRevision((current) => current + 1);
