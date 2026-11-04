@@ -202,8 +202,9 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const [unitType, setUnitType] = useState(String(sale?.unit_type ?? initialValues?.unit_type ?? state.fields?.unit_type ?? "").toUpperCase());
   const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
   const [storeyNumber, setStoreyNumber] = useState(String(sale?.storey_number ?? initialValues?.storey_number ?? state.fields?.storey_number ?? ""));
-  const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name ?? initialValues?.solicitor_name ?? state.fields?.solicitor_name ?? ""));
-  const [unitNumber, setUnitNumber] = useState(String(sale?.unit_number ?? initialValues?.unit_number ?? state.fields?.unit_number ?? ""));
+  const initialUnitNumber=String(sale?.unit_number ?? initialValues?.unit_number ?? state.fields?.unit_number ?? "");
+  const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name || initialValues?.solicitor_name || state.fields?.solicitor_name || solicitorForUnit(initialUnitNumber)));
+  const [unitNumber, setUnitNumber] = useState(initialUnitNumber);
   const [popAdmin, setPopAdmin] = useState<Record<string, string>>({
     sale_reference: String(v("sale_reference")),
     salesperson_name: String(v("salesperson_name")),
