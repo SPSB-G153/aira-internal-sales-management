@@ -107,7 +107,9 @@ SINGLE_CHEQUE_SCHEMA = {
     "required": ["amount", "amount_words", "date", "reference"],
 }
 POP_ADMIN_FIELDS = [
-    "customer_name", "purchaser_type", "project_name", "unit_number", "purchase_price", "sale_date",
+    "customer_name", "customer_name_2", "purchaser_type", "project_name", "unit_number",
+    "unit_type", "floor_area", "purchase_price", "approved_selling_price",
+    "additional_revenue", "repeat_buyer_discount", "rebate_amount", "sale_date",
     "sale_reference", "salesperson_name", "salesperson_designation",
     "salesperson_mobile", "salesperson_email", "agent_company", "agent_address",
 ]
@@ -616,7 +618,7 @@ async def extract_pop_admin(
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract the purchaser name, purchaser type, project, unit or parcel number, purchase or SPA price, proposal date, "
+                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract both purchaser names separately as customer_name and customer_name_2; purchaser type; project; unit or parcel number; unit type; floor area in square feet; purchase or SPA price; approved selling price; additional revenue; repeat-buyer discount; rebate amount; and proposal date. "
                     "the POP or proposal reference as sale_reference; the sales personnel or "
                     "salesperson name; designation; mobile or telephone number; email; and sales "
                     "agency or company. The value beside the printed label 'Team Member Assisting' "
@@ -628,7 +630,7 @@ async def extract_pop_admin(
                     "that as agent_company. Extract a clearly printed agency/company mailing address "
                     "as agent_address. Never infer a company or address from an email domain, logo style "
                     "or person's name. Preserve spelling, numbers and email exactly. Do not "
-                    "use purchaser details as salesperson details. Return purchase_price as digits only without RM or commas, use DD/MM/YYYY for sale_date, and preserve the unit number in uppercase. Return an empty string for any "
+                    "use purchaser details as salesperson details. Read sale_date from the dated proposal/signature area, not an approval date. Return all monetary and floor-area values as digits only without RM or commas, use DD/MM/YYYY for sale_date, and preserve the unit number and unit type in uppercase. Return an empty string for any "
                     "field that is not clearly shown. Return only the requested JSON."
                 ),
                 "images": images,

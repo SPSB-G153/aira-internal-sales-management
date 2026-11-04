@@ -10,10 +10,17 @@ type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: str
 
 const labels: Record<string, string> = {
   customer_name: "Purchaser name",
+  customer_name_2: "Purchaser 2 name",
   purchaser_type: "Purchaser type",
   project_name: "Project",
   unit_number: "Unit number",
+  unit_type: "Unit type",
+  floor_area: "Floor area (square feet)",
   purchase_price: "SPA / purchase price",
+  approved_selling_price: "Approved selling price",
+  additional_revenue: "Additional revenue",
+  repeat_buyer_discount: "Repeat-buyer discount",
+  rebate_amount: "Rebate amount",
   sale_date: "Proposal date",
   sale_reference: "POP / booking reference",
   salesperson_name: "Sales personnel name",
