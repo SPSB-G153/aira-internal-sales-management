@@ -147,7 +147,7 @@ const keepSecondPurchaser = (form: HTMLFormElement) =>
     "customer_email_2",
     "customer_address_2",
   ].forEach((name) => {
-    const input = form.elements.namedItem(name) as
+    const input = form.querySelector(`.purchaser-modal [name="${name}"]`) as
       | HTMLInputElement
       | HTMLSelectElement
       | null;
