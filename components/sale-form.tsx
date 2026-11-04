@@ -264,7 +264,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           </div>
           <span className="template-step">{entryMode === "booking" ? "Verified booking" : "Editable proposal"}</span>
         </div>
-        <div className="form-grid">
+        <div className="form-grid purchaser-particulars-grid">
           <div className="field full purchaser-type-field">
             <label>Purchaser type</label>
             <div className="purchaser-type-options" role="radiogroup" aria-label="Purchaser type">
@@ -273,6 +273,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             </div>
             <p className="subtle">This selects the correct supporting-document requirements for the booking and acceptance letters.</p>
           </div>
+          <div className="purchaser-one-column">
+          <div className="purchaser-column-title"><span>01</span><h3>Purchaser 1</h3></div>
           <Select
             name="customer_salutation"
             label="Salutation"
@@ -291,21 +293,34 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             label="Purchaser 1 IC / Passport / Company No."
             defaultValue={v("customer_ic")}
           />
+          <Field name="customer_tin" label="TIN number" defaultValue={v("customer_tin")} />
+          <Field name="customer_nationality" label={purchaserType === "company" ? "Director nationality" : "Nationality"} defaultValue={v("customer_nationality")} />
+          <Select name="customer_sex" label={purchaserType === "company" ? "Director sex" : "Sex"} value={v("customer_sex")} options={[["Female", "Female"], ["Male", "Male"]]} />
+          <Field name="customer_race" label="Race" defaultValue={v("customer_race")} />
+          <Select name="bumi_status" label="Bumiputera status" value={v("bumi_status")} options={[["true", "Yes"], ["false", "No"]]} />
+          <Field name="customer_occupation" label={purchaserType === "company" ? "Director position / occupation" : "Occupation"} defaultValue={v("customer_occupation")} />
+          <Field name="contact_person" label={purchaserType === "company" ? "Director / contact person" : "Contact person"} defaultValue={v("contact_person")} />
+          <Field name="customer_phone" label="Mobile number" defaultValue={v("customer_phone")} />
+          <Field name="customer_email" label="Email" type="email" defaultValue={v("customer_email")} error={state.fieldErrors?.customer_email} />
+          <Field name="customer_address" label="Correspondence address" wide defaultValue={v("customer_address")} />
+          </div>
+          <div className="purchaser-two-column">
+          <div className="purchaser-column-title"><span>02</span><h3>Purchaser 2</h3></div>
           {hasSecond ? <>
             {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={String(v(name) || "")} data-second-field={name} readOnly />)}
-            <RecordedField label="Purchaser 2 full name" value={v("customer_name_2")} />
-            <RecordedField label="Purchaser 2 IC / Passport / Company No." value={v("customer_ic_2")} />
-            <RecordedField label="Purchaser 2 TIN number" value={v("customer_tin_2")} />
-            <RecordedField label="Purchaser 2 nationality" value={v("customer_nationality_2")} />
-            <RecordedField label="Purchaser 2 sex" value={v("customer_sex_2")} />
-            <RecordedField label="Purchaser 2 race" value={v("customer_race_2")} />
-            <RecordedField label="Purchaser 2 Bumiputera status" value={v("bumi_status_2") === "true" ? "Yes" : v("bumi_status_2") === "false" ? "No" : "—"} />
-            <RecordedField label="Purchaser 2 occupation" value={v("customer_occupation_2")} />
-            <RecordedField label="Purchaser 2 contact person" value={v("contact_person_2")} />
-            <RecordedField label="Purchaser 2 mobile number" value={v("customer_phone_2")} />
-            <RecordedField label="Purchaser 2 email" value={v("customer_email_2")} />
+            <RecordedField label="Full name" value={v("customer_name_2")} />
+            <RecordedField label="IC / Passport / Company No." value={v("customer_ic_2")} />
+            <RecordedField label="TIN number" value={v("customer_tin_2")} />
+            <RecordedField label="Nationality" value={v("customer_nationality_2")} />
+            <RecordedField label="Sex" value={v("customer_sex_2")} />
+            <RecordedField label="Race" value={v("customer_race_2")} />
+            <RecordedField label="Bumiputera status" value={v("bumi_status_2") === "true" ? "Yes" : v("bumi_status_2") === "false" ? "No" : "—"} />
+            <RecordedField label="Occupation" value={v("customer_occupation_2")} />
+            <RecordedField label="Contact person" value={v("contact_person_2")} />
+            <RecordedField label="Mobile number" value={v("customer_phone_2")} />
+            <RecordedField label="Email" value={v("customer_email_2")} />
             {String(v("customer_address_2") || "").trim() && String(v("customer_address_2") || "").trim().toLowerCase() !== String(v("customer_address") || "").trim().toLowerCase() &&
-              <RecordedField label="Purchaser 2 correspondence address" value={v("customer_address_2")} wide />}
+              <RecordedField label="Correspondence address" value={v("customer_address_2")} wide />}
             <div className="field">
               <label>Purchaser 2 details</label>
               <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Edit purchaser 2</button>
@@ -316,67 +331,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Add purchaser 2</button>
             <p className="subtle">For spouses or another joint purchaser.</p>
           </div>}
-          <Field
-            name="customer_tin"
-            label="TIN number"
-            defaultValue={v("customer_tin")}
-          />
-          <Field
-            name="customer_nationality"
-            label={purchaserType === "company" ? "Director nationality" : "Nationality"}
-            defaultValue={v("customer_nationality")}
-          />
-          <Select
-            name="customer_sex"
-            label={purchaserType === "company" ? "Director sex" : "Sex"}
-            value={v("customer_sex")}
-            options={[
-              ["Female", "Female"],
-              ["Male", "Male"],
-            ]}
-          />
-          <Field
-            name="customer_race"
-            label="Race"
-            defaultValue={v("customer_race")}
-          />
-          <Select
-            name="bumi_status"
-            label="Bumiputera status"
-            value={v("bumi_status")}
-            options={[
-              ["true", "Yes"],
-              ["false", "No"],
-            ]}
-          />
-          <Field
-            name="customer_occupation"
-            label={purchaserType === "company" ? "Director position / occupation" : "Occupation"}
-            defaultValue={v("customer_occupation")}
-          />
-          <Field
-            name="contact_person"
-            label={purchaserType === "company" ? "Director / contact person" : "Contact person"}
-            defaultValue={v("contact_person")}
-          />
-          <Field
-            name="customer_phone"
-            label="Mobile number"
-            defaultValue={v("customer_phone")}
-          />
-          <Field
-            name="customer_email"
-            label="Email"
-            type="email"
-            defaultValue={v("customer_email")}
-            error={state.fieldErrors?.customer_email}
-          />
-          <Field
-            name="customer_address"
-            label="Correspondence address"
-            wide
-            defaultValue={v("customer_address")}
-          />
+          </div>
         </div>
       </section>
       {secondOpen && (
