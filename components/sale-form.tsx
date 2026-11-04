@@ -85,19 +85,23 @@ const Select = ({
     </select>
   </div>
 );
-const salutation: [
-  [string, string],
-  [string, string],
-  [string, string],
-  [string, string],
-  [string, string],
-] = [
+const salutation: Array<[string, string]> = [
   ["Mr", "Mr"],
   ["Ms", "Ms"],
   ["Mrs", "Mrs"],
   ["Dr", "Dr"],
+  ["Dato'", "Dato'"],
+  ["Datin", "Datin"],
+  ["Tan Sri", "Tan Sri"],
+  ["Puan Sri", "Puan Sri"],
   ["Company", "Company"],
 ];
+const derivedSalutation=(salutationValue:unknown,sexValue:unknown)=>{
+  const current=String(salutationValue||"").trim();
+  if(current)return current;
+  const sex=String(sexValue||"").trim().toLowerCase();
+  return sex==="m"||sex==="male"?"Mr":sex==="f"||sex==="female"?"Ms":"";
+};
 const secondPurchaserFields: (keyof Sale)[] = ["customer_salutation_2", "customer_name_2", "customer_ic_2", "customer_tin_2", "customer_nationality_2", "customer_sex_2", "customer_race_2", "bumi_status_2", "customer_occupation_2", "contact_person_2", "customer_phone_2", "customer_email_2", "customer_address_2"];
 const detailsByUnit: Record<string, { floorArea: number; unitType: string; parkingBay?: string }> = {
   "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 7, 8, 9" },
@@ -174,6 +178,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     const value = state.fields?.[key] ?? sale?.[key] ?? initialValues?.[key] ?? "";
     return typeof value === "boolean" ? String(value) : value;
   };
+  const salutation1=derivedSalutation(v("customer_salutation"),v("customer_sex"));
+  const salutation2=derivedSalutation(v("customer_salutation_2"),v("customer_sex_2"));
   const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
   const storedAgency = splitAgencyDetails(sale?.agent_company ?? initialValues?.agent_company ?? "");
   const storedSalesperson = profileForSalesPersonnel(String(v("salesperson_name")));
@@ -278,7 +284,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           <Select
             name="customer_salutation"
             label="Salutation"
-            value={v("customer_salutation")}
+            value={salutation1}
             options={salutation}
           />
           <Field
@@ -307,7 +313,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           <div className="purchaser-two-column">
           <div className="purchaser-column-title"><span>02</span><h3>Purchaser 2</h3></div>
           {hasSecond ? <>
-            {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={String(v(name) || "")} data-second-field={name} readOnly />)}
+            {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={name==="customer_salutation_2"?salutation2:String(v(name) || "")} data-second-field={name} readOnly />)}
+            <RecordedField label="Salutation" value={salutation2} />
             <RecordedField label="Full name" value={v("customer_name_2")} />
             <RecordedField label="IC / Passport / Company No." value={v("customer_ic_2")} />
             <RecordedField label="TIN number" value={v("customer_tin_2")} />
@@ -372,7 +379,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
               <Select
                 name="customer_salutation_2"
                 label="Salutation"
-                value={v("customer_salutation_2")}
+                value={salutation2}
                 options={salutation}
               />
               <Field
