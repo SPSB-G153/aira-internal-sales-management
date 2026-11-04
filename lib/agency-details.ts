@@ -42,6 +42,11 @@ type AgencyFallbackSource = {
   unit_number?: unknown;
   salesperson_name?: unknown;
   pop_introduction_agent?: unknown;
+  agent_name?: unknown;
+  agent_designation?: unknown;
+  agent_mobile?: unknown;
+  agent_email?: unknown;
+  agent_address?: unknown;
 };
 
 /**
@@ -63,10 +68,21 @@ export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_comp
 
 export function agencyDetailsForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
   const stored = splitAgencyDetails(source.agent_company);
+  // Generated document snapshots store the agency fields separately while
+  // sale records keep the same details inside `agent_company`. Support both
+  // representations so valid agent letters are not hidden after generation.
+  const flattened = {
+    ...stored,
+    address: stored.address || String(source.agent_address ?? "").trim(),
+    agent_name: stored.agent_name || String(source.agent_name ?? "").trim(),
+    agent_designation: stored.agent_designation || String(source.agent_designation ?? "").trim(),
+    agent_mobile: stored.agent_mobile || String(source.agent_mobile ?? "").trim(),
+    agent_email: stored.agent_email || String(source.agent_email ?? "").trim(),
+  };
   const introduction = String(source.pop_introduction_agent ?? "").trim();
   const introducedName = introduction.split(",")[0]?.trim() ?? "";
-  if (!stored.agent_name && introducedName && !/^(n\/?a|not applicable|none)$/i.test(introducedName)) return { ...stored, agent_name: introducedName };
-  return stored;
+  if (!flattened.agent_name && introducedName && !/^(n\/?a|not applicable|none)$/i.test(introducedName)) return { ...flattened, agent_name: introducedName };
+  return flattened;
 }
 
 export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?: unknown }) {
