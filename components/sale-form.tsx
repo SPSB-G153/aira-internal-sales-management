@@ -663,7 +663,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           </div>
           <Field
             name="sale_date"
-            label={entryMode === "booking" ? "Booking date" : "Proposal date"}
+            label={entryMode === "booking" ? "2% payment / booking date" : "Proposal date"}
             type="date"
             value={paymentDate}
             onChange={setPaymentDate}

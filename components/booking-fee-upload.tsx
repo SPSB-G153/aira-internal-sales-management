@@ -8,7 +8,7 @@ type Extraction = { fields: BookingFeeFields; warnings: string[]; saved_path?: s
 
 const labels: Record<string, string> = {
   booking_fee: "Booking fee paid (RM)",
-  sale_date: "Payment / booking date",
+  sale_date: "2% payment / booking date",
   payment_method: "Payment method",
   payment_reference: "Receipt / transaction reference",
 };
