@@ -98,6 +98,7 @@ const salutation: [
   ["Dr", "Dr"],
   ["Company", "Company"],
 ];
+const secondPurchaserFields: (keyof Sale)[] = ["customer_salutation_2", "customer_name_2", "customer_ic_2", "customer_tin_2", "customer_nationality_2", "customer_sex_2", "customer_race_2", "bumi_status_2", "customer_occupation_2", "contact_person_2", "customer_phone_2", "customer_email_2", "customer_address_2"];
 const detailsByUnit: Record<string, { floorArea: number; unitType: string; parkingBay?: string }> = {
   "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 7, 8, 9" },
   "A-01-3A": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 33, 34, 35" },
@@ -291,8 +292,9 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             defaultValue={v("customer_ic")}
           />
           {hasSecond ? <>
-            <Field name="customer_name_2" label="Purchaser 2 full name" defaultValue={v("customer_name_2")} />
-            <Field name="customer_ic_2" label="Purchaser 2 IC / Passport / Company No." defaultValue={v("customer_ic_2")} />
+            {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={String(v(name) || "")} data-second-field={name} readOnly />)}
+            <RecordedField label="Purchaser 2 full name" value={v("customer_name_2")} />
+            <RecordedField label="Purchaser 2 IC / Passport / Company No." value={v("customer_ic_2")} />
             <RecordedField label="Purchaser 2 TIN number" value={v("customer_tin_2")} />
             <RecordedField label="Purchaser 2 nationality" value={v("customer_nationality_2")} />
             <RecordedField label="Purchaser 2 sex" value={v("customer_sex_2")} />
