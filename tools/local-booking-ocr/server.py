@@ -364,14 +364,18 @@ def apply_inferred_salutations(fields):
 
 
 def unit_folder(unit_number):
-    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Sales Management\Uploads"))
+    # Keep every private upload in the application's writable data folder.
+    # Do not honor the retired C:\AIRA Booking location: older launchers can
+    # retain that value and make otherwise successful extraction end in
+    # WinError 5 when the reader attempts to persist the file.
+    root = Path(r"C:\AIRA Sales Management\Uploads")
     folder = root / safe_part(unit_number, f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}")
     folder.mkdir(parents=True, exist_ok=True)
     return folder
 
 
 def cache_path(data):
-    root = Path(os.getenv("BOOKING_FORM_FOLDER", r"C:\AIRA Sales Management\Uploads")) / ".reader-cache"
+    root = Path(r"C:\AIRA Sales Management\Uploads") / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(CACHE_VERSION.encode("utf-8") + data).hexdigest()
     return root / f"{digest}.json"
