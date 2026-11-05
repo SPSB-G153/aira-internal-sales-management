@@ -25,7 +25,6 @@ export default async function Dashboard() {
   const drafts = sales.filter((sale) => sale.status === "draft" || sale.status === "booking_draft");
   const letters = documents.filter((document) => document.document_type !== "booking_form" && document.document_type !== "pre_booking_form");
   const lettersToReview = letters.filter((document) => document.status !== "reviewed");
-  const unitsWithLetters = new Set(letters.map((document) => document.sale_id)).size;
   const unitsWithLettersToReview = new Set(lettersToReview.map((document) => document.sale_id)).size;
   const pendingUnits = pendingPayment.map((sale) => sale.unit_number).filter(Boolean).join(", ");
 
@@ -60,7 +59,6 @@ export default async function Dashboard() {
       <article className="management-kpi"><span>Total units</span><strong>{sales.length}</strong><small>Active sales records</small></article>
       <article className="management-kpi pending"><span>Pending payment</span><strong>{pendingPayment.length}</strong><small>Require 2% payment</small></article>
       <article className="management-kpi confirmed"><span>Confirmed</span><strong>{confirmed.length}</strong><small>Booking and payment recorded</small></article>
-      <article className="management-kpi"><span>Units with letters ready</span><strong>{unitsWithLetters}</strong><small>Available in Documents</small></article>
     </section>
 
     <div className="management-grid">
