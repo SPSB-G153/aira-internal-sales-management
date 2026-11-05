@@ -4,6 +4,7 @@ import { getTeamContext } from "@/lib/tenancy";
 import { buildDocumentSnapshot, documentOrder } from "@/lib/templates";
 import { mergeDocumentContent } from "@/lib/document-content";
 import { hasExternalAgent } from "@/lib/agency-details";
+import { hasRecordedBookingPayment } from "@/lib/sale-state";
 const agentDocumentTypes=["agency_appointment_letter","agent_commission_letter"] as const;
 export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type)&&(!agentDocumentTypes.includes(doc.document_type as typeof agentDocumentTypes[number])||(canAccessAgentLetter&&hasExternalAgent(doc.content))));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
 export async function ensureAgentCommissionDocument(sale:Sale){
@@ -16,7 +17,7 @@ export async function ensureAgentCommissionDocument(sale:Sale){
   }
   const required:SaleDocument["document_type"][]=[];
   const bookingIsConfirmed=sale.status==="confirmed"||sale.status==="spa_signed"||sale.status==="hovp_ready";
-  const paymentIsRecorded=Boolean(sale.booking_fee&&sale.booking_fee>0&&sale.sale_date);
+  const paymentIsRecorded=hasRecordedBookingPayment(sale);
   if(bookingIsConfirmed&&paymentIsRecorded)required.push("acceptance_letter");
   if(hasExternalAgent(sale))required.push(...agentDocumentTypes);
   const missing=required.filter(type=>!(existing??[]).some(document=>document.document_type===type));
@@ -44,6 +45,7 @@ export async function getDocument(id:string){
   ]);
   if(relatedError)throw new Error(relatedError.message);
   if(saleError)throw new Error(saleError.message);
+  if(document.document_type==="acceptance_letter"&&!hasRecordedBookingPayment(sale as Sale))throw new Error("Record the 2% payment before generating the Notice of Acceptance.");
   if(agentDocumentTypes.includes(document.document_type as typeof agentDocumentTypes[number])&&!hasExternalAgent(sale as Sale))throw new Error("Agent details are required before this letter can be generated.");
   const historical=(related??[]).reduce<Record<string,unknown>>(
     (content,row)=>mergeDocumentContent(content,(row.content??{}) as Record<string,unknown>),

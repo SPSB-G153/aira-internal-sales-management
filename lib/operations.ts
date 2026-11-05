@@ -1,4 +1,5 @@
 import type { Sale, SaleDocument } from "@/lib/types";
+import { hasRecordedBookingPayment } from "@/lib/sale-state";
 
 export type OperatingStage = "capture" | "verify" | "confirm" | "review" | "complete";
 
@@ -35,6 +36,7 @@ const present = (value: unknown) => value !== null && value !== undefined && Str
 
 export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
   const isDraft = sale.status === "draft" || sale.status === "booking_draft";
+  const paymentRecorded = hasRecordedBookingPayment(sale);
   const blockers: string[] = [];
   const qualityChecks = [
     [present(sale.customer_ic), "Add IC / passport"],
@@ -55,7 +57,7 @@ export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
 
   const generated = new Set(documents.map((doc) => doc.document_type)).size;
   const reviewed = documents.filter((doc) => doc.status === "reviewed").length;
-  const initialLetters = sale.rebate_amount && sale.rebate_amount > 0 ? 2 : 1;
+  const initialLetters = (paymentRecorded ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0);
   const expectedLetters = sale.status === "hovp_ready" ? initialLetters + 1 : initialLetters;
   const documentControl = (!isDraft ? 5 : 0) + Math.min(generated, 3) * 4 + Math.min(reviewed, 3) * 8/3;
   if (!isDraft && generated < expectedLetters) blockers.push(`Generate ${expectedLetters - generated} missing letter${expectedLetters - generated === 1 ? "" : "s"}`);
@@ -68,8 +70,8 @@ export function scoreSale(sale: Sale, documents: SaleDocument[]): SaleScore {
   let nextAction = blockers[0] ?? "Complete the draft";
   if (sale.status === "draft" && dataQuality >= 30 && financialIntegrity === 25) { stage = "verify"; nextAction = "Purchaser proceeds: record the 2% deposit and create the booking"; }
   if (sale.status === "booking_draft") { stage = "verify"; nextAction = blockers[0] ?? "Review the details and confirm the booking"; }
-  if (sale.status === "confirmed") { stage = "confirm"; nextAction = "Upload the clearance letter when received to issue HOVP"; }
-  if (sale.status === "spa_signed") { stage = "confirm"; nextAction = "Upload the clearance letter when received to issue HOVP"; }
+  if (sale.status === "confirmed") { stage = paymentRecorded ? "confirm" : "verify"; nextAction = paymentRecorded ? "Upload the clearance letter when received to issue HOVP" : "Upload the 2% payment receipt to confirm the booking and prepare the Notice of Acceptance"; }
+  if (sale.status === "spa_signed") { stage = paymentRecorded ? "confirm" : "verify"; nextAction = paymentRecorded ? "Upload the clearance letter when received to issue HOVP" : "Upload the 2% payment receipt to confirm the booking and prepare the Notice of Acceptance"; }
   if (sale.status === "hovp_ready") { stage = "complete"; nextAction = reviewed < expectedLetters ? "Review and print the HOVP letter" : "Handover pack is ready"; }
 
   return { total, dataQuality, financialIntegrity, documentControl, governance, stage, stageLabel: processStages.find((item) => item.key === stage)?.title ?? stage, blockers, nextAction };

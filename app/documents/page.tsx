@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ensureAgentCommissionDocument, getDocuments } from "@/lib/data/documents";
 import { getSales } from "@/lib/data/sales";
 import { documentNames } from "@/lib/types";
+import { hasRecordedBookingPayment } from "@/lib/sale-state";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,9 @@ export default async function DocumentsPage() {
     "rebate_letter",
     "inventory_confirmation_letter",
     "hovp_letter",
-  ].includes(document.document_type) && (document.document_type !== "hovp_letter" || salesById.get(document.sale_id)?.status === "hovp_ready"));
+  ].includes(document.document_type) &&
+    (document.document_type !== "acceptance_letter" || Boolean(salesById.get(document.sale_id) && hasRecordedBookingPayment(salesById.get(document.sale_id)!))) &&
+    (document.document_type !== "hovp_letter" || salesById.get(document.sale_id)?.status === "hovp_ready"));
 
   return <div className="page">
     <div className="page-header"><div>

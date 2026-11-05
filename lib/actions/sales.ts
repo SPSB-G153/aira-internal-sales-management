@@ -9,6 +9,7 @@ import { canonicalUnitNumber, detailsForUnit, squareFeetToSquareMetres, storeyFo
 import type { DocumentType,Sale } from "@/lib/types";
 import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
+import { hasRecordedBookingPayment } from "@/lib/sale-state";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
@@ -137,7 +138,8 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
         const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
       }
     }else{
-      const types:DocumentType[]=["acceptance_letter"];
+      const types:DocumentType[]=[];
+      if(hasRecordedBookingPayment(sale))types.push("acceptance_letter");
       if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
       if(bookingSource==="manual")types.unshift("booking_form");
       if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
@@ -220,7 +222,8 @@ export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Prom
   try {
     const sale=await getSale(id); const db=await createClient(); const [{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
     const{data:manualBooking}=await db.from("documents").select("content").eq("team_id",team.id).eq("sale_id",id).eq("document_type","booking_form").maybeSingle();
-    const types:DocumentType[]=["acceptance_letter"];
+    const types:DocumentType[]=[];
+    if(hasRecordedBookingPayment(sale))types.push("acceptance_letter");
     if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
     if(manualBooking?.content?.booking_source==="manual")types.unshift("booking_form");
     if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
