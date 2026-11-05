@@ -9,7 +9,7 @@ import { canonicalUnitNumber, detailsForUnit, squareFeetToSquareMetres, storeyFo
 import type { DocumentType,Sale } from "@/lib/types";
 import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
-import { hasRecordedBookingPayment, operationalSaleReference } from "@/lib/sale-state";
+import { hasRecordedBookingPayment } from "@/lib/sale-state";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
@@ -116,7 +116,6 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
         }
       }
     }
-    values.sale_reference=operationalSaleReference(values)||values.sale_reference;
     sale=id?await updateSale(id,values):await createSale(values);
     const db=await createClient();
     const{team}=await getTeamContext();
@@ -206,7 +205,6 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const numberOrExisting=(key:keyof Sale)=>{const raw=clean(String(key));if(!raw)return(existing?.[key] as number|null|undefined)??null;const parsed=Number(raw.replace(/[^0-9.-]/g,""));return Number.isFinite(parsed)&&parsed>=0?parsed:(existing?.[key] as number|null|undefined)??null;};
     const values:Partial<Sale>={sale_reference:clean("sale_reference")||existing?.sale_reference||`S-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,customer_name:customer||existing?.customer_name||"Purchaser pending",customer_name_2:clean("customer_name_2")||existing?.customer_name_2||null,purchaser_type:popPurchaserType?(popPurchaserType.toLowerCase().includes("company")?"company":"individual"):(existing?.purchaser_type||"individual"),project_name:clean("project_name")||existing?.project_name||"Aira Residence",unit_number:unit,unit_type:(clean("unit_type")||existing?.unit_type||"").toUpperCase()||null,floor_area:numberOrExisting("floor_area"),purchase_price:price||existing?.purchase_price||0,approved_selling_price:numberOrExisting("approved_selling_price"),additional_revenue:numberOrExisting("additional_revenue"),repeat_buyer_discount:numberOrExisting("repeat_buyer_discount"),rebate_amount:numberOrExisting("rebate_amount"),status:existing?.status||"draft",sale_date:clean("sale_date")||existing?.sale_date||null,salesperson_name:clean("salesperson_name")||existing?.salesperson_name||null,salesperson_designation:clean("salesperson_designation")||existing?.salesperson_designation||null,salesperson_mobile:clean("salesperson_mobile")||existing?.salesperson_mobile||null,salesperson_email:clean("salesperson_email")||existing?.salesperson_email||null,agent_company:agentDetails||existing?.agent_company||null,solicitor_name:clean("solicitor_name")||existing?.solicitor_name||null,authorised_signatory_name:clean("authorised_signatory_name")||existing?.authorised_signatory_name||null,authorised_signatory_position:clean("authorised_signatory_position")||existing?.authorised_signatory_position||null};
     const unitDetails=detailsForUnit(unit);if(unitDetails){values.floor_area=unitDetails.floorAreaSquareFeet;values.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);values.unit_type=unitDetails.unitType.toUpperCase();if(unitDetails.parkingBay)values.car_parking_bay=unitDetails.parkingBay;}
-    values.sale_reference=operationalSaleReference(values as Pick<Sale,"sale_date"|"unit_number">)||values.sale_reference;
     const sale=existing?await updateSale(existing.id,values):await createSale(values);
     const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);const generated_at=new Date().toISOString();
     const{data:existingDocuments,error:existingDocumentsError}=await db.from("documents").select("document_type,generated_at").eq("team_id",team.id).eq("sale_id",sale.id);if(existingDocumentsError)throw existingDocumentsError;
