@@ -7,7 +7,6 @@ const items = [
   { href: "/operations", label: "Process", shortLabel: "Process", icon: "↗" },
   { href: "/sales", label: "Sales", shortLabel: "Sales", icon: "◇" },
   { href: "/documents", label: "Documents", shortLabel: "Docs", icon: "▤" },
-  { href: "/settings/team", label: "Team", shortLabel: "Team", icon: "◎" },
 ];
 
 export function AppNav({ mobile = false }: { mobile?: boolean }) {
