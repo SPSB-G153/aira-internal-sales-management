@@ -64,10 +64,13 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
   const entryMode=text(form,"entry_mode")==="pop"?"pop":"booking";
   const bookingSource=text(form,"booking_source")==="uploaded"?"uploaded":"manual";
   const requestedSaveIntent=text(form,"save_intent");
-  const saveIntent=requestedSaveIntent==="draft"?"draft":"final";
   const uploadAnother=requestedSaveIntent==="final_and_new";
+  const uploadedBookingFee=numeric(form,"booking_fee");
+  // A booking may be confirmed before the purchaser gives the green light
+  // and supplies the 2% payment. The receipt can be added later; until then
+  // the amount, payment date, method and reference remain blank.
+  const saveIntent=requestedSaveIntent==="draft"?"draft":"final";
   const fieldErrors:Record<string,string>={}; if(!text(form,"customer_name"))fieldErrors.customer_name="Customer name is required.";if(!text(form,"project_name"))fieldErrors.project_name="Project is required.";const price=numeric(form,"purchase_price");if(!price||price<=0)fieldErrors.purchase_price="Enter a purchase price greater than zero.";
-  const uploadedBookingFee=numeric(form,"booking_fee");if(entryMode==="booking"&&saveIntent==="final"&&uploadedBookingFee==null)fieldErrors.booking_fee="Upload the banking receipt or enter the actual amount paid.";
   const email=text(form,"customer_email");if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fieldErrors.customer_email="Enter a valid email address.";
   for(const key of ["floor_area","floor_area_sqm","rebate_amount","quoted_id_net_selling_price","approved_selling_price","additional_revenue","repeat_buyer_discount"]){const value=numeric(form,key);if(value!=null&&value<0)fieldErrors[key]="Enter zero or a positive amount."}
   if(entryMode==="pop"){
