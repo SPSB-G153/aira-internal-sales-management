@@ -383,6 +383,8 @@ h3 { margin:0; font-size:16px; }
   .management-sales { padding:20px 16px; }
   .management-table-head,.management-sale-row { grid-template-columns:78px minmax(0,1fr); column-gap:18px; }
   .management-table-head>*:nth-child(n+3),.management-sale-row>*:nth-child(n+3) { display:none; }
+  .management-table-head>*,.management-sale-row>* { min-width:0; }
+  .management-sale-row>span:nth-child(2) { overflow-wrap:anywhere; }
   .doc-grid,.form-grid { grid-template-columns:minmax(0,1fr); }
   .purchaser-one-column,.purchaser-two-column { padding:18px; }
   .invite-grid { grid-template-columns:minmax(0,1fr); }
