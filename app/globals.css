@@ -40,7 +40,8 @@ h3 { margin:0; font-size:16px; }
 .button:disabled { opacity:.55; cursor:not-allowed; }
 .card { background:linear-gradient(145deg,#191c23,#15171d); border:1px solid var(--line); border-radius:14px; box-shadow:0 18px 50px #0003; }
 .sales-list { overflow:hidden; }
-.sale-row { display:grid; grid-template-columns:1.2fr 1fr .8fr .65fr 20px; gap:18px; align-items:center; padding:19px 22px; border-bottom:1px solid var(--line); }
+.sale-row { display:grid; grid-template-columns:minmax(300px,1.3fr) minmax(150px,.9fr) minmax(170px,.9fr) minmax(190px,.9fr) 20px; column-gap:24px; align-items:center; padding:19px 22px; border-bottom:1px solid var(--line); }
+.sale-row>.money,.sale-row>.badge { justify-self:start; }
 .sale-row:last-child { border-bottom:0; }
 .sale-row:hover { background:#d4af3709; }
 .sale-row strong,.sale-row small { display:block; }
