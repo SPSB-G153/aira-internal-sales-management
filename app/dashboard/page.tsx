@@ -52,7 +52,7 @@ export default async function Dashboard() {
   ];
 
   return <div className="page management-dashboard">
-    <div className="page-header management-header"><div><p className="eyebrow">Management overview</p><h1>Sales portfolio</h1><p className="subtle">Current position, required actions and latest unit activity.</p></div><Link href="/sales/new" className="button accent">＋ New sale</Link></div>
+    <div className="page-header management-header"><div><h1>Sales Overview</h1><p className="subtle">Current position, required actions and latest unit activity.</p></div><Link href="/sales/new" className="button accent">＋ New sale</Link></div>
 
     <section className="management-kpis" aria-label="Portfolio summary">
       <article className="management-kpi"><span>Total units</span><strong>{sales.length}</strong><small>Active sales records</small></article>
