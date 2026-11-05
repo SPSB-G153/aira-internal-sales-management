@@ -192,6 +192,7 @@ h3 { margin:0; font-size:16px; }
 .management-kpi strong { display:block; margin:12px 0 4px; font:700 34px/1 Georgia,serif; color:var(--gold); }
 .management-kpi small { color:#7f8998; font-size:12px; }
 .management-grid { display:grid; grid-template-columns:minmax(280px,.68fr) minmax(620px,1.5fr); gap:18px; align-items:start; }
+.management-grid-single { grid-template-columns:minmax(0,1fr); }
 .management-actions,.management-sales { padding:24px 26px; }
 .management-section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:16px; }
 .management-section-head h2 { margin:3px 0 0; font-size:23px; }
