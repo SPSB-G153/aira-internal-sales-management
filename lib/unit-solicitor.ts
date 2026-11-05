@@ -32,3 +32,10 @@ const solicitorByUnit:Record<string,string>={
 };
 
 export const solicitorForUnit=(unit:string)=>solicitorByUnit[unit.trim().toUpperCase()]??"";
+
+// A-03-03 is the approved ZICO exception. Other units retain an explicitly
+// saved lawyer and use the unit schedule only as a fallback.
+export const solicitorForLetter=(unit:string,saved:string|null|undefined)=>
+  unit.trim().toUpperCase()==="A-03-03"
+    ? solicitorByUnit["A-03-03"]
+    : saved||solicitorForUnit(unit);

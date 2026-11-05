@@ -1,6 +1,7 @@
 import type { DocumentType,Sale } from "@/lib/types";
 import { agencyDetailsForSale, legacyAgencyCompany } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
+import { solicitorForLetter } from "@/lib/unit-solicitor";
 export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","acceptance_letter","agency_appointment_letter","agent_commission_letter","rebate_letter","inventory_confirmation_letter","hovp_letter"];
 export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,agency_appointment_letter:3,agent_commission_letter:3,rebate_letter:3,inventory_confirmation_letter:3,hovp_letter:5};
 const properPersonName=(name:string|null)=>name?name.toLocaleLowerCase("en-MY").replace(/(^|[\s'-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`):null;
@@ -21,7 +22,7 @@ const common=(s:Sale)=>{
   pop_introduction_agent:s.pop_introduction_agent,pop_introduction_spsb:s.pop_introduction_spsb,pop_assisting_member_2:s.pop_assisting_member_2,
   payment_method:s.payment_method,payment_reference:s.payment_reference,
   salesperson_name:s.salesperson_name,salesperson_designation:salesperson?.designation||s.salesperson_designation||null,salesperson_mobile:salesperson?.mobile||s.salesperson_mobile||null,salesperson_email:salesperson?.email||s.salesperson_email||null,
-  agent_company:agencyCompany,agent_address:agency.address,agent_name:agency.agent_name,agent_designation:agency.agent_designation,agent_mobile:agency.agent_mobile,agent_email:agency.agent_email,solicitor_name:s.solicitor_name,proprietor_name:s.proprietor_name,sale_date:s.sale_date,
+  agent_company:agencyCompany,agent_address:agency.address,agent_name:agency.agent_name,agent_designation:agency.agent_designation,agent_mobile:agency.agent_mobile,agent_email:agency.agent_email,solicitor_name:solicitorForLetter(s.unit_number||"",s.solicitor_name),proprietor_name:s.proprietor_name,sale_date:s.sale_date,
   authorised_signatory_name:s.authorised_signatory_name,authorised_signatory_position:s.authorised_signatory_position,
   pop_proposal_note:s.pop_proposal_note,pop_conditions_note:s.pop_conditions_note,pop_recommendation_note:s.pop_recommendation_note,pop_feasibility_note:s.pop_feasibility_note,pop_comments_note:s.pop_comments_note,
 });};
