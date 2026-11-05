@@ -380,6 +380,9 @@ h3 { margin:0; font-size:16px; }
   .dashboard-grid,.team-grid { grid-template-columns:minmax(0,1fr); gap:16px; }
   .management-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .management-grid { grid-template-columns:minmax(0,1fr); }
+  .management-sales { padding:20px 16px; }
+  .management-table-head,.management-sale-row { grid-template-columns:78px minmax(0,1fr); column-gap:18px; }
+  .management-table-head>*:nth-child(n+3),.management-sale-row>*:nth-child(n+3) { display:none; }
   .doc-grid,.form-grid { grid-template-columns:minmax(0,1fr); }
   .purchaser-one-column,.purchaser-two-column { padding:18px; }
   .invite-grid { grid-template-columns:minmax(0,1fr); }
