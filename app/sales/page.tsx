@@ -28,7 +28,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
       <button className="button secondary">Search</button>{filtered && <Link className="button secondary" href="/sales">Clear</Link>}
     </form>
     <div className="results-summary"><strong>{sales.length} {sales.length === 1 ? "sale" : "sales"}</strong>{filtered && <span> matching the current filters</span>}</div>
-    <div className="card sales-list">{sales.length ? sales.map((sale) => {
+    <div className="card sales-list">{sales.length && <div className="sales-list-head"><span>Purchaser</span><span>Unit / booking date</span><span>Purchase price</span><span>Status</span><span /></div>}{sales.length ? sales.map((sale) => {
       const status = saleDisplayStatus(sale);
       return <Link href={`/sales/${sale.id}`} className="sale-row" key={sale.id}><div><strong>{sale.customer_name}</strong><small>{sale.sale_reference} · {sale.project_name}</small></div><div><strong>{sale.unit_number || "Unit pending"}</strong><small>{sale.sale_date || "No date"}</small></div><span className="money">{money(sale.purchase_price)}</span><span className={`badge ${status.className}`}>{status.label}</span><span>›</span></Link>;
     }) : <div className="empty"><h2>{filtered ? "No matching sales" : "No sales yet"}</h2><p className="subtle">{filtered ? "Try a different purchaser, unit, project, POP reference, or status." : "Create your first sale to generate its document set."}</p>{filtered ? <Link className="button secondary" href="/sales">Clear filters</Link> : <Link className="button" href="/sales/new">Create first sale</Link>}</div>}</div>
