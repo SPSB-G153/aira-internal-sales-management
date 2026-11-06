@@ -176,18 +176,7 @@ export async function savePopAdminDetails(id:string,fields:Record<string,string>
     if(values.unit_type)values.unit_type=values.unit_type.toUpperCase();
     const unitDetails=detailsForUnit(sale.unit_number||clean("unit_number"));if(unitDetails){values.floor_area=unitDetails.floorAreaSquareFeet;values.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);values.unit_type=unitDetails.unitType.toUpperCase();if(unitDetails.parkingBay)values.car_parking_bay=unitDetails.parkingBay;}
     if(company||address)values.agent_company=combineAgencyDetails(company,address,agentName,agentDesignation,agentMobile,agentEmail)||null;
-    let updated:Sale;
-    try{
-      updated=await updateSale(id,values);
-    }catch(error){
-      // Keep the SPA tracker usable while an older database is still waiting
-      // for the inventory-payment exception migration. The schedule/status
-      // must never be discarded because that one newer column is unavailable.
-      const message=error instanceof Error?error.message:"";
-      if(!message.toLowerCase().includes("inventory_payment_not_required"))throw error;
-      const{inventory_payment_not_required:_,...compatibleValues}=values;
-      updated=await updateSale(id,compatibleValues);
-    }
+    const updated=await updateSale(id,values);
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
     const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type,status,generated_at").eq("team_id",team.id).eq("sale_id",id);
@@ -272,11 +261,10 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       balance_deposit_payment_method:(text(form,"balance_deposit_payment_method")||null) as Sale["balance_deposit_payment_method"],
       balance_deposit_reference:text(form,"balance_deposit_reference")||null,
       inventory_required:inventoryChoice==="yes"?true:inventoryChoice==="no"?false:null,
-      inventory_payment_not_required:inventoryChoice==="yes"?inventoryPaymentNotRequired:false,
       inventory_payment_amount:inventoryAmount,
       inventory_payment_received_at:inventoryPaymentNotRequired?null:text(form,"inventory_payment_received_at")||null,
       inventory_payment_method:(inventoryPaymentNotRequired?null:text(form,"inventory_payment_method")||null) as Sale["inventory_payment_method"],
-      inventory_payment_reference:inventoryPaymentNotRequired?null:text(form,"inventory_payment_reference")||null,
+      inventory_payment_reference:inventoryPaymentNotRequired?"Included in selling price":text(form,"inventory_payment_reference")||null,
       ...(signedDate?{status:"spa_signed" as const}:{status:sale.status==="spa_signed"?"confirmed" as const:sale.status}),
     };
     const updated=await updateSale(id,values);
