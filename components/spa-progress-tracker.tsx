@@ -22,7 +22,8 @@ export function SpaProgressTracker({sale,noticeIssuedAt,inventoryLetterId,showUn
   const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   const calculatedDue=useMemo(()=>{const value=new Date(`${noticeIssuedAt}T00:00:00Z`);value.setUTCDate(value.getUTCDate()+14);return value.toISOString().slice(0,10);},[noticeIssuedAt]);
   const due=sale.spa_signing_due_at||calculatedDue;
-  const remaining=daysBetween(today,due);
+  const countdownFrom=today<noticeIssuedAt?noticeIssuedAt:today;
+  const remaining=daysBetween(countdownFrom,due);
   const reminder=sale.spa_signed_at?{label:"SPA signed",className:"confirmed"}:remaining<0?{label:`Overdue by ${Math.abs(remaining)} day${Math.abs(remaining)===1?"":"s"}`,className:"draft"}:remaining===0?{label:"Due today",className:"draft"}:remaining<=3?{label:`Due in ${remaining} days`,className:"draft"}:{label:`${remaining} days remaining`,className:"generated"};
 
   async function upload(file:File,kind:"balance"|"inventory"){
