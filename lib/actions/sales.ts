@@ -269,6 +269,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       foreign_consent_required:foreignConsentRequired,
       foreign_consent_received_at:foreignConsentRequired?text(form,"foreign_consent_received_at")||null:null,
       purchase_funding_method:(text(form,"purchase_funding_method")||null) as Sale["purchase_funding_method"],
+      balance_purchase_price_received_at:text(form,"balance_purchase_price_due_at")||null,
       spa_developer_executed_at:text(form,"spa_developer_executed_at")||null,
       ...(signedDate?{status:"spa_signed" as const}:{status:sale.status==="spa_signed"?"confirmed" as const:sale.status}),
     };
