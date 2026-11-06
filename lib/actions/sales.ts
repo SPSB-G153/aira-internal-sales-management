@@ -252,6 +252,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
     const inventoryChoice=text(form,"inventory_required");
     const inventoryPaymentNotRequired=text(form,"inventory_payment_arrangement")==="included";
     const inventoryAmount=numeric(form,"inventory_payment_amount");
+    const foreignConsentRequired=text(form,"foreign_consent_required")==="yes";
     const values:Partial<Sale>={
       notice_issued_at:noticeDate,
       spa_signing_due_at:addCalendarDays(noticeDate,14),
@@ -265,6 +266,23 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       inventory_payment_received_at:inventoryPaymentNotRequired?null:text(form,"inventory_payment_received_at")||null,
       inventory_payment_method:(inventoryPaymentNotRequired?null:text(form,"inventory_payment_method")||null) as Sale["inventory_payment_method"],
       inventory_payment_reference:inventoryPaymentNotRequired?"Included in selling price":text(form,"inventory_payment_reference")||null,
+      foreign_consent_required:foreignConsentRequired,
+      foreign_consent_application_at:foreignConsentRequired?text(form,"foreign_consent_application_at")||null:null,
+      foreign_consent_received_at:foreignConsentRequired?text(form,"foreign_consent_received_at")||null:null,
+      purchase_funding_method:(text(form,"purchase_funding_method")||null) as Sale["purchase_funding_method"],
+      financier_undertaking_received_at:text(form,"purchase_funding_method")==="financing"?text(form,"financier_undertaking_received_at")||null:null,
+      differential_sum_received_at:text(form,"purchase_funding_method")==="financing"?text(form,"differential_sum_received_at")||null:null,
+      spa_sent_to_developer_at:text(form,"spa_sent_to_developer_at")||null,
+      spa_developer_executed_at:text(form,"spa_developer_executed_at")||null,
+      mot_signed_at:text(form,"mot_signed_at")||null,
+      mot_adjudication_submitted_at:text(form,"mot_adjudication_submitted_at")||null,
+      mot_stamp_duty_paid_at:text(form,"mot_stamp_duty_paid_at")||null,
+      balance_purchase_price_received_at:text(form,"balance_purchase_price_received_at")||null,
+      original_title_requested_at:text(form,"original_title_requested_at")||null,
+      original_title_released_at:text(form,"original_title_released_at")||null,
+      mot_registration_submitted_at:text(form,"mot_registration_submitted_at")||null,
+      mot_registered_at:text(form,"mot_registered_at")||null,
+      vacant_possession_delivered_at:text(form,"vacant_possession_delivered_at")||null,
       ...(signedDate?{status:"spa_signed" as const}:{status:sale.status==="spa_signed"?"confirmed" as const:sale.status}),
     };
     const updated=await updateSale(id,values);

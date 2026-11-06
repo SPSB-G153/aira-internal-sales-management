@@ -146,6 +146,11 @@ h3 { margin:0; font-size:16px; }
 .detail-card { padding:24px; }
 .spa-tracker { display:grid; gap:22px; }
 .spa-tracker-head { margin:0; align-items:flex-start; }
+.tracker-alert { display:grid; gap:4px; padding:14px 16px; border:1px solid var(--line); border-left:4px solid var(--gold); border-radius:9px; background:#11141a; }
+.tracker-alert strong { font-size:15px; }
+.tracker-alert span { color:var(--muted); font-size:12px; line-height:1.5; }
+.tracker-alert.draft { border-color:#8a6510; background:#211b0c; }
+.tracker-alert.confirmed { border-color:#1e6f55; background:#10241d; }
 .spa-timeline { display:grid; grid-template-columns:repeat(2,minmax(0,1fr) auto) minmax(0,1fr); align-items:center; gap:10px; padding:16px; border:1px solid var(--line); border-radius:10px; background:#0e1116; }
 .spa-timeline>div { display:grid; gap:5px; }
 .spa-timeline small { color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }

@@ -10,6 +10,13 @@ export function saleDisplayStatus(sale: Sale) {
     return { label: "Pending Payment", className: "draft" };
   }
   if (sale.status === "hovp_ready") return { label: "HOVP Issued", className: "confirmed" };
+  if (sale.vacant_possession_delivered_at) return { label: "Vacant Possession Delivered", className: "confirmed" };
+  if (sale.mot_registered_at) return { label: "MOT Registered", className: "confirmed" };
+  if (sale.mot_registration_submitted_at) return { label: "MOT Registration Pending", className: "generated" };
+  if (sale.balance_purchase_price_received_at) return { label: "Purchase Price Settled", className: "confirmed" };
+  if (sale.foreign_consent_required && !sale.foreign_consent_received_at) return { label: "Foreign Consent Pending", className: "draft" };
+  if (sale.spa_developer_executed_at) return { label: "SPA Fully Executed", className: "confirmed" };
+  if (sale.spa_sent_to_developer_at) return { label: "Developer Execution Pending", className: "generated" };
   if (sale.spa_signed_at || sale.status === "spa_signed") {
     if (!sale.balance_deposit_received_at) return { label: "SPA Signed - 8% Pending", className: "draft" };
     const inventoryIncluded=sale.inventory_payment_not_required||sale.inventory_payment_reference==="Included in selling price";

@@ -38,6 +38,12 @@ export interface Sale {
   balance_deposit_received_at:string|null; balance_deposit_payment_method:"cheque"|"bank_transfer"|"cash"|null; balance_deposit_reference:string|null;
   inventory_required:boolean|null; inventory_payment_not_required:boolean|null; inventory_payment_amount:number|null; inventory_payment_received_at:string|null;
   inventory_payment_method:"cheque"|"bank_transfer"|"cash"|null; inventory_payment_reference:string|null;
+  foreign_consent_required:boolean|null; foreign_consent_application_at:string|null; foreign_consent_received_at:string|null;
+  purchase_funding_method:"cash"|"financing"|null; financier_undertaking_received_at:string|null; differential_sum_received_at:string|null;
+  spa_sent_to_developer_at:string|null; spa_developer_executed_at:string|null; mot_signed_at:string|null;
+  mot_adjudication_submitted_at:string|null; mot_stamp_duty_paid_at:string|null; balance_purchase_price_received_at:string|null;
+  original_title_requested_at:string|null; original_title_released_at:string|null; mot_registration_submitted_at:string|null; mot_registered_at:string|null;
+  vacant_possession_delivered_at:string|null;
   pop_proposal_note:string|null; pop_conditions_note:string|null; pop_recommendation_note:string|null; pop_feasibility_note:string|null; pop_comments_note:string|null;
   status:SaleStatus; created_at:string;
 }
