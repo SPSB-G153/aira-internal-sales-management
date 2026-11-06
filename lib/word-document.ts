@@ -296,7 +296,7 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
     exactParagraph([new TextRun("Please note that we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories "),new TextRun({text:"“as is where is”",italics:true}),new TextRun(" basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("We kindly ask that you sign the acknowledgement and acceptance below."),
     exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
-    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true})],{spacing:{before:200,after:900,line:300}}),
+    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true})],{spacing:{before:200,after:420,line:300}}),
     acceptanceSignature(content),
     new Paragraph({children:[new PageBreak()]}),
     exactParagraph([new TextRun({text:"ACKNOWLEDGEMENT & ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER,spacing:{before:800,after:520,line:300}}),

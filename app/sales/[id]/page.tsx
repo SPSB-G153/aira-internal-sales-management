@@ -39,7 +39,7 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   const hasAgent = hasExternalAgent(sale);
   const agentCompany = agencyCompanyForSale(sale);
   const agentDetails = agencyDetailsForSale(sale);
-  const expectedDocuments = (!isPop && paymentRecorded ? 1 : 0) + (canAccessAgentLetter && hasAgent ? 2 : 0) + (docs.some((document) => document.document_type === "booking_form") ? 1 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? 1 : 0);
+  const expectedDocuments = Math.max(docs.length, (!isPop && paymentRecorded ? 1 : 0) + (canAccessAgentLetter && hasAgent ? 2 : 0) + (docs.some((document) => document.document_type === "booking_form") ? 1 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.inventory_required ? 1 : 0));
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = isPop ? "POP details" : "Booking details";
   const displayStatus = saleDisplayStatus(sale);
