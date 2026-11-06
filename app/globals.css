@@ -160,6 +160,7 @@ h3 { margin:0; font-size:16px; }
 .spa-tracker fieldset { display:grid; gap:13px; margin:0; padding:18px; border:1px solid var(--line); border-radius:10px; }
 .spa-tracker legend { padding:0 8px; color:var(--gold); font-weight:850; }
 .tracker-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.tracker-fields.disabled { opacity:.42; pointer-events:none; }
 .spa-tracker label { display:grid; gap:7px; color:#e6e2d8; font-size:12px; font-weight:750; }
 .spa-tracker input,.spa-tracker select { width:100%; min-height:44px; padding:9px 11px; border:1px solid var(--line); border-radius:7px; background:#0c0f14; color:var(--text); font:inherit; }
 .field-note { margin:0; color:var(--muted); font-size:12px; line-height:1.55; }
