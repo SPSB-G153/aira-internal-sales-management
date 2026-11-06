@@ -185,24 +185,30 @@ function BookingFormExact({content}:{content:Content}){
 
 function InventoryConfirmationLetter({content}:{content:Content}){
   const purchaser=value(content,"customer_name");
+  const purchaser2=value(content,"customer_name_2","");
   const salutation=value(content,"customer_salutation","Purchaser");
+  const salutation2=value(content,"customer_salutation_2","");
   const unit=value(content,"unit_number");
-  const idPrice=number(content,"quoted_id_net_selling_price");
+  const inventoryPrice=number(content,"inventory_payment_amount")||number(content,"quoted_id_net_selling_price");
+  const firstName=(name:string)=>name.trim().split(/\s+/)[0]||"Purchaser";
+  const named=(name:string,salute:string)=>`${salute?`${salute.toUpperCase()} `:""}${name.toUpperCase()}`;
+  const purchaserLabel=named(purchaser,salutation);
+  const purchaser2Label=purchaser2?named(purchaser2,salutation2):"";
   return <div className="inventory-letter-exact">
     <article className="letter source-letter acceptance-exact notice-sheet">
       <section className="notice-page inventory-page">
         <CompanyHead/>
         <p className="notice-date"><CurrentLetterDate date={value(content,"letter_issued_at","")}/></p>
-        <p className="notice-recipient"><b>{purchaser.toUpperCase()}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
-        <p>Dear {salutation} {purchaser.split(" ")[0]},</p>
-        <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; AIRA RESIDENCE<br/>CONFIRMATION OF INVENTORIES FOR UNIT {unit}</b></p>
-        <p>Greetings from AIRA Residence.</p>
-        <p>Thank you for taking the next step towards culminating your purchase of the abovementioned unit.</p>
-        <p>As agreed, Unit {unit} comes with a Schedule of Inventories (refer Attachment) which are included in the sale on an &ldquo;as is where is&rdquo; basis at a selling price of <b>{money(idPrice)}</b>.</p>
-        <p>As a result, we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories on an &ldquo;as is where is&rdquo; basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.</p>
+        <p className="notice-recipient"><b>{purchaserLabel}{purchaser2Label&&<><br/>{purchaser2Label}</>}</b><br/><NoticeAddress address={value(content,"customer_address")}/></p>
+        <p>Dear {salutation} {firstName(purchaser)}{purchaser2&&<> &amp; {salutation2} {firstName(purchaser2)}</>},</p>
+        <div className="inventory-subject"><span>Re:</span><b>AIRA RESIDENCE<br/>CONFIRMATION OF INVENTORIES FOR UNIT {unit}</b></div>
+        <p>Greetings from AIRA Residence&hellip;.</p>
+        <p>Thank you for taking the next step towards culminating your purchase of the abovementioned unit which features an interior design crafted by Piet Boon Studio, one of Europe&rsquo;s leading interior design firms based in Amsterdam.</p>
+        <p>The attached Schedule of Inventories for Unit {unit} is included in the sale on an <i>&ldquo;as is where is&rdquo;</i> basis at a selling price of <b>{money(inventoryPrice)}</b>.</p>
+        <p>Please note that we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories <i>&ldquo;as is where is&rdquo;</i> basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.</p>
         <p>We kindly ask that you sign the acknowledgement and acceptance below.</p>
         <p>Once again, congratulations for becoming part of the AIRA family.</p>
-        <p className="inventory-closing">Yours sincerely,<br/>For and on behalf of Selangor Properties Sdn. Bhd.</p>
+        <p className="inventory-closing">Yours sincerely,<br/><i>For and on behalf of</i> <b>Selangor Properties Sdn. Bhd.</b></p>
         <ApprovalSignature content={content} hideCopy/>
         <CompanyFooter/>
         <LetterPageNumber page={1}/>
@@ -212,8 +218,8 @@ function InventoryConfirmationLetter({content}:{content:Content}){
       <section className="notice-page inventory-page inventory-ack-page">
         <CompanyEmblem/>
         <h2>ACKNOWLEDGEMENT &amp; ACCEPTANCE</h2>
-        <p>I, {purchaser}, {value(content,"customer_ic","")} hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.</p>
-        <div className="inventory-ack-signature"><span/><p>Name:</p><p>IC / Passport No.:</p><p>Date:</p></div>
+        <p>{purchaser2?<>We, <b>{purchaserLabel} (NRIC: {value(content,"customer_ic","")})</b> and <b>{purchaser2Label} (NRIC: {value(content,"customer_ic_2","")})</b></>:<>I, <b>{purchaserLabel} (NRIC: {value(content,"customer_ic","")})</b></>} hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.</p>
+        <div className={`inventory-ack-signatures ${purchaser2?"two":"one"}`}>{[purchaser,...(purchaser2?[purchaser2]:[])].map((name,index)=><div key={`${name}-${index}`}><p>Signature: <span/></p><p>Name: <span/></p><p>NRIC No. <span/></p><p>Date: <span/></p></div>)}</div>
         <LetterPageNumber page={2}/>
       </section>
     </article>

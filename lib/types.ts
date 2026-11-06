@@ -36,7 +36,7 @@ export interface Sale {
   authorised_signatory_name:string|null; authorised_signatory_position:string|null;
   notice_issued_at:string|null; spa_signing_due_at:string|null; spa_signing_scheduled_at:string|null; spa_signed_at:string|null;
   balance_deposit_received_at:string|null; balance_deposit_payment_method:"cheque"|"bank_transfer"|"cash"|null; balance_deposit_reference:string|null;
-  inventory_required:boolean|null; inventory_payment_amount:number|null; inventory_payment_received_at:string|null;
+  inventory_required:boolean|null; inventory_payment_not_required:boolean|null; inventory_payment_amount:number|null; inventory_payment_received_at:string|null;
   inventory_payment_method:"cheque"|"bank_transfer"|"cash"|null; inventory_payment_reference:string|null;
   pop_proposal_note:string|null; pop_conditions_note:string|null; pop_recommendation_note:string|null; pop_feasibility_note:string|null; pop_comments_note:string|null;
   status:SaleStatus; created_at:string;

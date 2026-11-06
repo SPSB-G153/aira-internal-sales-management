@@ -146,7 +146,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
       if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
       if(bookingSource==="manual")types.unshift("booking_form");
       if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
-      if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");
+      if(sale.inventory_required)types.push("inventory_confirmation_letter");
       const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at:generationDateFor(document_type)}));
       const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;
     }
@@ -230,7 +230,7 @@ export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Prom
     if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
     if(manualBooking?.content?.booking_source==="manual")types.unshift("booking_form");
     if(sale.rebate_amount&&sale.rebate_amount>0)types.push("rebate_letter");
-    if(sale.quoted_id_net_selling_price&&sale.quoted_id_net_selling_price>0)types.push("inventory_confirmation_letter");
+    if(sale.inventory_required)types.push("inventory_confirmation_letter");
     const{data:existingDocuments,error:existingDocumentsError}=await db.from("documents").select("document_type,generated_at").eq("team_id",team.id).eq("sale_id",id);if(existingDocumentsError)throw existingDocumentsError;
     const generatedAt=new Date().toISOString();
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at:existingDocuments?.find(document=>document.document_type===document_type)?.generated_at||generatedAt}));
@@ -250,6 +250,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
     const signingDate=text(form,"spa_signing_date")||null;
     const signedDate=text(form,"spa_signed_confirmed")==="yes"?signingDate:null;
     const inventoryChoice=text(form,"inventory_required");
+    const inventoryPaymentNotRequired=text(form,"inventory_payment_arrangement")==="included";
     const inventoryAmount=numeric(form,"inventory_payment_amount");
     const values:Partial<Sale>={
       notice_issued_at:noticeDate,
@@ -260,13 +261,25 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       balance_deposit_payment_method:(text(form,"balance_deposit_payment_method")||null) as Sale["balance_deposit_payment_method"],
       balance_deposit_reference:text(form,"balance_deposit_reference")||null,
       inventory_required:inventoryChoice==="yes"?true:inventoryChoice==="no"?false:null,
+      inventory_payment_not_required:inventoryChoice==="yes"?inventoryPaymentNotRequired:false,
       inventory_payment_amount:inventoryAmount,
-      inventory_payment_received_at:text(form,"inventory_payment_received_at")||null,
-      inventory_payment_method:(text(form,"inventory_payment_method")||null) as Sale["inventory_payment_method"],
-      inventory_payment_reference:text(form,"inventory_payment_reference")||null,
+      inventory_payment_received_at:inventoryPaymentNotRequired?null:text(form,"inventory_payment_received_at")||null,
+      inventory_payment_method:(inventoryPaymentNotRequired?null:text(form,"inventory_payment_method")||null) as Sale["inventory_payment_method"],
+      inventory_payment_reference:inventoryPaymentNotRequired?null:text(form,"inventory_payment_reference")||null,
       ...(signedDate?{status:"spa_signed" as const}:{status:sale.status==="spa_signed"?"confirmed" as const:sale.status}),
     };
-    await updateSale(id,values);
+    const updated=await updateSale(id,values);
+    const db=await createClient();
+    const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    if(updated.inventory_required){
+      const{data:existing,error:existingError}=await db.from("documents").select("generated_at").eq("team_id",team.id).eq("sale_id",id).eq("document_type","inventory_confirmation_letter").maybeSingle();
+      if(existingError)throw existingError;
+      const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"inventory_confirmation_letter",content:buildDocumentSnapshot(updated,"inventory_confirmation_letter"),status:"generated",generated_at:existing?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
+      if(error)throw error;
+    }else{
+      const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",id).eq("document_type","inventory_confirmation_letter");
+      if(error)throw error;
+    }
     revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/dashboard");revalidatePath("/operations");
     return{saved:true};
   }catch(error){return{error:error instanceof Error?error.message:"Could not save the SPA progress."};}

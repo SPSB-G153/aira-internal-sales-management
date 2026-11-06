@@ -15,11 +15,16 @@ export async function ensureAgentCommissionDocument(sale:Sale){
     const existingAgentDocuments=(existing??[]).filter(document=>agentDocumentTypes.includes(document.document_type as typeof agentDocumentTypes[number]));
     if(existingAgentDocuments.length){const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",agentDocumentTypes);if(error)throw new Error(error.message);}
   }
+  if(!sale.inventory_required&&(existing??[]).some(document=>document.document_type==="inventory_confirmation_letter")){
+    const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","inventory_confirmation_letter");
+    if(error)throw new Error(error.message);
+  }
   const required:SaleDocument["document_type"][]=[];
   const bookingIsConfirmed=sale.status==="confirmed"||sale.status==="spa_signed"||sale.status==="hovp_ready";
   const paymentIsRecorded=hasRecordedBookingPayment(sale);
   if(bookingIsConfirmed&&paymentIsRecorded)required.push("acceptance_letter");
   if(hasExternalAgent(sale))required.push(...agentDocumentTypes);
+  if(sale.inventory_required)required.push("inventory_confirmation_letter");
   const missing=required.filter(type=>!(existing??[]).some(document=>document.document_type===type));
   if(!missing.length)return;
   const{data:{user}}=await db.auth.getUser();
@@ -47,6 +52,7 @@ export async function getDocument(id:string){
   if(saleError)throw new Error(saleError.message);
   if(document.document_type==="acceptance_letter"&&!hasRecordedBookingPayment(sale as Sale))throw new Error("Record the 2% payment before generating the Notice of Acceptance.");
   if(agentDocumentTypes.includes(document.document_type as typeof agentDocumentTypes[number])&&!hasExternalAgent(sale as Sale))throw new Error("Agent details are required before this letter can be generated.");
+  if(document.document_type==="inventory_confirmation_letter"&&!(sale as Sale).inventory_required)throw new Error("Inventories must be marked as included for this unit before generating the letter.");
   const historical=(related??[]).reduce<Record<string,unknown>>(
     (content,row)=>mergeDocumentContent(content,(row.content??{}) as Record<string,unknown>),
     {},

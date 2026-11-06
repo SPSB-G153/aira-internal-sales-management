@@ -12,7 +12,7 @@ export function saleDisplayStatus(sale: Sale) {
   if (sale.status === "hovp_ready") return { label: "HOVP Issued", className: "confirmed" };
   if (sale.spa_signed_at || sale.status === "spa_signed") {
     if (!sale.balance_deposit_received_at) return { label: "SPA Signed - 8% Pending", className: "draft" };
-    if (sale.inventory_required && !sale.inventory_payment_received_at) return { label: "Inventory Payment Pending", className: "draft" };
+    if (sale.inventory_required && !sale.inventory_payment_not_required && !sale.inventory_payment_received_at) return { label: "Inventory Payment Pending", className: "draft" };
     return { label: "SPA & Payments Completed", className: "confirmed" };
   }
   if (sale.notice_issued_at) {

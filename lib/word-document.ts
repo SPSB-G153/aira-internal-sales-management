@@ -255,25 +255,65 @@ async function createRebateWord(content:Record<string,unknown>,fullLogo:Uint8Arr
 
 async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name");
+  const purchaser2=text(content,"customer_name_2","");
+  const purchaserId=text(content,"customer_ic","");
+  const purchaserId2=text(content,"customer_ic_2","");
+  const salutation=text(content,"customer_salutation","Purchaser");
+  const salutation2=text(content,"customer_salutation_2","");
   const unit=text(content,"unit_number");
+  const inventoryValue=typeof content.inventory_payment_amount==="number"?content.inventory_payment_amount:content.quoted_id_net_selling_price;
+  const firstName=(name:string)=>name.trim().split(/\s+/)[0]||"Purchaser";
+  const named=(name:string,salute:string)=>`${salute?`${salute.toUpperCase()} `:""}${name.toUpperCase()}`;
+  const recipientOne=named(purchaser,salutation);
+  const recipientTwo=purchaser2?named(purchaser2,salutation2):"";
+  const greeting=purchaser2?`Dear ${salutation} ${firstName(purchaser)} & ${salutation2} ${firstName(purchaser2)},`:`Dear ${salutation} ${firstName(purchaser)},`;
+  const acknowledgement=purchaser2
+    ? [new TextRun("We, "),new TextRun({text:`${recipientOne} (NRIC: ${purchaserId})`,bold:true}),new TextRun(" and "),new TextRun({text:`${recipientTwo} (NRIC: ${purchaserId2})`,bold:true}),new TextRun(" hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.")]
+    : [new TextRun("I, "),new TextRun({text:`${recipientOne} (NRIC: ${purchaserId})`,bold:true}),new TextRun(" hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.")];
+  const signatureCell=(label:string)=>new TableCell({
+    width:{size:50,type:WidthType.PERCENTAGE},
+    borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},
+    margins:{top:0,bottom:0,left:80,right:180},
+    children:[exactParagraph([new TextRun(label),new TextRun({text:"____________________",break:0})],{spacing:{before:0,after:120,line:300}})],
+  });
+  const signatureRows=["Signature:     ","Name:          ","NRIC No.       ","Date:          "];
+  const acknowledgementTable=new Table({
+    width:{size:100,type:WidthType.PERCENTAGE},
+    borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},
+    rows:signatureRows.map(label=>new TableRow({children:[signatureCell(label),signatureCell(purchaser2?label:"")]})),
+  });
   const children:(Paragraph|Table)[]=[
-    exactParagraph(issuedLetterDate(content),{spacing:{before:220,after:200,line:300}}),exactRecipient(content),
-    exactParagraph(`Dear ${text(content,"customer_salutation","Purchaser")} ${purchaser.split(" ")[0]},`),
-    exactParagraph([new TextRun({text:"RE:      AIRA RESIDENCE",bold:true,underline:{type:UnderlineType.SINGLE}}),new TextRun({text:`CONFIRMATION OF INVENTORIES FOR UNIT ${unit}`,bold:true,underline:{type:UnderlineType.SINGLE},break:1})],{spacing:{before:120,after:240,line:300}}),
-    exactParagraph("Greetings from AIRA Residence."),
-    exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit."),
-    exactParagraph([new TextRun(`As agreed, Unit ${unit} comes with a Schedule of Inventories (refer Attachment) which are included in the sale on an “as is where is” basis at a selling price of `),new TextRun({text:amount(content.quoted_id_net_selling_price),bold:true}),new TextRun(".")],{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("As a result, we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories on an “as is where is” basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph(ordinalDateRuns(text(content,"letter_issued_at",""),true),{spacing:{before:220,after:360,line:300}}),
+    exactParagraph([new TextRun({text:recipientOne,bold:true}),...(recipientTwo?[new TextRun({text:recipientTwo,bold:true,break:1})]:[]),...noticeAddressLines(text(content,"customer_address")).map(address=>new TextRun({text:address,break:1}))],{spacing:{before:0,after:360,line:300}}),
+    exactParagraph(greeting,{spacing:{before:0,after:360,line:300}}),
+    new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[
+      new TableCell({width:{size:8,type:WidthType.PERCENTAGE},margins:{top:0,bottom:35,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph("Re:",{spacing:{before:0,after:0,line:260}})]}),
+      new TableCell({width:{size:92,type:WidthType.PERCENTAGE},margins:{top:0,bottom:35,left:0,right:0},borders:{top:noBorder,bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"},left:noBorder,right:noBorder},children:[exactParagraph([new TextRun({text:"AIRA RESIDENCE",bold:true}),new TextRun({text:`CONFIRMATION OF INVENTORIES FOR UNIT ${unit}`,bold:true,break:1})],{spacing:{before:0,after:0,line:260}})]}),
+    ]})]}),
+    exactParagraph("Greetings from AIRA Residence…",{spacing:{before:240,after:200,line:300}}),
+    exactParagraph("Thank you for taking the next step towards culminating your purchase of the abovementioned unit which features an interior design crafted by Piet Boon Studio, one of Europe’s leading interior design firms based in Amsterdam.",{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph([new TextRun(`The attached Schedule of Inventories for Unit ${unit} is included in the sale on an `),new TextRun({text:"“as is where is”",italics:true}),new TextRun(" basis at a selling price of "),new TextRun({text:amount(inventoryValue),bold:true}),new TextRun(".")],{alignment:AlignmentType.JUSTIFIED}),
+    exactParagraph([new TextRun("Please note that we make no express or implied warranties or representations about the working condition, durability, fitness for purpose, or merchantability of the inventories "),new TextRun({text:"“as is where is”",italics:true}),new TextRun(" basis. Furthermore, from the date of deemed delivery of vacant possession of the abovementioned unit, we will not be accountable to you for any incidental or indirect losses or damages arising from the use of the mentioned inventories.")],{alignment:AlignmentType.JUSTIFIED}),
     exactParagraph("We kindly ask that you sign the acknowledgement and acceptance below."),
     exactParagraph("Once again, congratulations for becoming part of the AIRA family."),
-    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of Selangor Properties Sdn. Bhd.",break:1})],{spacing:{before:120,after:620,line:300}}),
+    exactParagraph([new TextRun("Yours sincerely,"),new TextRun({text:"For and on behalf of ",italics:true,break:1}),new TextRun({text:"Selangor Properties Sdn. Bhd.",bold:true})],{spacing:{before:200,after:900,line:300}}),
     acceptanceSignature(content),
     new Paragraph({children:[new PageBreak()]}),
-    exactParagraph([new TextRun({text:"ACKNOWLEDGEMENT & ACCEPTANCE",bold:true,underline:{type:UnderlineType.SINGLE},size:22})],{alignment:AlignmentType.CENTER,spacing:{before:120,after:420,line:300}}),
-    exactParagraph(`I, ${purchaser}, ${text(content,"customer_ic","")} hereby acknowledge receipt of this letter, and confirm my understanding of, and agreement to the contents of this letter.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:900,line:341}}),
-    new Table({width:{size:3900,type:WidthType.DXA},borders:{top:{style:BorderStyle.SINGLE,size:6,color:"333333"},bottom:noBorder,left:noBorder,right:noBorder,insideHorizontal:noBorder,insideVertical:noBorder},rows:[new TableRow({children:[new TableCell({borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:80,bottom:0,left:0,right:0},children:[exactParagraph([new TextRun("Name:"),new TextRun({text:"IC / Passport No.:",break:1}),new TextRun({text:"Date:",break:1})],{spacing:{before:0,after:0,line:300}})]})]})]}),
+    exactParagraph([new TextRun({text:"ACKNOWLEDGEMENT & ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER,spacing:{before:800,after:520,line:300}}),
+    exactParagraph(acknowledgement,{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:620,line:420}}),
+    acknowledgementTable,
   ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true)));
+  const document=new Document({
+    features:{updateFields:true},
+    styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:300,after:0}}}}},
+    sections:[{
+      properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1040,right:1325,bottom:720,left:1584,header:420,footer:360}}},
+      headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
+      footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
+      children,
+    }],
+  });
+  return new Uint8Array(await Packer.toBuffer(document));
 }
 
 const agencyCommissionWordTable=()=>{
