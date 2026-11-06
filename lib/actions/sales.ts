@@ -13,6 +13,7 @@ import { hasRecordedBookingPayment } from "@/lib/sale-state";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
 export type ConfirmState={error?:string};
+export type SpaTrackerState={error?:string;saved?:boolean};
 export type DeleteSaleState={error?:string};
 export type PopAdminSaveState={error?:string;saved?:boolean;agentLetterId?:string;agencyAppointmentLetterId?:string};
 export type UploadedPopSaveState={error?:string;saleId?:string;previewDocumentId?:string;agentLetterId?:string;agencyAppointmentLetterId?:string};
@@ -26,6 +27,8 @@ const isMalayRace=(race:string)=>/\b(malay|melayu)\b/i.test(race.trim());
 const fullSex=(value:string)=>{const normalized=value.trim().toUpperCase();return normalized==="M"||normalized==="MALE"?"Male":normalized==="F"||normalized==="FEMALE"?"Female":value.trim();};
 const normalizeNationality=(value:string)=>{const trimmed=value.trim();return ["UK","US","USA","UAE","PRC"].includes(trimmed.toUpperCase())?trimmed.toUpperCase():trimmed;};
 const normalizeCompany=(value:string)=>value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+const malaysiaDate=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+const addCalendarDays=(date:string,days:number)=>{const parsed=new Date(`${date}T00:00:00Z`);parsed.setUTCDate(parsed.getUTCDate()+days);return parsed.toISOString().slice(0,10);};
 export async function findSavedAgentDetails(company:string):Promise<SavedAgentDetails|null>{
   const wanted=normalizeCompany(company);
   if(!wanted)return null;
@@ -232,11 +235,40 @@ export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Prom
     const generatedAt=new Date().toISOString();
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:{...buildDocumentSnapshot(sale,document_type),...(document_type==="booking_form"?{booking_source:"manual"}:{})},status:"generated",generated_at:existingDocuments?.find(document=>document.document_type===document_type)?.generated_at||generatedAt}));
     const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw new Error(error.message);
-    await updateSale(id,{status:"confirmed"});
+    const noticeDate=malaysiaDate();
+    await updateSale(id,{status:"confirmed",...(types.includes("acceptance_letter")&&!sale.notice_issued_at?{notice_issued_at:noticeDate,spa_signing_due_at:addCalendarDays(noticeDate,14)}:{})});
   } catch {
     return {error:"Failed to confirm the sale and generate its booking form."};
   }
   revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");redirect(`/sales/${id}?confirmed=1`);
+}
+export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData):Promise<SpaTrackerState>{
+  try{
+    const sale=await getSale(id);
+    const noticeDate=text(form,"notice_issued_at")||sale.notice_issued_at||null;
+    if(!noticeDate)return{error:"The Notice of Acceptance issue date is required before SPA follow-up starts."};
+    const signedDate=text(form,"spa_signed_at")||null;
+    const inventoryChoice=text(form,"inventory_required");
+    const inventoryAmount=numeric(form,"inventory_payment_amount");
+    const values:Partial<Sale>={
+      notice_issued_at:noticeDate,
+      spa_signing_due_at:addCalendarDays(noticeDate,14),
+      spa_signing_scheduled_at:text(form,"spa_signing_scheduled_at")||null,
+      spa_signed_at:signedDate,
+      balance_deposit_received_at:text(form,"balance_deposit_received_at")||null,
+      balance_deposit_payment_method:(text(form,"balance_deposit_payment_method")||null) as Sale["balance_deposit_payment_method"],
+      balance_deposit_reference:text(form,"balance_deposit_reference")||null,
+      inventory_required:inventoryChoice==="yes"?true:inventoryChoice==="no"?false:null,
+      inventory_payment_amount:inventoryAmount,
+      inventory_payment_received_at:text(form,"inventory_payment_received_at")||null,
+      inventory_payment_method:(text(form,"inventory_payment_method")||null) as Sale["inventory_payment_method"],
+      inventory_payment_reference:text(form,"inventory_payment_reference")||null,
+      ...(signedDate?{status:"spa_signed" as const}:{status:sale.status==="spa_signed"?"confirmed" as const:sale.status}),
+    };
+    await updateSale(id,values);
+    revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/dashboard");revalidatePath("/operations");
+    return{saved:true};
+  }catch(error){return{error:error instanceof Error?error.message:"Could not save the SPA progress."};}
 }
 export async function markSpaSigned(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try { await updateSale(id,{status:"spa_signed"}); } catch { return {error:"Could not mark the SPA as signed."}; }
