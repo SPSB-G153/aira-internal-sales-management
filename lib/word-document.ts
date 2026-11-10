@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LineRuleType, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, VerticalMergeType, WidthType } from "docx";
+import JSZip from "jszip";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
@@ -392,6 +393,42 @@ async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLo
   return new Uint8Array(await Packer.toBuffer(agencyAppointmentDocument(children,fullLogo,emblemLogo)));
 }
 
+const escapeWordXml=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+
+async function createApprovedAgencyAppointmentWord(content:Record<string,unknown>){
+  const agency=text(content,"agent_company","");
+  const details=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
+  const address=noticeAddressLines(text(content,"agent_address","")).slice(0,4);
+  const issued=text(content,"letter_issued_at","");
+  const parsed=issued?new Date(issued):new Date();
+  const validDate=Number.isNaN(parsed.getTime())?new Date():parsed;
+  const parts=new Intl.DateTimeFormat("en-MY",{day:"numeric",month:"long",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).formatToParts(validDate);
+  const day=Number(parts.find(part=>part.type==="day")?.value||1);
+  const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";
+  const month=parts.find(part=>part.type==="month")?.value||"";
+  const year=parts.find(part=>part.type==="year")?.value||"";
+  const replacements:Record<string,string>={
+    "{{DATE_DAY}}":String(day),
+    "{{DATE_SUFFIX}}":suffix,
+    "{{DATE_MONTH_YEAR}}":`${month} ${year}`,
+    "{{CONTACT_NAME}}":details.contactName,
+    "{{AGENCY_NAME}}":agency,
+    "{{ADDRESS_1}}":address[0]||"",
+    "{{ADDRESS_2}}":address[1]||"",
+    "{{ADDRESS_3}}":address[2]||"",
+    "{{ADDRESS_4}}":address[3]||"",
+    "{{GREETING}}":details.greeting,
+  };
+  const template=await readFile(path.join(process.cwd(),"assets","templates","agency-appointment-approved.docx"));
+  const zip=await JSZip.loadAsync(template);
+  const documentFile=zip.file("word/document.xml");
+  if(!documentFile)throw new Error("Approved agency appointment template is missing document.xml");
+  let xml=await documentFile.async("string");
+  for(const [token,value] of Object.entries(replacements))xml=xml.split(token).join(escapeWordXml(value));
+  zip.file("word/document.xml",xml);
+  return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));
+}
+
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const agency=text(content,"agent_company","");
   const agencyDetails=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
@@ -541,7 +578,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
   ]);
   if(type==="acceptance_letter")return createAcceptanceWord(content,fullLogo,emblemLogo);
   const exactLetterGenerators:Partial<Record<DocumentType,(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array)=>Promise<Uint8Array>>>={
-    agency_appointment_letter:createAgencyAppointmentWord,
+    agency_appointment_letter:createApprovedAgencyAppointmentWord,
     agent_commission_letter:createAgentCommissionWord,
     rebate_letter:createRebateWord,
     inventory_confirmation_letter:createInventoryWord,
