@@ -35,6 +35,16 @@ const labels: Record<string, string> = {
   agent_email: "Agent email",
 };
 const namecardFields = ["agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_company", "agent_address"];
+const moneyFields = new Set(["purchase_price", "approved_selling_price", "additional_revenue", "repeat_buyer_discount", "rebate_amount"]);
+
+function formatReviewFields(fields: PopAdminFields) {
+  return Object.fromEntries(Object.entries(fields).map(([key, value]) => {
+    const raw = String(value || "").trim();
+    if (!moneyFields.has(key) || !/^\d+(?:\.\d+)?$/.test(raw)) return [key, value];
+    const amount = Number(raw);
+    return [key, Number.isFinite(amount) ? amount.toLocaleString("en-MY", { maximumFractionDigits: 2 }) : value];
+  }));
+}
 
 export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseFields, showNamecard = true, compact = false }: {
   saleId?: string;
@@ -79,6 +89,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
       if (!response.ok) throw new Error(data.error || data.detail || `The ${source === "pop" ? "POP Form" : "namecard"} could not be read.`);
       const extracted = data as Extraction;
       if (source === "pop") {
+        extracted.fields = formatReviewFields(extracted.fields);
         const staff = profileForSalesPersonnel(extracted.fields.salesperson_name || "");
         if (staff) extracted.fields = {
           ...extracted.fields,

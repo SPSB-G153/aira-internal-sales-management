@@ -326,6 +326,8 @@ def normalize_agent_company(value):
     raw = str(value or "").strip()
     if not raw:
         return ""
+    if re.fullmatch(r"[\s()\-]*(?:none|no|non|not applicable|n/?a)[\s\-]*agent[\s()\-]*", raw, re.IGNORECASE):
+        return ""
     parts = [part.strip(" ,-;") for part in raw.split(",") if part.strip(" ,-;")]
     company_words = re.compile(
         r"\b(?:agency|company|iqi|property|properties|realty|sdn\.?|bhd\.?)\b",
@@ -654,7 +656,7 @@ async def extract_pop_admin(
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract both purchaser names separately as customer_name and customer_name_2; purchaser type; project; unit or parcel number; unit type; floor area in square feet; purchase or SPA price; approved selling price; additional revenue; repeat-buyer discount; rebate amount; and proposal date. "
+                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract both purchaser names separately as customer_name and customer_name_2; purchaser type; project; unit or parcel number; unit type; floor area in square feet; purchase or SPA price; approved selling price; additional revenue; repeat-buyer discount; rebate amount; and proposal date. Purchaser type must only be Individual or Company; Direct Sales and Agent describe the sales channel, not the purchaser type. "
                     "the POP or proposal reference as sale_reference; the sales personnel or "
                     "salesperson name; designation; mobile or telephone number; email; and sales "
                     "agency or company. The value beside the printed label 'Team Member Assisting' "
@@ -664,7 +666,7 @@ async def extract_pop_admin(
                     "portion as agent_company. If the AGENT row is blank, look elsewhere on the "
                     "form for an explicitly printed sales agency, realty or company name and use "
                     "that as agent_company. Extract a clearly printed agency/company mailing address "
-                    "as agent_address. Never infer a company or address from an email domain, logo style "
+                    "as agent_address. Treat NONE AGENT, NO AGENT, NOT APPLICABLE and N/A as no external agent and return agent_company as an empty string. Never infer a company or address from an email domain, logo style "
                     "or person's name. Preserve spelling, numbers and email exactly. Do not "
                     "use purchaser details as salesperson details. Read sale_date from the dated proposal/signature area, not an approval date. Return all monetary and floor-area values as digits only without RM or commas, use DD/MM/YYYY for sale_date, and preserve the unit number and unit type in uppercase. Return an empty string for any "
                     "field that is not clearly shown. Return only the requested JSON."
