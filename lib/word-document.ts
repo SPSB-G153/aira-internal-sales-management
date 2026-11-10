@@ -202,6 +202,19 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
   }]
 });
 
+// The approved agency-appointment Word file is the layout authority for this
+// letter. Keep its Calibri 11 pt defaults and original section measurements.
+const agencyAppointmentDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array)=>new Document({
+  features:{updateFields:true},
+  styles:{default:{document:{run:{font:"Calibri",size:22},paragraph:{spacing:{after:0}}}}},
+  sections:[{
+    properties:{titlePage:true,page:{size:{width:11910,height:16840},margin:{top:1440,right:1304,bottom:1531,left:1304,header:1134,footer:113}}},
+    headers:{first:letterHeader(fullLogo),default:letterHeader(emblemLogo,true)},
+    footers:{first:acceptanceFirstFooter(),default:pageNumberFooter()},
+    children,
+  }]
+});
+
 const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,airaLogo:Uint8Array)=>new Document({
   features:{updateFields:true},
   styles:{default:{document:{run:{font:"Helvetica",size:20},paragraph:{spacing:{line:260,after:0}}}}},
@@ -349,29 +362,34 @@ async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLo
   const salespersonMobile=salesperson.toLowerCase().includes("madihah")?"+60123331502":text(content,"salesperson_mobile","");
   const salespersonEmail=salesperson.toLowerCase().includes("madihah")?"madihah.hassan@selangorproperties.com.my":text(content,"salesperson_email","");
   const pageBreak=()=>new Paragraph({children:[new PageBreak()]});
+  const approvedLine=(value:string|TextRun[],options:any={})=>new Paragraph({alignment:AlignmentType.LEFT,...options,children:typeof value==="string"?[new TextRun(value)]:value});
+  const approvedBlank=()=>approvedLine("");
   const children:(Paragraph|Table)[]=[
-    exactParagraph(issuedLetterDate(content),{spacing:{before:220,after:420,line:300}}),
-    exactParagraph([...(details.contactName?[new TextRun({text:details.contactName,bold:true})]:[]),new TextRun({text:agency,bold:true,break:details.contactName?1:0}),...address.map(line=>new TextRun({text:line,break:1}))]),
-    exactParagraph(details.greeting),
-    exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true,break:1})],{spacing:{before:0,after:220,line:260},border:{bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"}}}),
-    exactParagraph("We would like to thank you for introducing a prospect for the AIRA Residence project and herein wish to take the opportunity to formalize your agency appointment.",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("As you know, AIRA Residence is a very special project due to its unique location, low density and harmonious fusion of Asian and European design aesthetics. AIRA has been almost exclusively designed for owner-occupiers and already houses a marquee family of residents from all segments of local and international society. Our brand speaks to those who instinctively understand our language and our way of being.",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("Your firm's representative will be required to escort the Prospect through the development and to lead the sales pitch. One of our Relationship Managers will accompany the Prospect/Salesperson and provide support whenever required. Our RMs are very well trained in the product, thus their presence will reinforce SPSB's commitment to your Prospect(s).",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph("We welcome your initiative to introduce both local and foreign buyers. With regards international sales, we define a ‘foreign buyer’ in the following manner:",{alignment:AlignmentType.JUSTIFIED}),
-    exactParagraph([new TextRun({text:"International Sales – Definition of a Foreign Buyer",bold:true})]),
+    approvedBlank(),approvedLine(issuedLetterDate(content)),approvedBlank(),
+    ...(details.contactName?[approvedLine([new TextRun({text:details.contactName,bold:true})])]:[]),
+    approvedLine([new TextRun({text:agency,bold:true})]),
+    ...address.map(line=>approvedLine(line)),approvedBlank(),
+    approvedLine(details.greeting),approvedBlank(),
+    approvedLine([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true})],{alignment:AlignmentType.CENTER}),
+    approvedLine([new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true})],{alignment:AlignmentType.CENTER}),approvedBlank(),
+    approvedLine("We would like to thank you for introducing a prospect for the AIRA Residence project and herein wish to take the opportunity to formalize your agency appointment.",{alignment:AlignmentType.JUSTIFIED}),approvedBlank(),
+    approvedLine("As you know, AIRA Residence is a very special project due to its unique location, low density and harmonious fusion of Asian and European design aesthetics. AIRA has been almost exclusively designed for owner-occupiers and already houses a marquee family of residents from all segments of local and international society. Our brand speaks to those who instinctively understand our language and our way of being.",{alignment:AlignmentType.JUSTIFIED}),approvedBlank(),
+    approvedLine("Your firm's representative will be required to escort the Prospect through the development and to lead the sales pitch. One of our Relationship Managers will accompany the Prospect/Salesperson and provide support whenever required. Our RMs are very well trained in the product, thus their presence will reinforce SPSB's commitment to your Prospect(s).",{alignment:AlignmentType.JUSTIFIED}),approvedBlank(),
+    approvedLine("We welcome your initiative to introduce both local and foreign buyers. With regards international sales, we define a ‘foreign buyer’ in the following manner:",{alignment:AlignmentType.JUSTIFIED}),approvedBlank(),
+    approvedLine([new TextRun({text:"International Sales – Definition of a Foreign Buyer",bold:true})]),approvedBlank(),
     ...[
       "Any individual, corporation or company that is a foreign national and wishes to purchase a property in Malaysia for investment or dwelling purposes and is subject to restrictions or guidelines set by FIC or by any other related guideline related to foreign property purchase.",
       "Individuals who are not Malaysian citizens seeking to purchase for vacation/second home market under Malaysia My Second Home (MM2H).",
       "International Sales do not include individual purchasers bearing NRIC, red IC, PR holders, UN special pass holders or foreign nationals via marriage, work assignments or the like.",
-    ].map((item,index)=>exactParagraph(`${index+1}.    ${item}`,{alignment:AlignmentType.JUSTIFIED,indent:{left:360,hanging:260},spacing:{before:0,after:130,line:260}})),
-    pageBreak(),exactParagraph([new TextRun({text:"Sales Commission Structure",bold:true,size:22})]),exactParagraph("As an Appointed Agent you will gain entitlement to the following Sales Commission structure:"),agencyCommissionWordTable(),
+    ].flatMap((item,index)=>[approvedLine(`${index+1}.  ${item}`,{alignment:AlignmentType.JUSTIFIED,indent:{left:360,hanging:360}}),approvedBlank()]),
+    pageBreak(),approvedLine([new TextRun({text:"Sales Commission Structure",bold:true})]),approvedBlank(),approvedLine("As an Appointed Agent you will gain entitlement to the following Sales Commission structure:"),approvedBlank(),agencyCommissionWordTable(),approvedBlank(),
     exactParagraph([new TextRun({text:"NB: The Commission structure shown in the above Table is valid for ",italics:true}),new TextRun({text:"12 months",bold:true,italics:true}),new TextRun({text:" from the date of this letter.",italics:true})],{spacing:{before:240,after:240,line:280}}),
     exactParagraph("The Sales Commission for both Towers ‘A’ & ‘B’ will be paid in Ringgit Malaysia within 30 days of our receipt of the following:"),
     exactParagraph("•    a stamped copy of the Sales & Purchase Agreement (SPA)",{indent:{left:360,hanging:240},spacing:{before:0,after:90,line:260}}),exactParagraph("•    a copy of the relevant State Authority's Consent Approval for Foreigners; and",{indent:{left:360,hanging:240},spacing:{before:0,after:90,line:260}}),exactParagraph("•    the Agent's Tax Invoice",{indent:{left:360,hanging:240},spacing:{before:0,after:0,line:260}}),
     exactParagraph([new TextRun("You shall at all times sell the units at the List Price approved by us and shall not adjust, revise, increase or amend the selling price for the units. Given the scarcity of units available for purchase in AIRA Residence and our philosophy of protecting purchaser's investment, the List Prices quoted are "),new TextRun({text:"fixed",bold:true}),new TextRun(" and non-negotiable.")],{alignment:AlignmentType.JUSTIFIED,spacing:{before:100,after:320,line:300}}),exactParagraph("As the sale of units @ AIRA Residence is on a first-come-first-serve basis, the Appointed Agent is encouraged to check with SPSB on the availability of units and to confirm the List Prices from time to time in case there has been a price increase.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:320,line:300}}),exactParagraph("Please also note that you are strictly prohibited to advertise AIRA in any media platform without our approval.",{spacing:{before:0,after:360,line:300}}),pageBreak(),exactParagraph(`I trust that the above outline is clear, however, should you require any further clarification please contact ${salespersonHonorific}${salesperson} at ${salespersonMobile} or via email at ${salespersonEmail}. Alternatively, you can also contact Ms Katherine Chew at +60193901491 or via email at katherine.chew@selangorproperties.com.my for further assistance.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:340,line:300}}),exactParagraph("We look forward to working with you and your team and hope that our collaboration on AIRA Residence is a productive and profitable relationship for both companies.",{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:420,line:300}}),exactParagraph([new TextRun("Yours faithfully,"),new TextRun({text:"For and on behalf of SELANGOR PROPERTIES SDN. BHD.",bold:true,italics:true,break:1})],{spacing:{before:0,after:1100,line:300}}),templateSignature(content),
     pageBreak(),exactParagraph([new TextRun({text:"ACCEPTANCE",bold:true,size:22})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:620,line:300}}),exactParagraph([new TextRun({text:"AGENCY APPOINTMENT TO THE AIRA RESIDENCE DEVELOPMENT",bold:true}),new TextRun({text:"No. 8, Jalan Batai, Bukit Damansara, Kuala Lumpur",bold:true,break:1})],{alignment:AlignmentType.CENTER,spacing:{before:0,after:800,line:300},border:{bottom:{style:BorderStyle.SINGLE,size:5,color:"333333"}}}),exactParagraph(`We, ${agency||"____________________"} agree to become an Appointed Agent for AIRA Residence condominium project on the basis of the terms and conditions outlined herein and further, agree to adhere to the policies and sales procedures set forth by Selangor Properties Sdn. Bhd. and to always represent the project honestly and with the highest levels of professional conduct.`,{alignment:AlignmentType.JUSTIFIED,spacing:{before:0,after:500,line:341}}),exactParagraph("________________________________________\nSignature:\n\nName: __________________________________\n\nI/C No.:__________________________________\n\nDate:   __________________________________"),
   ];
-  return new Uint8Array(await Packer.toBuffer(letterDocument(children,fullLogo,emblemLogo,true,360,1360,760)));
+  return new Uint8Array(await Packer.toBuffer(agencyAppointmentDocument(children,fullLogo,emblemLogo)));
 }
 
 async function createAgentCommissionWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){

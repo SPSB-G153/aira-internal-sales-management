@@ -96,11 +96,14 @@ export function hasExternalAgent(source: AgencyFallbackSource & { agent_company?
 
 export function agencyLetterDetails(company: unknown, stored?: ReturnType<typeof splitAgencyDetails>) {
   if (stored?.agent_name) {
+    const suppliedTitle = stored.agent_name.match(/^(mr|mrs|ms|miss|dr)\.?\s+/i)?.[1]?.toLowerCase();
     const unprefixed = stored.agent_name.replace(/^(mr|mrs|ms|miss|dr)\.?\s+/i, "");
     const rawFirstName = unprefixed.split(/\s+/)[0];
     const firstName = rawFirstName ? rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase() : "";
-    const honorific = /\bbinti\b/i.test(unprefixed) ? "Cik " : /\bbin\b/i.test(unprefixed) ? "En " : "";
-    return { contactName: stored.agent_name, contactPosition: stored.agent_designation, greeting: firstName ? `Dear ${honorific}${firstName},` : "Dear Sir or Madam,", appointmentDate: "" };
+    const suppliedHonorific = suppliedTitle === "mrs" ? "Mrs " : suppliedTitle === "ms" || suppliedTitle === "miss" ? "Ms " : suppliedTitle === "dr" ? "Dr " : suppliedTitle === "mr" ? "Mr " : "";
+    const honorific = suppliedHonorific || (/\bbinti\b/i.test(unprefixed) ? "Cik " : /\bbin\b/i.test(unprefixed) ? "En " : "Mr ");
+    const titledName = unprefixed ? `${honorific}${unprefixed}` : stored.agent_name;
+    return { contactName: titledName, contactPosition: stored.agent_designation, greeting: firstName ? `Dear ${honorific}${firstName},` : "Dear Sir or Madam,", appointmentDate: "" };
   }
   const normalized = String(company ?? "").trim();
   if (/belle\s*&\s*bross/i.test(normalized)) {
