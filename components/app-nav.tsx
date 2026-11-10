@@ -7,6 +7,7 @@ const items = [
   { href: "/operations", label: "Process", shortLabel: "Process", icon: "↗" },
   { href: "/sales", label: "Sales", shortLabel: "Sales", icon: "◇" },
   { href: "/documents", label: "Documents", shortLabel: "Docs", icon: "▤" },
+  { href: "/sales-tracker", label: "Sales Tracker", shortLabel: "Tracker", icon: "▦" },
 ];
 
 export function AppNav({ mobile = false }: { mobile?: boolean }) {
@@ -18,7 +19,7 @@ export function AppNav({ mobile = false }: { mobile?: boolean }) {
 
   return (
     <nav aria-label={mobile ? "Mobile navigation" : "Primary navigation"} className={mobile ? "mobile-bottom-nav" : undefined}>
-      {(mobile ? items.slice(0, 4) : items).map((item) => {
+      {(mobile ? items : items).map((item) => {
         const active = pathname.startsWith(item.href);
         return (
           <Link
