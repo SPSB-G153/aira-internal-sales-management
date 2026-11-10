@@ -87,10 +87,11 @@ export function monthlySalesPerformance(sales: Sale[], documents: SaleDocument[]
   // the authoritative management reporting month. The cheque date (sale_date)
   // and an earlier POP/sale creation timestamp must not determine Actual.
   const acceptedAt = new Map(documents.filter((document) => document.document_type === "acceptance_letter").map((document) => [document.sale_id, document.generated_at || document.created_at]));
-  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && acceptedAt.has(sale.id));
+  const actualRecordedAt = (sale: Sale) => sale.notice_issued_at || acceptedAt.get(sale.id) || null;
+  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && actualRecordedAt(sale));
   const actualByMonth = new Map<string, { units: number; value: number }>();
   confirmed.forEach((sale) => {
-    const month = acceptedAt.get(sale.id)!.slice(0, 7);
+    const month = actualRecordedAt(sale)!.slice(0, 7);
     const current = actualByMonth.get(month) || { units: 0, value: 0 };
     current.units += 1; current.value += sale.purchase_price;
     actualByMonth.set(month, current);
