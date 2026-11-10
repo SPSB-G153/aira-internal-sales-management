@@ -770,6 +770,7 @@ sup.ordinal-suffix { position:relative; top:.1em; font-size:.62em; line-height:0
 .sales-target-values .target-highlight strong { color:var(--gold); }
 .sales-target-towers { display:flex; flex-wrap:wrap; gap:8px 24px; margin-top:14px; color:var(--muted); font-size:11px; }
 .sales-target-towers b { margin-left:5px; color:var(--ink); }
+.sales-target-towers small { margin-left:7px; color:var(--gold); font-size:11px; font-weight:800; }
 .monthly-target-panel { margin-bottom:18px; padding:22px; overflow:hidden; }
 .monthly-target-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; }
 .monthly-target-heading h2 { font-size:21px; }

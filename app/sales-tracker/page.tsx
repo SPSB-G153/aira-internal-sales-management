@@ -29,7 +29,7 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
         <div><span>Confirmed sales</span><strong>{formatRinggit(target.confirmedValue)}</strong></div>
         <div><span>Balance to target</span><strong>{formatRinggit(target.remaining)}</strong></div>
       </div>
-      <div className="sales-target-towers"><span>Tower A confirmed <b>{formatRinggit(target.towerAValue)}</b></span><span>Tower B confirmed <b>{formatRinggit(target.towerBValue)}</b></span>{target.pendingValue > 0 && <span>Pending payment <b>{formatRinggit(target.pendingValue)}</b></span>}</div>
+      <div className="sales-target-towers"><span>Tower A confirmed <b>{formatRinggit(target.towerAValue)}</b><small>{target.towerAUnits} {target.towerAUnits === 1 ? "unit" : "units"}</small></span><span>Tower B confirmed <b>{formatRinggit(target.towerBValue)}</b><small>{target.towerBUnits} {target.towerBUnits === 1 ? "unit" : "units"}</small></span>{target.pendingValue > 0 && <span>Pending payment <b>{formatRinggit(target.pendingValue)}</b></span>}</div>
     </section>
     <section className="card monthly-target-panel" aria-labelledby="monthly-target-title">
       <div className="monthly-target-heading"><div><p className="eyebrow">Monthly performance</p><h2 id="monthly-target-title">Sales Target by Month</h2></div><span>{monthly.campaignActual} of {monthly.campaignTarget} units</span></div>

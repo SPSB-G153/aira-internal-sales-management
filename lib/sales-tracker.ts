@@ -70,9 +70,11 @@ export function salesTargetMetrics(sales: Sale[]) {
   const pendingValue = sales.filter((sale) => !hasRecordedBookingPayment(sale)).reduce((total, sale) => total + sale.purchase_price, 0);
   const towerAValue = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("A-")).reduce((total, sale) => total + sale.purchase_price, 0);
   const towerBValue = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("B-")).reduce((total, sale) => total + sale.purchase_price, 0);
+  const towerAUnits = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("A-")).length;
+  const towerBUnits = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("B-")).length;
   const remaining = Math.max(SALES_TARGET.managementTarget - confirmedValue, 0);
   const progress = SALES_TARGET.managementTarget ? confirmedValue / SALES_TARGET.managementTarget : 0;
-  return { confirmedValue, pendingValue, towerAValue, towerBValue, remaining, progress };
+  return { confirmedValue, pendingValue, towerAValue, towerBValue, towerAUnits, towerBUnits, remaining, progress };
 }
 
 export function monthlySalesPerformance(sales: Sale[], today = malaysiaToday()) {
