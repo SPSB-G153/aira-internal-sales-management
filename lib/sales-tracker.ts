@@ -82,10 +82,13 @@ export function salesTargetMetrics(sales: Sale[]) {
 }
 
 export function monthlySalesPerformance(sales: Sale[], today = malaysiaToday()) {
-  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && sale.sale_date);
+  // Management actuals follow the month the completed booking was recorded in
+  // this app. sale_date is the cheque/payment date used by the letters and must
+  // not be used to assign a sale to a management reporting month.
+  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && sale.created_at);
   const actualByMonth = new Map<string, { units: number; value: number }>();
   confirmed.forEach((sale) => {
-    const month = sale.sale_date!.slice(0, 7);
+    const month = sale.created_at.slice(0, 7);
     const current = actualByMonth.get(month) || { units: 0, value: 0 };
     current.units += 1; current.value += sale.purchase_price;
     actualByMonth.set(month, current);

@@ -9,6 +9,7 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
   const q = (params.q || "").trim().toLowerCase();
   const status = params.status || "";
   const view = params.view || "all";
+  const registerTitle = view === "action" ? "Action required" : view === "scheduled" ? "SPA scheduled" : view === "overdue" ? "Overdue" : "Sales records";
   const matchesView = (row: (typeof rows)[number]) => view === "action" ? ["action", "pending", "overdue"].includes(row.tone) : view === "scheduled" ? row.currentStage === "SPA signing scheduled" : view === "overdue" ? row.tone === "overdue" : true;
   const visible = rows.filter((row) => matchesView(row) && (!q || `${row.unit} ${row.purchaser} ${row.currentStage} ${row.nextAction}`.toLowerCase().includes(q)) && (!status || row.tone === status));
   const summary = trackerSummary(rows);
@@ -53,10 +54,13 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
       <button className="button secondary" type="submit">Apply</button>
       {(q || status) && <Link className="text-link" href="/sales-tracker">Clear</Link>}
     </form>
-    <section className="card tracker-register" id="tracker-register">
+    <section className="tracker-register-section" id="tracker-register">
+      <div className="tracker-register-heading"><div><p className="eyebrow">Sales follow-up</p><h2>{registerTitle}</h2></div><span>{visible.length} {visible.length === 1 ? "record" : "records"}</span></div>
+      <div className="card tracker-register">
       <div className="tracker-table-head"><span>Unit</span><span>Purchaser</span><span>Current stage</span><span>Key date</span><span>Next action</span><span>Status</span></div>
       {visible.map((row) => <Link href={`/sales/${row.id}`} className="tracker-table-row" key={row.id}><strong>{row.unit}</strong><span>{row.purchaser}</span><span>{row.currentStage}</span><time>{formatTrackerDate(row.keyDate)}</time><span>{row.nextAction}</span><span className={`tracker-status ${row.tone}`}>{row.status}</span></Link>)}
       {!visible.length && <div className="empty"><h3>No matching sales</h3><p className="subtle">Adjust the search or status filter.</p></div>}
+      </div>
     </section>
   </div>;
 }
