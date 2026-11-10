@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LineRuleType, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, WidthType } from "docx";
+import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LineRuleType, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, VerticalMergeType, WidthType } from "docx";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
@@ -318,15 +318,25 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
 
 const agencyCommissionWordTable=()=>{
   const border={style:BorderStyle.SINGLE,size:5,color:"333333"};
-  const richCell=(runs:TextRun[],fill?:string)=>new TableCell({shading:fill?{fill}:undefined,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph(runs,{alignment:AlignmentType.CENTER,spacing:{before:0,after:0,line:240}})]});
-  const plain=(value:string,bold=false,fill?:string)=>richCell([new TextRun({text:value,bold,size:26})],fill);
-  const row=(values:[string,string],boldFirst=false)=>new TableRow({children:values.map((v,i)=>plain(v,boldFirst&&i===0))});
+  const widths=[4531,2410] as const;
+  const cell=(runs:TextRun[],index:number,options:{fill?:string;bold?:boolean;indent?:number;verticalMerge?:typeof VerticalMergeType[keyof typeof VerticalMergeType]}={})=>new TableCell({
+    width:{size:widths[index],type:WidthType.DXA},
+    verticalAlign:VerticalAlign.CENTER,
+    verticalMerge:options.verticalMerge,
+    shading:options.fill?{fill:options.fill}:undefined,
+    borders:{top:border,bottom:border,left:border,right:border},
+    margins:{top:25,bottom:25,left:70,right:70},
+    children:[exactParagraph(runs,{alignment:index===1?AlignmentType.CENTER:undefined,indent:options.indent?{left:options.indent}:undefined,spacing:{before:0,after:0,line:220}})],
+  });
+  const plain=(value:string,index:number,bold=false,indent=0)=>cell([new TextRun({text:value,bold,size:22})],index,{indent});
+  const row=(values:[string,string],boldFirst=false,indentFirst=0)=>new TableRow({children:[plain(values[0],0,boldFirst,indentFirst),plain(values[1],1)]});
   const spacerRow=()=>new TableRow({height:{value:100,rule:"atLeast"},children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:0,bottom:0,left:0,right:0},children:[exactParagraph("",{spacing:{before:0,after:0,line:80}})]})]});
-  return new Table({width:{size:100,type:WidthType.PERCENTAGE},borders:{top:border,bottom:border,left:border,right:border,insideHorizontal:border,insideVertical:border},rows:[
-    new TableRow({children:[richCell([new TextRun({text:"TOWER / UNIT TYPE",bold:true,size:26})],"D9D9D9"),richCell([new TextRun({text:"SALES COMMISSION",bold:true,size:26}),new TextRun({text:"% Purchase Price",break:1,size:26})],"D9D9D9")]}),
+  return new Table({width:{size:6941,type:WidthType.DXA},columnWidths:[...widths],borders:{top:border,bottom:border,left:border,right:border,insideHorizontal:border,insideVertical:border},rows:[
+    new TableRow({height:{value:310,rule:"atLeast"},children:[cell([new TextRun({text:"Tower / Unit Type",bold:true,size:22})],0,{fill:"D9D9D9",verticalMerge:VerticalMergeType.RESTART}),cell([new TextRun({text:"Sales Commission",bold:true,size:22})],1,{fill:"D9D9D9"})]}),
+    new TableRow({height:{value:329,rule:"atLeast"},children:[cell([],0,{fill:"D9D9D9",verticalMerge:VerticalMergeType.CONTINUE}),cell([new TextRun({text:"% Purchase Price",size:22})],1,{fill:"D9D9D9"})]}),
     new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"Domestic Sales:",bold:true,size:26})],{spacing:{before:0,after:0,line:250}})]})]}),
-    row(["TOWER A",""],true),row(["Type A1","2.00"]),row(["Type B","2.00"]),row(["Type A2","2.00"]),row(["Types D, E & F","2.00"]),row(["TOWER B",""],true),row(["Types G & H","3.00"]),spacerRow(),
-    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"International Sales (Towers A & B):     ",bold:true,size:26}),new TextRun({text:"3.0%",bold:true,size:26}),new TextRun({text:" of the Purchase Price",size:26})],{spacing:{before:0,after:0,line:250}})]})]})
+    row(["Tower A",""],true),row(["Type A1","2.00"],false,720),row(["Type B","2.00"],false,720),row(["Type A2","2.00"],false,720),row(["Types D, E & F","2.00"],false,720),row(["Tower B",""],true),row(["Types G & H","3.00"],false,720),spacerRow(),
+    new TableRow({children:[new TableCell({columnSpan:2,borders:{top:border,bottom:border,left:border,right:border},margins:{top:45,bottom:45,left:70,right:70},children:[exactParagraph([new TextRun({text:"International Sales (Towers A & B):     ",bold:true,size:22}),new TextRun({text:"3.0%",bold:true,size:22}),new TextRun({text:" of the Purchase Price",size:22})],{spacing:{before:0,after:0,line:220}})]})]})
   ]});
 };
 

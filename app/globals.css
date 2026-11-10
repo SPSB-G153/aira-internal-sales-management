@@ -671,13 +671,15 @@ h3 { margin:0; font-size:16px; }
 .agency-commission-table tbody th { text-align:left; }
 .agency-commission-table tbody tr:not(.agency-international) td:first-child { text-align:left; padding-left:30px; }
 .agency-commission-table .agency-international th { text-align:left; }
-.agency-commission-table-revised thead th:first-child { width:60%; }
-.agency-commission-table-revised thead th:last-child { width:40%; }
-.agency-commission-table-revised { font-size:13px; }
-.agency-commission-table-revised thead th { font-size:13px; }
-.agency-commission-table-revised tbody tr:not(.agency-international) td:first-child { text-align:left; padding-left:54px; }
-.agency-commission-table-revised .agency-table-spacer td { height:5px; padding:0; line-height:0; }
-.agency-commission-table-revised .agency-international th { text-align:left; padding-left:10px; }
+.agency-commission-table-approved { width:72%; font-size:11px; }
+.agency-commission-table-approved thead th:first-child { width:65.3%; }
+.agency-commission-table-approved thead th:last-child { width:34.7%; }
+.agency-commission-table-approved thead th { font-size:11px; padding-top:3px; padding-bottom:3px; }
+.agency-commission-table-approved thead tr:first-child th:last-child { border-bottom:0; padding-bottom:1px; }
+.agency-commission-table-approved thead tr:last-child th { border-top:0; padding-top:1px; font-weight:400; }
+.agency-commission-table-approved tbody tr:not(.agency-international) td:first-child { text-align:left; padding-left:30px; }
+.agency-commission-table-approved .agency-table-spacer td { height:5px; padding:0; line-height:0; }
+.agency-commission-table-approved .agency-international th { text-align:left; padding-left:7px; }
 .agency-table-page .agent-commission-list { margin-bottom:0; }
 .agency-closing-page .agent-commission-page p { margin-bottom:24px; }
 .agency-closing-page .approval-signature { margin-top:34px; }
