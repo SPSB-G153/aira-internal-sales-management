@@ -61,7 +61,11 @@ const reviewValue=(key:string,value:string)=>{
   if((key==="customer_nationality"||key==="customer_nationality_2")&&nationalityAbbreviations.has(trimmed.toUpperCase()))return trimmed.toUpperCase();
   return toNormalCase(value);
 };
-const normalizePurchaserType=(value:string,name:string,salutation:string)=>/\b(company|corporate|sdn\.?\s*bhd\.?|s\s*\/\s*b|berhad|limited|ltd\.?|inc\.?|llp|plc)\b/i.test(`${value} ${name} ${salutation}`)?"Company":"Individual";
+const normalizePurchaserType=(value:string,name:string,salutation:string,identity:string)=>{
+  if(/\b(company|corporate|sdn\.?\s*bhd\.?|s\s*\/\s*b|berhad|limited|ltd\.?|inc\.?|llp|plc)\b/i.test(`${name} ${salutation}`))return "Company";
+  if(/^\d{6}-?\d{2}-?\d{4}$/.test(identity.replace(/\s/g,"")))return "Individual";
+  return /\b(company|corporate)\b/i.test(value)?"Company":"Individual";
+};
 
 export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
   const input=useRef<HTMLInputElement>(null);
@@ -135,7 +139,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       fields.customer_salutation_2=salutationFromSex(String(fields.customer_salutation_2||""),String(fields.customer_sex_2||""));
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));
       fields.customer_nationality_2=normalizeNationality(String(fields.customer_nationality_2||""));
-      fields.purchaser_type=normalizePurchaserType(String(fields.purchaser_type||""),String(fields.customer_name||""),String(fields.customer_salutation||""));
+      fields.purchaser_type=normalizePurchaserType(String(fields.purchaser_type||""),String(fields.customer_name||""),String(fields.customer_salutation||""),String(fields.customer_ic||""));
       if(fields.purchaser_type==="Individual"){
         fields.customer_name=toNormalCase(String(fields.customer_name||""));
         fields.customer_name_2=toNormalCase(String(fields.customer_name_2||""));

@@ -6,6 +6,7 @@ import { PopAdminUpload } from "@/components/pop-admin-upload";
 import { SaleForm } from "@/components/sale-form";
 import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
+import { combineAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
 
 const numericFields = new Set(["floor_area", "floor_area_sqm", "purchase_price", "booking_fee"]);
@@ -62,6 +63,15 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
     values.salesperson_email = salesperson.email;
     if (salesperson.mobile) values.salesperson_mobile = salesperson.mobile;
   }
+  const combinedAgency = combineAgencyDetails(
+    values.agent_company,
+    values.agent_address,
+    values.agent_name,
+    values.agent_designation,
+    values.agent_mobile,
+    values.agent_email,
+  );
+  if (combinedAgency) values.agent_company = combinedAgency;
   return values as Partial<Sale>;
 }
 
