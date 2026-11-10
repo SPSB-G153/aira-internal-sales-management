@@ -154,7 +154,12 @@ async def private_network_header(request, call_next):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "private": True, "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b")}
+    return {
+        "ok": True,
+        "private": True,
+        "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+        "upload_folder": str(private_upload_root()),
+    }
 
 
 def structured_model_response(payload, timeout, retry_num_predict=None):
@@ -713,9 +718,10 @@ async def extract_pop_admin(
             fields.get("salesperson_name", "")
         )
         fields["agent_company"] = normalize_agent_company(fields["agent_company"])
-        folder = unit_folder(unit_number)
+        resolved_unit_number = fields.get("unit_number", "") or unit_number
+        folder = unit_folder(resolved_unit_number)
         suffix = Path(file.filename or "pop-form.pdf").suffix or ".pdf"
-        path = folder / f"POP_Form_{safe_part(unit_number, 'Unidentified')}{suffix}"
+        path = folder / f"POP_Form_{safe_part(resolved_unit_number, 'Unidentified')}{suffix}"
         path.write_bytes(data)
         warnings = [] if fields["salesperson_name"] else [
             "Team Member Assisting could not be confirmed as Madihah Hassan or Felicia Low."
