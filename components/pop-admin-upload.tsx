@@ -6,7 +6,7 @@ import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 
 export type PopAdminFields = Record<string, string>;
-type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string };
+type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string; cached?: boolean };
 
 const labels: Record<string, string> = {
   customer_name: "Purchaser name",
@@ -116,7 +116,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         fields: { ...current.fields, ...Object.fromEntries(Object.entries(extracted.fields).filter(([, value]) => value?.trim())) },
         warnings: [...current.warnings, ...extracted.warnings],
       } : extracted);
-      setMessage("");
+      setMessage(extracted.cached ? "Previous private reading reused — no new POP scan was needed." : "");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : `The ${source === "pop" ? "POP Form" : "namecard"} could not be read.`);
     } finally {

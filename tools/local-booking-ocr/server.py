@@ -445,6 +445,45 @@ def save_cached_extraction(data, fields, warnings):
     temporary.replace(path)
 
 
+def pop_admin_cache_path(data):
+    root = private_upload_root() / ".reader-cache"
+    root.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(b"pop-admin-v2" + data).hexdigest()
+    return root / f"pop-{digest}.json"
+
+
+def cached_pop_admin_extraction(data):
+    path = pop_admin_cache_path(data)
+    if not path.exists():
+        return None
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        fields = cached.get("fields", {})
+        if not isinstance(fields, dict):
+            return None
+        return {
+            "fields": {
+                name: str(fields.get(name, "") or "").strip()
+                for name in POP_ADMIN_FIELDS
+            },
+            "warnings": [
+                str(item) for item in cached.get("warnings", []) if str(item).strip()
+            ],
+        }
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def save_cached_pop_admin_extraction(data, fields, warnings):
+    path = pop_admin_cache_path(data)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(
+        json.dumps({"fields": fields, "warnings": warnings}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    temporary.replace(path)
+
+
 @app.post("/save-file")
 async def save_file(
     file: UploadFile = File(...),
@@ -643,6 +682,21 @@ async def extract_pop_admin(
     if not is_pdf and not is_image:
         raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP POP Form.")
     try:
+        cached = cached_pop_admin_extraction(data)
+        if cached:
+            fields = cached["fields"]
+            warnings = cached["warnings"]
+            resolved_unit_number = fields.get("unit_number", "") or unit_number
+            folder = unit_folder(resolved_unit_number)
+            suffix = Path(file.filename or "pop-form.pdf").suffix or ".pdf"
+            path = folder / f"POP_Form_{safe_part(resolved_unit_number, 'Unidentified')}{suffix}"
+            path.write_bytes(data)
+            return {
+                "fields": fields,
+                "warnings": warnings,
+                "saved_path": str(path),
+                "cached": True,
+            }
         if is_pdf:
             pop = fitz.open(stream=data, filetype="pdf")
             if not pop.page_count:
@@ -728,7 +782,8 @@ async def extract_pop_admin(
         warnings = [] if fields["salesperson_name"] else [
             "Team Member Assisting could not be confirmed as Madihah Hassan or Felicia Low."
         ]
-        return {"fields": fields, "warnings": warnings, "saved_path": str(path)}
+        save_cached_pop_admin_extraction(data, fields, warnings)
+        return {"fields": fields, "warnings": warnings, "saved_path": str(path), "cached": False}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:
