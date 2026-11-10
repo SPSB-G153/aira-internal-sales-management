@@ -72,9 +72,13 @@ export function salesTargetMetrics(sales: Sale[]) {
   const towerBValue = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("B-")).reduce((total, sale) => total + sale.purchase_price, 0);
   const towerAUnits = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("A-")).length;
   const towerBUnits = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("B-")).length;
+  const towerATargetUnits = MONTHLY_SALES_TARGETS.reduce((total, [, towerA]) => total + towerA, 0);
+  const towerBTargetUnits = MONTHLY_SALES_TARGETS.reduce((total, [, , towerB]) => total + towerB, 0);
+  const towerABalanceUnits = Math.max(towerATargetUnits - towerAUnits, 0);
+  const towerBBalanceUnits = Math.max(towerBTargetUnits - towerBUnits, 0);
   const remaining = Math.max(SALES_TARGET.managementTarget - confirmedValue, 0);
   const progress = SALES_TARGET.managementTarget ? confirmedValue / SALES_TARGET.managementTarget : 0;
-  return { confirmedValue, pendingValue, towerAValue, towerBValue, towerAUnits, towerBUnits, remaining, progress };
+  return { confirmedValue, pendingValue, towerAValue, towerBValue, towerAUnits, towerBUnits, towerATargetUnits, towerBTargetUnits, towerABalanceUnits, towerBBalanceUnits, remaining, progress };
 }
 
 export function monthlySalesPerformance(sales: Sale[], today = malaysiaToday()) {

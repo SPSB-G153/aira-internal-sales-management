@@ -25,11 +25,11 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
       <div className="sales-target-heading"><div><p className="eyebrow">Approved sales campaign</p><h2 id="sales-target-title">Sales Target Achievement</h2></div><strong>{progress.toFixed(1)}%</strong></div>
       <div className="sales-target-progress" aria-label={`${progress.toFixed(1)}% of target achieved`}><span style={{ width: `${progress}%` }} /></div>
       <div className="sales-target-values">
-        <div className="target-highlight"><span>Target</span><strong>{formatRinggit(SALES_TARGET.managementTarget)}</strong></div>
-        <div><span>Confirmed sales</span><strong>{formatRinggit(target.confirmedValue)}</strong></div>
-        <div><span>Balance to target</span><strong>{formatRinggit(target.remaining)}</strong></div>
+        <div className="target-highlight"><span>Target</span><strong>{formatRinggit(SALES_TARGET.managementTarget)}</strong><div className="sales-target-breakdown"><small>Tower A <b>{target.towerATargetUnits} units</b></small><small>Tower B <b>{target.towerBTargetUnits} units</b></small></div></div>
+        <div><span>Confirmed sales</span><strong>{formatRinggit(target.confirmedValue)}</strong><div className="sales-target-breakdown"><small>Tower A <b>{target.towerAUnits} units</b></small><small>Tower B <b>{target.towerBUnits} unit{target.towerBUnits === 1 ? "" : "s"}</b></small></div></div>
+        <div><span>Balance to target</span><strong>{formatRinggit(target.remaining)}</strong><div className="sales-target-breakdown"><small>Tower A <b>{target.towerABalanceUnits} units</b></small><small>Tower B <b>{target.towerBBalanceUnits} units</b></small></div></div>
       </div>
-      <div className="sales-target-towers"><span>Tower A confirmed <b>{formatRinggit(target.towerAValue)}</b><small>{target.towerAUnits} {target.towerAUnits === 1 ? "unit" : "units"}</small></span><span>Tower B confirmed <b>{formatRinggit(target.towerBValue)}</b><small>{target.towerBUnits} {target.towerBUnits === 1 ? "unit" : "units"}</small></span>{target.pendingValue > 0 && <span>Pending payment <b>{formatRinggit(target.pendingValue)}</b></span>}</div>
+      {target.pendingValue > 0 && <div className="sales-target-towers"><span>Pending payment <b>{formatRinggit(target.pendingValue)}</b></span></div>}
     </section>
     <section className="card monthly-target-panel" aria-labelledby="monthly-target-title">
       <div className="monthly-target-heading"><div><p className="eyebrow">Monthly performance</p><h2 id="monthly-target-title">Sales Target by Month</h2></div><span>{monthly.campaignActual} of {monthly.campaignTarget} units</span></div>
