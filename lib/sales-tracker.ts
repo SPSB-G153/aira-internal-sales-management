@@ -23,6 +23,13 @@ export const SALES_TARGET = {
   managementTarget: 190_000_000,
 } as const;
 
+export const MONTHLY_SALES_TARGETS = [
+  ["2026-11", 2, 1], ["2026-12", 2, 2], ["2027-01", 2, 1], ["2027-02", 1, 1],
+  ["2027-03", 2, 1], ["2027-04", 2, 1], ["2027-05", 1, 1], ["2027-06", 1, 1],
+  ["2027-07", 1, 1], ["2027-08", 1, 1], ["2027-09", 0, 1], ["2027-10", 0, 1],
+  ["2027-11", 0, 1], ["2027-12", 0, 1],
+] as const;
+
 const malaysiaToday = () => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit",
 }).format(new Date());
@@ -66,6 +73,44 @@ export function salesTargetMetrics(sales: Sale[]) {
   const remaining = Math.max(SALES_TARGET.managementTarget - confirmedValue, 0);
   const progress = SALES_TARGET.managementTarget ? confirmedValue / SALES_TARGET.managementTarget : 0;
   return { confirmedValue, pendingValue, towerAValue, towerBValue, remaining, progress };
+}
+
+export function monthlySalesPerformance(sales: Sale[], today = malaysiaToday()) {
+  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && sale.sale_date);
+  const actualByMonth = new Map<string, { units: number; value: number }>();
+  confirmed.forEach((sale) => {
+    const month = sale.sale_date!.slice(0, 7);
+    const current = actualByMonth.get(month) || { units: 0, value: 0 };
+    current.units += 1; current.value += sale.purchase_price;
+    actualByMonth.set(month, current);
+  });
+  const targetByMonth = new Map(MONTHLY_SALES_TARGETS.map(([month, towerA, towerB]) => [month, { towerA, towerB }]));
+  const months = Array.from(new Set([...targetByMonth.keys(), ...actualByMonth.keys()])).sort();
+  let cumulativeTarget = 0, cumulativeActual = 0;
+  const rows = months.map((month) => {
+    const target = targetByMonth.get(month) || { towerA: 0, towerB: 0 };
+    const actual = actualByMonth.get(month) || { units: 0, value: 0 };
+    const targetUnits = target.towerA + target.towerB;
+    cumulativeTarget += targetUnits; cumulativeActual += actual.units;
+    return { month, towerA: target.towerA, towerB: target.towerB, targetUnits, actualUnits: actual.units, actualValue: actual.value, cumulativeTarget, cumulativeActual, variance: actual.units - targetUnits };
+  });
+  const currentMonth = today.slice(0, 7), currentYear = today.slice(0, 4);
+  const current = rows.find((row) => row.month === currentMonth) || { targetUnits: 0, actualUnits: 0 };
+  const ytd = rows.filter((row) => row.month.startsWith(currentYear) && row.month <= currentMonth);
+  return {
+    rows,
+    currentMonth,
+    currentTarget: current.targetUnits,
+    currentActual: current.actualUnits,
+    ytdTarget: ytd.reduce((sum, row) => sum + row.targetUnits, 0),
+    ytdActual: ytd.reduce((sum, row) => sum + row.actualUnits, 0),
+    campaignTarget: MONTHLY_SALES_TARGETS.reduce((sum, [, towerA, towerB]) => sum + towerA + towerB, 0),
+    campaignActual: confirmed.length,
+  };
+}
+
+export function formatTrackerMonth(month: string) {
+  return new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
 }
 
 export function formatRinggit(value: number) {

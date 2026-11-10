@@ -1,11 +1,11 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getSales } from "@/lib/data/sales";
-import { SALES_TARGET, salesTargetMetrics, formatTrackerDate, trackerRows, trackerSummary } from "@/lib/sales-tracker";
+import { SALES_TARGET, salesTargetMetrics, formatTrackerDate, formatTrackerMonth, monthlySalesPerformance, trackerRows, trackerSummary } from "@/lib/sales-tracker";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const sales = await getSales(); const rows = trackerRows(sales); const summary = trackerSummary(rows); const target = salesTargetMetrics(sales);
+  const sales = await getSales(); const rows = trackerRows(sales); const summary = trackerSummary(rows); const target = salesTargetMetrics(sales); const monthly = monthlySalesPerformance(sales);
   const pdf = await PDFDocument.create(); const page = pdf.addPage([842, 595]);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold); const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const gold = rgb(.83, .69, .22), ink = rgb(.08, .09, .11), grey = rgb(.45, .48, .53), white = rgb(1, 1, 1);
@@ -20,6 +20,12 @@ export async function GET() {
   headers.forEach((h, i) => page.drawText(h, { x: xs[i], y: 420, size: 7, font: bold, color: grey }));
   const clip = (value: string, max: number) => value.length > max ? `${value.slice(0, max - 1)}…` : value;
   rows.slice(0, 12).forEach((row, index) => { const y = 392 - index * 31; page.drawLine({ start: { x: 36, y: y - 10 }, end: { x: 806, y: y - 10 }, thickness: .5, color: rgb(.85, .85, .85) }); page.drawText(clip(row.unit, 12), { x: xs[0], y, size: 8, font: bold, color: ink }); page.drawText(clip(row.purchaser, 31), { x: xs[1], y, size: 8, font: regular, color: ink }); page.drawText(clip(row.currentStage, 24), { x: xs[2], y, size: 8, font: regular, color: ink }); page.drawText(formatTrackerDate(row.keyDate), { x: xs[3], y, size: 8, font: regular, color: ink }); page.drawText(clip(row.nextAction, 30), { x: xs[4], y, size: 8, font: regular, color: ink }); page.drawText(row.status.toUpperCase(), { x: xs[5], y, size: 7, font: bold, color: row.tone === "overdue" ? rgb(.65, .15, .12) : ink }); });
+  const monthlyPage = pdf.addPage([842, 595]); monthlyPage.drawRectangle({ x: 0, y: 0, width: 842, height: 595, color: white }); monthlyPage.drawRectangle({ x: 0, y: 522, width: 842, height: 73, color: ink });
+  monthlyPage.drawText("AIRA RESIDENCE", { x: 36, y: 560, size: 12, font: bold, color: gold }); monthlyPage.drawText("MONTHLY SALES TARGETS", { x: 36, y: 535, size: 24, font: bold, color: white });
+  monthlyPage.drawText(`CURRENT MONTH  TARGET ${monthly.currentTarget}  ACTUAL ${monthly.currentActual}     YTD  TARGET ${monthly.ytdTarget}  ACTUAL ${monthly.ytdActual}     CAMPAIGN ${monthly.campaignActual}/${monthly.campaignTarget}`, { x: 36, y: 492, size: 10, font: bold, color: ink });
+  const mx = [36, 125, 195, 265, 335, 415, 545, 675]; const mh = ["MONTH", "TOWER A", "TOWER B", "TARGET", "ACTUAL", "ACTUAL VALUE", "CUMULATIVE", "VARIANCE"];
+  mh.forEach((h, i) => monthlyPage.drawText(h, { x: mx[i], y: 460, size: 7, font: bold, color: grey }));
+  monthly.rows.slice(0, 18).forEach((row, index) => { const y = 434 - index * 23; monthlyPage.drawLine({ start: { x: 36, y: y - 8 }, end: { x: 806, y: y - 8 }, thickness: .5, color: rgb(.86, .86, .86) }); const values = [formatTrackerMonth(row.month), String(row.towerA), String(row.towerB), String(row.targetUnits), String(row.actualUnits), `RM ${row.actualValue.toLocaleString("en-MY")}`, `${row.cumulativeActual} / ${row.cumulativeTarget}`, `${row.variance > 0 ? "+" : ""}${row.variance}`]; values.forEach((value, i) => monthlyPage.drawText(value, { x: mx[i], y, size: 8, font: i === 0 ? bold : regular, color: row.variance < 0 && i === 7 ? rgb(.65, .15, .12) : ink })); });
   page.drawText(`Generated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeZone: "Asia/Kuala_Lumpur" }).format(new Date())}`, { x: 36, y: 24, size: 7, font: regular, color: grey });
   const bytes = await pdf.save();
   const body = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;

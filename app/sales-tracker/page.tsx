@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSales } from "@/lib/data/sales";
-import { formatRinggit, formatTrackerDate, SALES_TARGET, salesTargetMetrics, trackerRows, trackerSummary } from "@/lib/sales-tracker";
+import { formatRinggit, formatTrackerDate, formatTrackerMonth, monthlySalesPerformance, SALES_TARGET, salesTargetMetrics, trackerRows, trackerSummary } from "@/lib/sales-tracker";
 
 export default async function SalesTrackerPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const params = await searchParams;
@@ -11,6 +11,7 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
   const visible = rows.filter((row) => (!q || `${row.unit} ${row.purchaser} ${row.currentStage} ${row.nextAction}`.toLowerCase().includes(q)) && (!status || row.tone === status));
   const summary = trackerSummary(rows);
   const target = salesTargetMetrics(sales);
+  const monthly = monthlySalesPerformance(sales);
   const progress = Math.min(target.progress * 100, 100);
   return <div className="page tracker-page">
     <div className="page-header tracker-header"><div><p className="eyebrow">Management view</p><h1>Sales Tracker</h1><p className="subtle">Live progress from booking through SPA, settlement and handover.</p></div><div className="form-actions tracker-export-actions"><a className="button secondary" href="/api/sales-tracker/excel">Export Excel</a><a className="button accent" href="/api/sales-tracker/pdf">Export PDF</a></div></div>
@@ -24,14 +25,24 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
       <div className="sales-target-heading"><div><p className="eyebrow">Approved sales campaign</p><h2 id="sales-target-title">Sales Target Achievement</h2></div><strong>{progress.toFixed(1)}%</strong></div>
       <div className="sales-target-progress" aria-label={`${progress.toFixed(1)}% of target achieved`}><span style={{ width: `${progress}%` }} /></div>
       <div className="sales-target-values">
-        <div><span>Approved value</span><strong>{formatRinggit(SALES_TARGET.grossApproved)}</strong></div>
-        <div><span>Less 3%</span><strong>{formatRinggit(SALES_TARGET.rebateAmount)}</strong></div>
-        <div><span>Net approved value</span><strong>{formatRinggit(SALES_TARGET.netApproved)}</strong></div>
-        <div className="target-highlight"><span>Management target</span><strong>{formatRinggit(SALES_TARGET.managementTarget)}</strong></div>
+        <div className="target-highlight"><span>Target</span><strong>{formatRinggit(SALES_TARGET.managementTarget)}</strong></div>
         <div><span>Confirmed sales</span><strong>{formatRinggit(target.confirmedValue)}</strong></div>
         <div><span>Balance to target</span><strong>{formatRinggit(target.remaining)}</strong></div>
       </div>
       <div className="sales-target-towers"><span>Tower A confirmed <b>{formatRinggit(target.towerAValue)}</b></span><span>Tower B confirmed <b>{formatRinggit(target.towerBValue)}</b></span>{target.pendingValue > 0 && <span>Pending payment <b>{formatRinggit(target.pendingValue)}</b></span>}</div>
+    </section>
+    <section className="card monthly-target-panel" aria-labelledby="monthly-target-title">
+      <div className="monthly-target-heading"><div><p className="eyebrow">Monthly performance</p><h2 id="monthly-target-title">Sales Target by Month</h2></div><span>{monthly.campaignActual} of {monthly.campaignTarget} units</span></div>
+      <div className="monthly-target-summary">
+        <div><span>Current month target</span><strong>{monthly.currentTarget}</strong></div>
+        <div><span>Current month actual</span><strong>{monthly.currentActual}</strong></div>
+        <div><span>YTD target</span><strong>{monthly.ytdTarget}</strong></div>
+        <div><span>YTD actual</span><strong>{monthly.ytdActual}</strong></div>
+      </div>
+      <div className="monthly-target-table">
+        <div className="monthly-target-row monthly-target-head"><span>Month</span><span>Tower A</span><span>Tower B</span><span>Target</span><span>Actual</span><span>Actual value</span><span>Cumulative</span><span>Variance</span></div>
+        {monthly.rows.map((row) => <div className={`monthly-target-row${row.month === monthly.currentMonth ? " current" : ""}`} key={row.month}><strong>{formatTrackerMonth(row.month)}</strong><span>{row.towerA}</span><span>{row.towerB}</span><span>{row.targetUnits}</span><span>{row.actualUnits}</span><span>{formatRinggit(row.actualValue)}</span><span>{row.cumulativeActual} / {row.cumulativeTarget}</span><span className={row.variance < 0 ? "negative" : ""}>{row.variance > 0 ? "+" : ""}{row.variance}</span></div>)}
+      </div>
     </section>
     <form className="card tracker-filters">
       <label><span>Search</span><input name="q" defaultValue={params.q || ""} placeholder="Unit, purchaser or next action" /></label>
