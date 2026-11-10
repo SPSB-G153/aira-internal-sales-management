@@ -221,7 +221,8 @@ h3 { margin:0; font-size:16px; }
 .management-header { margin-bottom:22px; }
 .management-header h1 { font-size:26px; line-height:1.05; margin-bottom:8px; }
 .management-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-.management-kpi { position:relative; min-height:124px; padding:20px 22px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(145deg,#1a1d23,#15181e); overflow:hidden; }
+.management-kpi { position:relative; min-height:124px; padding:20px 22px; border:1px solid var(--border); border-radius:18px; background:linear-gradient(145deg,#1a1d23,#15181e); color:inherit; text-decoration:none; overflow:hidden; }
+.management-kpi:hover,.management-kpi:focus-visible { border-color:var(--gold); }
 .management-kpi::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:#59606c; }
 .management-kpi.pending::before { background:var(--gold); }
 .management-kpi.confirmed::before { background:var(--gold); }
@@ -733,7 +734,9 @@ sup.ordinal-suffix { position:relative; top:.1em; font-size:.62em; line-height:0
 .tracker-header { align-items:flex-end; }
 .tracker-header .subtle { margin:7px 0 0; }
 .tracker-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-.tracker-kpis article { min-height:116px; padding:19px 21px; border:1px solid var(--line); border-left:3px solid var(--gold); border-radius:14px; background:linear-gradient(145deg,#191c23,#15171d); }
+.tracker-kpis a { min-height:116px; padding:19px 21px; border:1px solid var(--line); border-left:3px solid var(--gold); border-radius:14px; background:linear-gradient(145deg,#191c23,#15171d); color:inherit; text-decoration:none; transition:border-color .15s ease,transform .15s ease,background .15s ease; }
+.tracker-kpis a:hover,.tracker-kpis a:focus-visible { border-color:var(--gold); background:#1d1b13; transform:translateY(-1px); }
+.tracker-kpis a.active { border-color:var(--gold); background:#27210f; }
 .tracker-kpis span,.tracker-kpis small { display:block; color:var(--muted); }
 .tracker-kpis span { font-size:13px; font-weight:750; }
 .tracker-kpis strong { display:block; margin:11px 0 4px; color:var(--gold); font:800 32px/1 Georgia,serif; }

@@ -19,9 +19,9 @@ export default async function Dashboard() {
     <div className="page-header management-header"><div><h1>Sales Overview</h1></div><Link href="/sales/new" className="button accent">＋ New sale</Link></div>
 
     <section className="management-kpis" aria-label="Portfolio summary">
-      <article className="management-kpi"><span>Total units</span><strong>{sales.length}</strong><small>Sales records</small></article>
-      <article className="management-kpi pending"><span>Pending payment</span><strong>{pendingPayment.length}</strong><small>Require 2% payment</small></article>
-      <article className="management-kpi confirmed"><span>Confirmed</span><strong>{confirmed.length}</strong><small>Booking and payment recorded</small></article>
+      <Link href="/sales" className="management-kpi"><span>Total units</span><strong>{sales.length}</strong><small>View sales records</small></Link>
+      <Link href="/sales-tracker?view=action#tracker-register" className="management-kpi pending"><span>Pending payment</span><strong>{pendingPayment.length}</strong><small>View required action</small></Link>
+      <Link href="/sales" className="management-kpi confirmed"><span>Confirmed</span><strong>{confirmed.length}</strong><small>View confirmed sales</small></Link>
     </section>
 
     <div className="management-grid management-grid-single">
