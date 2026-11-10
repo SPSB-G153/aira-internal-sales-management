@@ -1,11 +1,12 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getSales } from "@/lib/data/sales";
+import { getDocuments } from "@/lib/data/documents";
 import { SALES_TARGET, salesTargetMetrics, formatTrackerDate, formatTrackerMonth, monthlySalesPerformance, trackerRows, trackerSummary } from "@/lib/sales-tracker";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const sales = await getSales(); const rows = trackerRows(sales); const summary = trackerSummary(rows); const target = salesTargetMetrics(sales); const monthly = monthlySalesPerformance(sales);
+  const [sales, documents] = await Promise.all([getSales(), getDocuments()]); const rows = trackerRows(sales); const summary = trackerSummary(rows); const target = salesTargetMetrics(sales); const monthly = monthlySalesPerformance(sales, documents);
   const pdf = await PDFDocument.create(); const page = pdf.addPage([842, 595]);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold); const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const gold = rgb(.83, .69, .22), ink = rgb(.08, .09, .11), grey = rgb(.45, .48, .53), white = rgb(1, 1, 1);

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { getSales } from "@/lib/data/sales";
+import { getDocuments } from "@/lib/data/documents";
 import { formatRinggit, formatTrackerDate, formatTrackerMonth, monthlySalesPerformance, SALES_TARGET, salesTargetMetrics, trackerRows, trackerSummary } from "@/lib/sales-tracker";
 
 export default async function SalesTrackerPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string; view?: string }> }) {
   const params = await searchParams;
-  const sales = await getSales();
+  const [sales, documents] = await Promise.all([getSales(), getDocuments()]);
   const rows = trackerRows(sales);
   const q = (params.q || "").trim().toLowerCase();
   const status = params.status || "";
@@ -14,7 +15,7 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
   const visible = rows.filter((row) => matchesView(row) && (!q || `${row.unit} ${row.purchaser} ${row.currentStage} ${row.nextAction}`.toLowerCase().includes(q)) && (!status || row.tone === status));
   const summary = trackerSummary(rows);
   const target = salesTargetMetrics(sales);
-  const monthly = monthlySalesPerformance(sales);
+  const monthly = monthlySalesPerformance(sales, documents);
   const progress = Math.min(target.progress * 100, 100);
   return <div className="page tracker-page">
     <div className="page-header tracker-header"><div><p className="eyebrow">Management view</p><h1>Sales Tracker</h1><p className="subtle">Live progress from booking through SPA, settlement and handover.</p></div><div className="form-actions tracker-export-actions"><a className="button secondary" href="/api/sales-tracker/excel">Export Excel</a><a className="button accent" href="/api/sales-tracker/pdf">Export PDF</a></div></div>

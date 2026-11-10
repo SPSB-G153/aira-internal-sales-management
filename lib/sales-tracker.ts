@@ -1,4 +1,4 @@
-import type { Sale } from "@/lib/types";
+import type { Sale, SaleDocument } from "@/lib/types";
 import { hasRecordedBookingPayment } from "@/lib/sale-state";
 
 export type TrackerTone = "on-track" | "action" | "pending" | "overdue" | "completed";
@@ -81,14 +81,16 @@ export function salesTargetMetrics(sales: Sale[]) {
   return { confirmedValue, pendingValue, towerAValue, towerBValue, towerAUnits, towerBUnits, towerATargetUnits, towerBTargetUnits, towerABalanceUnits, towerBBalanceUnits, remaining, progress };
 }
 
-export function monthlySalesPerformance(sales: Sale[], today = malaysiaToday()) {
-  // Management actuals follow the month the completed booking was recorded in
-  // this app. sale_date is the cheque/payment date used by the letters and must
-  // not be used to assign a sale to a management reporting month.
-  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && sale.created_at);
+export function monthlySalesPerformance(sales: Sale[], documents: SaleDocument[] = [], today = malaysiaToday()) {
+  // A Notice of Acceptance is generated only after the completed Booking Form
+  // and 2% payment have both been recorded. Its system timestamp is therefore
+  // the authoritative management reporting month. The cheque date (sale_date)
+  // and an earlier POP/sale creation timestamp must not determine Actual.
+  const acceptedAt = new Map(documents.filter((document) => document.document_type === "acceptance_letter").map((document) => [document.sale_id, document.generated_at || document.created_at]));
+  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && acceptedAt.has(sale.id));
   const actualByMonth = new Map<string, { units: number; value: number }>();
   confirmed.forEach((sale) => {
-    const month = sale.created_at.slice(0, 7);
+    const month = acceptedAt.get(sale.id)!.slice(0, 7);
     const current = actualByMonth.get(month) || { units: 0, value: 0 };
     current.units += 1; current.value += sale.purchase_price;
     actualByMonth.set(month, current);

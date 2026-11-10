@@ -1,14 +1,15 @@
 import ExcelJS from "exceljs";
 import { getSales } from "@/lib/data/sales";
+import { getDocuments } from "@/lib/data/documents";
 import { SALES_TARGET, salesTargetMetrics, formatTrackerDate, formatTrackerMonth, monthlySalesPerformance, trackerRows } from "@/lib/sales-tracker";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const sales = await getSales();
+  const [sales, documents] = await Promise.all([getSales(), getDocuments()]);
   const rows = trackerRows(sales);
   const target = salesTargetMetrics(sales);
-  const monthly = monthlySalesPerformance(sales);
+  const monthly = monthlySalesPerformance(sales, documents);
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "AIRA Residence Sales Management";
   const sheet = workbook.addWorksheet("Sales Tracker", { views: [{ state: "frozen", ySplit: 4 }] });
