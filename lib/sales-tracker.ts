@@ -13,6 +13,16 @@ export type TrackerRow = {
   tone: TrackerTone;
 };
 
+export const SALES_TARGET = {
+  towerAGross: 152_650_000,
+  towerBGross: 46_240_000,
+  grossApproved: 198_890_000,
+  rebateRate: 0.03,
+  rebateAmount: 5_966_700,
+  netApproved: 192_923_300,
+  managementTarget: 190_000_000,
+} as const;
+
 const malaysiaToday = () => new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit",
 }).format(new Date());
@@ -45,6 +55,21 @@ export function trackerSummary(rows: TrackerRow[]) {
     scheduled: rows.filter((row) => row.currentStage === "SPA signing scheduled").length,
     overdue: rows.filter((row) => row.tone === "overdue").length,
   };
+}
+
+export function salesTargetMetrics(sales: Sale[]) {
+  const confirmedSales = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft");
+  const confirmedValue = confirmedSales.reduce((total, sale) => total + sale.purchase_price, 0);
+  const pendingValue = sales.filter((sale) => !hasRecordedBookingPayment(sale)).reduce((total, sale) => total + sale.purchase_price, 0);
+  const towerAValue = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("A-")).reduce((total, sale) => total + sale.purchase_price, 0);
+  const towerBValue = confirmedSales.filter((sale) => sale.unit_number?.toUpperCase().startsWith("B-")).reduce((total, sale) => total + sale.purchase_price, 0);
+  const remaining = Math.max(SALES_TARGET.managementTarget - confirmedValue, 0);
+  const progress = SALES_TARGET.managementTarget ? confirmedValue / SALES_TARGET.managementTarget : 0;
+  return { confirmedValue, pendingValue, towerAValue, towerBValue, remaining, progress };
+}
+
+export function formatRinggit(value: number) {
+  return new Intl.NumberFormat("en-MY", { style: "currency", currency: "MYR", maximumFractionDigits: 0 }).format(value);
 }
 
 export function formatTrackerDate(date: string | null) {
