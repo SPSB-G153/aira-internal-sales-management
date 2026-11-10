@@ -386,19 +386,23 @@ def assign_contact_to_matching_purchaser(fields):
     return fields
 
 
+def private_upload_root():
+    """Return a per-user writable folder for all private uploads."""
+    configured = os.getenv("AIRA_UPLOAD_FOLDER", "").strip()
+    root = Path(configured) if configured else Path.home() / "Documents" / "Codex" / "AIRA Sales Management" / "Uploads"
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
 def unit_folder(unit_number):
-    # Keep every private upload in the application's writable data folder.
-    # Do not honor the retired C:\AIRA Booking location: older launchers can
-    # retain that value and make otherwise successful extraction end in
-    # WinError 5 when the reader attempts to persist the file.
-    root = Path(r"C:\AIRA Sales Management\Uploads")
+    root = private_upload_root()
     folder = root / safe_part(unit_number, f"Unidentified_{datetime.now():%Y%m%d-%H%M%S}")
     folder.mkdir(parents=True, exist_ok=True)
     return folder
 
 
 def cache_path(data):
-    root = Path(r"C:\AIRA Sales Management\Uploads") / ".reader-cache"
+    root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(CACHE_VERSION.encode("utf-8") + data).hexdigest()
     return root / f"{digest}.json"

@@ -17,7 +17,7 @@ if (-not (Test-Path -LiteralPath $VenvPython)) {
 & $VenvPython -m pip install --disable-pip-version-check -r (Join-Path $ReaderRoot "requirements.txt")
 
 $Model = if ($env:BOOKING_OCR_MODEL) { $env:BOOKING_OCR_MODEL } else { "qwen2.5vl:3b" }
-$env:BOOKING_FORM_FOLDER = "C:\AIRA Booking"
+$env:AIRA_UPLOAD_FOLDER = Join-Path $env:USERPROFILE "Documents\Codex\AIRA Sales Management\Uploads"
 & ollama pull $Model
 Write-Host "Private Booking Form reader is running. Keep this window open while using Upload." -ForegroundColor Green
 & $VenvPython -m uvicorn server:app --app-dir $ReaderRoot --host 127.0.0.1 --port 8765
