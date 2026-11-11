@@ -762,6 +762,7 @@ h3 { margin:0; font-size:16px; }
   .agency-appointment-letter { display:block!important; gap:0!important; }
   .agency-appointment-letter > .notice-sheet { margin:0!important; }
   .agency-appointment-letter > .notice-sheet:last-child {
+    height:calc(297mm - 1px)!important;
     break-after:auto!important;
     page-break-after:auto!important;
   }
