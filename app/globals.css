@@ -674,7 +674,16 @@ h3 { margin:0; font-size:16px; }
 .agency-appointment-letter .agency-commission-table-approved { width:74.2%; font-family:Helvetica,Arial,sans-serif; font-size:14.667px; line-height:1.09; }
 .agency-appointment-letter .agency-commission-table-approved thead th { font-size:14.667px; }
 .agency-appointment-letter .agency-commission-table-approved th,
-.agency-appointment-letter .agency-commission-table-approved td { padding-top:1px; padding-bottom:1px; }
+.agency-appointment-letter .agency-commission-table-approved td {
+  padding-top:1px;
+  padding-bottom:1px;
+  font-family:Helvetica,Arial,sans-serif!important;
+  font-size:14.667px!important;
+  line-height:1.09!important;
+}
+.agency-appointment-letter .agency-commission-table-approved .agency-commission-rate,
+.agency-appointment-letter .agency-commission-table-approved .agency-international,
+.agency-appointment-letter .agency-commission-table-approved .agency-international * { font-size:14.667px!important; }
 .agency-appointment-letter .agent-commission-acceptance h2 { margin-top:0; }
 .agent-subject-address { display:inline-block; margin-left:52px; }
 .agent-fee-subject { text-decoration:none!important; }
