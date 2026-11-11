@@ -52,9 +52,11 @@ export function noticeAddressLines(address: string, maxLength = 34) {
 
   const postcodeLines: string[] = [];
   for (const line of lines.filter(Boolean)) {
-    const postcode = line.match(/^(.+?),?\s+(\d{5}\b.*)$/);
-    if (postcode) {
-      postcodeLines.push(postcode[1].replace(/,?$/, ","), postcode[2]);
+    const postcodeIndex = line.search(/\d{5}/);
+    if (postcodeIndex > 0) {
+      const beforePostcode = line.slice(0, postcodeIndex).trim().replace(/,?$/, ",");
+      const fromPostcode = line.slice(postcodeIndex).trim();
+      postcodeLines.push(beforePostcode, fromPostcode);
     } else {
       postcodeLines.push(line);
     }

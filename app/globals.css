@@ -661,13 +661,6 @@ h3 { margin:0; font-size:16px; }
 .agent-subject-address { display:inline-block; margin-left:52px; }
 .agent-fee-subject { text-decoration:none!important; }
 .agent-appointment-subject { margin:8px 0 16px; padding-bottom:7px; border-bottom:1px solid #333; font-size:13px; line-height:1.35; text-align:left; }
-.agency-appointment-letter .agent-commission-sheet { width:210mm; height:297mm; max-width:210mm; padding:24.2mm 21.9mm 25.7mm!important; font-family:Helvetica,Arial,sans-serif; font-size:11pt; line-height:1.15; overflow:hidden; }
-.agency-appointment-letter .agent-commission-page { height:100%; min-height:0; }
-.agency-appointment-letter .agent-commission-page p { margin-bottom:11pt; }
-.agency-appointment-letter .agent-commission-page .notice-date { margin-bottom:11pt!important; }
-.agency-appointment-letter .agent-commission-page .notice-recipient { min-height:0; margin-bottom:11pt!important; line-height:1.15; }
-.agency-appointment-letter .agent-commission-page .notice-greeting { margin-bottom:11pt!important; }
-.agency-appointment-letter .agent-appointment-subject { margin:0 0 11pt; padding-bottom:3pt; font-size:11pt; line-height:1.15; }
 .agency-definition { margin:0; padding-left:34px; list-style-type:decimal; }
 .agency-definition li { margin:0 0 12px; padding-left:8px; text-align:justify; display:list-item; }
 .agency-commission-table { width:100%; margin:7px 0 17px; border-collapse:collapse; table-layout:fixed; font-size:11px; line-height:1.12; }
