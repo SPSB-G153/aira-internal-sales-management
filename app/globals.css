@@ -739,6 +739,7 @@ h3 { margin:0; font-size:16px; }
   .agent-commission-sheet { box-sizing:border-box; min-height:970px; }
   .agent-commission-page-one .agent-commission-page { padding-top:32px; }
   .agent-commission-sheet:not(.agent-commission-page-one) .agent-commission-page { padding-top:40px; }
+  .agency-appointment-letter .agency-closing-page .agent-commission-page { padding-top:90px; }
 }
 @media print {
   .agent-commission-sheet { padding-top:9mm!important; }
