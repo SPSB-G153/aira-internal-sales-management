@@ -739,7 +739,8 @@ h3 { margin:0; font-size:16px; }
   .agent-commission-sheet { box-sizing:border-box; min-height:970px; }
   .agent-commission-page-one .agent-commission-page { padding-top:32px; }
   .agent-commission-sheet:not(.agent-commission-page-one) .agent-commission-page { padding-top:40px; }
-  .agency-appointment-letter .agency-closing-page .agent-commission-page { padding-top:90px; }
+  /* The approved Word file has two blank lines after the page-three break. */
+  .agency-appointment-letter .agency-closing-page .agent-commission-page > p:first-child { margin-top:30px!important; }
 }
 @media print {
   .agent-commission-sheet { padding-top:9mm!important; }
@@ -754,6 +755,7 @@ h3 { margin:0; font-size:16px; }
 @media print {
   .agency-appointment-letter .notice-sheet { padding:25.4mm 23mm 27mm!important; }
   .agency-appointment-letter .agent-commission-sheet { font-size:11pt!important; line-height:1.15!important; }
+  .agency-appointment-letter .agency-closing-page .agent-commission-page > p:first-child { margin-top:7.8mm!important; }
 }
 @media print { .document-scroll-shell { max-height:none!important; overflow:visible!important; overscroll-behavior:auto!important; } }
 .notice-acceptance-sheet .notice-page .notice-closing { margin-bottom:30pt!important; }
