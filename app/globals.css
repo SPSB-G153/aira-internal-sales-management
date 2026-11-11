@@ -767,7 +767,7 @@ h3 { margin:0; font-size:16px; }
     page-break-after:auto!important;
   }
 }
-@media print { .document-scroll-shell { max-height:none!important; overflow:visible!important; overscroll-behavior:auto!important; } }
+@media print { .document-scroll-shell { max-height:none!important; overflow:visible!important; overscroll-behavior:auto!important; padding-bottom:0!important; } }
 .notice-acceptance-sheet .notice-page .notice-closing { margin-bottom:30pt!important; }
 .notice-acceptance-sheet .notice-page .approval-signature .signature-space { height:44px; }
 .notice-page > .source-letter-head-emblem + p { margin-top:16px!important; }
