@@ -662,12 +662,20 @@ h3 { margin:0; font-size:16px; }
 /* The supplied agency-appointment Word document is the layout authority.
    Scope these measurements to this letter only so the other approved
    document formats cannot be changed by an agency-letter adjustment. */
-.agency-appointment-letter .agent-commission-sheet { font-family:Arial,sans-serif; font-size:14.667px; line-height:1.15; }
+.agency-appointment-letter .agent-commission-sheet { font-family:Helvetica,Arial,sans-serif; font-size:14.667px; line-height:1.09; }
 .agency-appointment-letter .agent-commission-page p { margin:0 0 18px; }
 .agency-appointment-letter .agent-commission-page .notice-date { margin-bottom:28px!important; }
 .agency-appointment-letter .agent-commission-page .agent-recipient { min-height:0; margin-bottom:30px!important; line-height:1.15; }
 .agency-appointment-letter .agent-commission-page .notice-greeting { margin-bottom:30px!important; }
 .agency-appointment-letter .agent-appointment-subject { margin:0 0 19px; padding-bottom:7px; font-size:14.667px; line-height:1.25; }
+.agency-appointment-letter .source-letter-head-emblem { min-height:17mm; flex-basis:17mm; }
+.agency-appointment-letter .source-letter-head-emblem img { width:17mm; height:17mm; }
+.agency-appointment-letter .agency-table-page h2 { margin:0 0 18px; font:700 14.667px/1.09 Helvetica,Arial,sans-serif; text-align:left; }
+.agency-appointment-letter .agency-commission-table-approved { width:74.2%; font-family:Helvetica,Arial,sans-serif; font-size:14.667px; line-height:1.09; }
+.agency-appointment-letter .agency-commission-table-approved thead th { font-size:14.667px; }
+.agency-appointment-letter .agency-commission-table-approved th,
+.agency-appointment-letter .agency-commission-table-approved td { padding-top:1px; padding-bottom:1px; }
+.agency-appointment-letter .agent-commission-acceptance h2 { margin-top:0; }
 .agent-subject-address { display:inline-block; margin-left:52px; }
 .agent-fee-subject { text-decoration:none!important; }
 .agent-appointment-subject { margin:8px 0 16px; padding-bottom:7px; border-bottom:1px solid #333; font-size:13px; line-height:1.35; text-align:left; }
