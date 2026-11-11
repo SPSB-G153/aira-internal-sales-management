@@ -50,5 +50,27 @@ export function noticeAddressLines(address: string, maxLength = 34) {
     });
   }
 
-  return lines.filter(Boolean);
+  const postcodeLines: string[] = [];
+  for (const line of lines.filter(Boolean)) {
+    const postcode = line.match(/^(.+?),?\s+(\d{5}\b.*)$/);
+    if (postcode) {
+      postcodeLines.push(postcode[1].replace(/,?$/, ","), postcode[2]);
+    } else {
+      postcodeLines.push(line);
+    }
+  }
+
+  // Keep the state with the city line after moving the postcode down. This
+  // preserves the approved four-line address block used by the letters.
+  const postcodeIndex = postcodeLines.findIndex((line) => /^\d{5}\b/.test(line));
+  if (
+    postcodeIndex >= 0 &&
+    postcodeIndex + 1 < postcodeLines.length &&
+    /^[A-Za-z ]+$/.test(postcodeLines[postcodeIndex + 1])
+  ) {
+    postcodeLines[postcodeIndex] = `${postcodeLines[postcodeIndex].replace(/,?$/, ",")} ${postcodeLines[postcodeIndex + 1]}`;
+    postcodeLines.splice(postcodeIndex + 1, 1);
+  }
+
+  return postcodeLines;
 }
