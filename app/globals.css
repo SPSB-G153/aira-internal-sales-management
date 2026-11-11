@@ -658,6 +658,16 @@ h3 { margin:0; font-size:16px; }
 .agent-commission-page .notice-recipient { margin-bottom:18px; text-align:left; }
 .agent-commission-page .notice-greeting { margin-bottom:14px; text-align:left; }
 .agent-commission-page .notice-subject { margin:0 0 18px; text-align:left; }
+
+/* The supplied agency-appointment Word document is the layout authority.
+   Scope these measurements to this letter only so the other approved
+   document formats cannot be changed by an agency-letter adjustment. */
+.agency-appointment-letter .agent-commission-sheet { font-family:Arial,sans-serif; font-size:14.667px; line-height:1.15; }
+.agency-appointment-letter .agent-commission-page p { margin:0 0 18px; }
+.agency-appointment-letter .agent-commission-page .notice-date { margin-bottom:28px!important; }
+.agency-appointment-letter .agent-commission-page .agent-recipient { min-height:0; margin-bottom:30px!important; line-height:1.15; }
+.agency-appointment-letter .agent-commission-page .notice-greeting { margin-bottom:30px!important; }
+.agency-appointment-letter .agent-appointment-subject { margin:0 0 19px; padding-bottom:7px; font-size:14.667px; line-height:1.25; }
 .agent-subject-address { display:inline-block; margin-left:52px; }
 .agent-fee-subject { text-decoration:none!important; }
 .agent-appointment-subject { margin:8px 0 16px; padding-bottom:7px; border-bottom:1px solid #333; font-size:13px; line-height:1.35; text-align:left; }
@@ -721,6 +731,10 @@ h3 { margin:0; font-size:16px; }
 .acceptance-exact { font-size:14.667px; }
 .acceptance-exact .notice-subject { font-size:inherit; }
 @media print { .notice-sheet { font-size:14.667px!important; } }
+@media print {
+  .agency-appointment-letter .notice-sheet { padding:25.4mm 23mm 27mm!important; }
+  .agency-appointment-letter .agent-commission-sheet { font-size:11pt!important; line-height:1.15!important; }
+}
 @media print { .document-scroll-shell { max-height:none!important; overflow:visible!important; overscroll-behavior:auto!important; } }
 .notice-acceptance-sheet .notice-page .notice-closing { margin-bottom:30pt!important; }
 .notice-acceptance-sheet .notice-page .approval-signature .signature-space { height:44px; }
