@@ -668,7 +668,7 @@ h3 { margin:0; font-size:16px; }
 .agency-appointment-letter .agent-commission-page .agent-recipient { min-height:0; margin-bottom:30px!important; line-height:1.15; }
 .agency-appointment-letter .agent-commission-page .notice-greeting { margin-bottom:30px!important; }
 .agency-appointment-letter .agent-appointment-subject { margin:0 0 19px; padding-bottom:7px; font-size:14.667px; line-height:1.25; }
-.agency-appointment-letter .source-letter-head-emblem { min-height:17mm; flex-basis:17mm; overflow:hidden; }
+.agency-appointment-letter .source-letter-head-emblem { width:17mm; max-width:17mm; min-height:17mm; flex-basis:17mm; margin-left:auto; justify-content:flex-start; overflow:hidden; }
 .agency-appointment-letter .source-letter-head-emblem img { width:61.2mm; height:17mm; max-width:none; object-fit:fill; }
 .agency-appointment-letter .agency-table-page h2 { margin:0 0 18px; font:700 14.667px/1.09 Helvetica,Arial,sans-serif; text-align:left; }
 .agency-appointment-letter .agency-commission-table-approved { width:74.2%; font-family:Helvetica,Arial,sans-serif; font-size:14.667px; line-height:1.09; }
