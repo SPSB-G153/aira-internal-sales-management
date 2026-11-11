@@ -756,6 +756,15 @@ h3 { margin:0; font-size:16px; }
   .agency-appointment-letter .notice-sheet { padding:25.4mm 23mm 27mm!important; }
   .agency-appointment-letter .agent-commission-sheet { font-size:11pt!important; line-height:1.15!important; }
   .agency-appointment-letter .agency-closing-page .source-letter-head-emblem + p { margin-top:7.8mm!important; }
+  /* The four approved sheets must paginate as four PDF pages. The preview uses
+     a grid gap between sheets; retaining that gap in print creates a blank
+     trailing fifth page. This affects pagination only, not the letter layout. */
+  .agency-appointment-letter { display:block!important; gap:0!important; }
+  .agency-appointment-letter > .notice-sheet { margin:0!important; }
+  .agency-appointment-letter > .notice-sheet:last-child {
+    break-after:auto!important;
+    page-break-after:auto!important;
+  }
 }
 @media print { .document-scroll-shell { max-height:none!important; overflow:visible!important; overscroll-behavior:auto!important; } }
 .notice-acceptance-sheet .notice-page .notice-closing { margin-bottom:30pt!important; }
