@@ -247,8 +247,8 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
     const sale=await getSale(id);
     const noticeDate=text(form,"notice_issued_at")||sale.notice_issued_at||null;
     if(!noticeDate)return{error:"The Notice of Acceptance issue date is required before SPA follow-up starts."};
-    const signingDate=text(form,"spa_signing_date")||null;
-    const signedDate=text(form,"spa_signed_confirmed")==="yes"?signingDate:null;
+    const signingDate=text(form,"spa_signing_scheduled_at")||null;
+    const signedDate=text(form,"spa_signed_at")||null;
     const inventoryChoice=text(form,"inventory_required");
     const inventoryPaymentNotRequired=text(form,"inventory_payment_arrangement")==="included";
     const inventoryAmount=numeric(form,"inventory_payment_amount");
