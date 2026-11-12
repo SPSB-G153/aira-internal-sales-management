@@ -448,7 +448,7 @@ def save_cached_extraction(data, fields, warnings):
 def pop_admin_cache_path(data):
     root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(b"pop-admin-v2" + data).hexdigest()
+    digest = hashlib.sha256(b"pop-admin-v3-agency-principal" + data).hexdigest()
     return root / f"pop-{digest}.json"
 
 
@@ -717,7 +717,11 @@ async def extract_pop_admin(
                     "is always salesperson_name. Do not use the person shown in the 'Introduction "
                     "By: AGENT' row as salesperson_name; that row is the external introducer. When "
                     "the AGENT row contains a person followed by a company, use only the company "
-                    "portion as agent_company. If the AGENT row is blank, look elsewhere on the "
+                    "portion as agent_company. Distinguish a principal brand, insurer, network or "
+                    "franchise from the actual agency company: when both are printed, use the legal "
+                    "agency name (for example NMS Agency) as agent_company, not the principal brand "
+                    "(for example Allianz), and use the mailing address printed with that agency as "
+                    "agent_address. If the AGENT row is blank, look elsewhere on the "
                     "form for an explicitly printed sales agency, realty or company name and use "
                     "that as agent_company. Extract a clearly printed agency/company mailing address "
                     "as agent_address. Treat NONE AGENT, NO AGENT, NOT APPLICABLE and N/A as no external agent and return agent_company as an empty string. Never infer a company or address from an email domain, logo style "
@@ -811,15 +815,17 @@ async def extract_namecard_admin(
             card = fitz.open(stream=data, filetype="pdf")
             if not card.page_count:
                 raise ValueError("The namecard PDF has no pages.")
-            images = [page_png(card[0], zoom=2.0)]
+            images = [page_png(card[index], zoom=1.5) for index in range(min(card.page_count, 2))]
         else:
             images = [base64.b64encode(data).decode("ascii")]
         company_rule = (
-            f'The POP states the agency/company as "{expected_company}". '
-            "If the image contains several namecards, select ONLY the single card whose printed "
-            "company matches that agency/company (including a clear abbreviation). Never combine a "
-            "person from one card with the company or address from another card. If no matching card "
-            "is visible, return empty strings for every field. "
+            f'The POP currently states "{expected_company}", but this may be a principal brand rather than the agency. '
+            "If the image contains several namecards, select the single internally consistent card "
+            "associated with that principal or agency. When the card prints both a principal brand, "
+            "insurer, network or franchise and a separate legal agency name, return the legal agency "
+            "name as agent_company and its printed mailing address as agent_address. For example, "
+            "Allianz is the principal brand while NMS Agency is the agency company. Never combine a "
+            "person from one card with the company or address from another card. "
             if expected_company.strip() else
             "If the image contains several namecards, extract only one internally consistent card and "
             "never combine a person from one card with the company or address from another card. "
@@ -846,13 +852,16 @@ async def extract_namecard_admin(
             "format": AGENT_CARD_SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 300},
         }
         response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
         if not response.ok:
             raise RuntimeError(f"Private model error: {response.text}")
         parsed = json.loads(response.json()["message"]["content"])
         fields = {name: str(parsed.get(name, "") or "").strip() for name in AGENT_CARD_FIELDS}
+        pop_agency = normalize_agent_company(expected_company)
+        if pop_agency and re.search(r"\b(?:agency|realty|properties|sdn\.?|bhd\.?)\b", pop_agency, re.IGNORECASE):
+            fields["agent_company"] = pop_agency
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
         path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"
