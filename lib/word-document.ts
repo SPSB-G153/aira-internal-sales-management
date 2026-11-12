@@ -408,6 +408,10 @@ async function createApprovedAgencyAppointmentWord(content:Record<string,unknown
   const suffix=day%100>=11&&day%100<=13?"th":day%10===1?"st":day%10===2?"nd":day%10===3?"rd":"th";
   const month=parts.find(part=>part.type==="month")?.value||"";
   const year=parts.find(part=>part.type==="year")?.value||"";
+  const salesperson=text(content,"salesperson_name","");
+  const salespersonHonorific=salesperson.toLowerCase().includes("madihah")?"Pn.":"Ms";
+  const salespersonMobile=text(content,"salesperson_mobile","");
+  const salespersonEmail=text(content,"salesperson_email","");
   const replacements:Record<string,string>={
     "{{DATE_DAY}}":String(day),
     "{{DATE_SUFFIX}}":suffix,
@@ -426,7 +430,21 @@ async function createApprovedAgencyAppointmentWord(content:Record<string,unknown
   if(!documentFile)throw new Error("Approved agency appointment template is missing document.xml");
   let xml=await documentFile.async("string");
   for(const [token,value] of Object.entries(replacements))xml=xml.split(token).join(escapeWordXml(value));
+  // The approved source template contains the original salesperson contact in
+  // several Word runs. Replace only those data values; all source formatting,
+  // pagination, spacing and table layout remain untouched.
+  xml=xml.replace("Pn. Madihah Hassan",escapeWordXml(`${salespersonHonorific} ${salesperson}`));
+  xml=xml.replace(
+    /at \+6012<\/w:t><\/w:r><w:r[^>]*><w:t>3<\/w:t><\/w:r><w:r[^>]*><w:t>331502<\/w:t><\/w:r>/,
+    `at ${escapeWordXml(salespersonMobile)}</w:t></w:r>`,
+  );
+  xml=xml.split("madihah.hassan@selangorproperties.com.my").join(escapeWordXml(salespersonEmail));
   zip.file("word/document.xml",xml);
+  const relationshipsFile=zip.file("word/_rels/document.xml.rels");
+  if(relationshipsFile){
+    const relationships=await relationshipsFile.async("string");
+    zip.file("word/_rels/document.xml.rels",relationships.split("madihah.hassan@selangorproperties.com.my").join(escapeWordXml(salespersonEmail)));
+  }
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));
 }
 
