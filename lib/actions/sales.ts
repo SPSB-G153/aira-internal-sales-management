@@ -29,6 +29,18 @@ const normalizeNationality=(value:string)=>{const trimmed=value.trim();return ["
 const normalizeCompany=(value:string)=>value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 const malaysiaDate=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
 const addCalendarDays=(date:string,days:number)=>{const parsed=new Date(`${date}T00:00:00Z`);parsed.setUTCDate(parsed.getUTCDate()+days);return parsed.toISOString().slice(0,10);};
+const missingSalesColumn=(error:unknown)=>error instanceof Error?error.message.match(/Could not find the '([^']+)' column of 'sales'/)?.[1]??null:null;
+async function updateSaleIgnoringUnavailableTrackerColumns(id:string,values:Partial<Sale>){
+  const remaining={...values};
+  for(let attempt=0;attempt<12;attempt+=1){
+    try{return await updateSale(id,remaining);}catch(error){
+      const column=missingSalesColumn(error);
+      if(!column||!(column in remaining))throw error;
+      delete (remaining as Record<string,unknown>)[column];
+    }
+  }
+  throw new Error("Could not save the SPA tracker after checking the available database fields.");
+}
 export async function findSavedAgentDetails(company:string):Promise<SavedAgentDetails|null>{
   const wanted=normalizeCompany(company);
   if(!wanted)return null;
@@ -273,7 +285,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       spa_developer_executed_at:text(form,"spa_developer_executed_at")||null,
       ...(signedDate?{status:"spa_signed" as const}:{status:sale.status==="spa_signed"?"confirmed" as const:sale.status}),
     };
-    const updated=await updateSale(id,values);
+    const updated=await updateSaleIgnoringUnavailableTrackerColumns(id,values);
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
     if(updated.inventory_required){
