@@ -368,6 +368,7 @@ async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLo
   const children:(Paragraph|Table)[]=[
     approvedBlank(),approvedLine(issuedLetterDate(content)),approvedBlank(),
     ...(details.contactName?[approvedLine([new TextRun({text:details.contactName,bold:true})])]:[]),
+    ...(details.contactPosition?[approvedLine([new TextRun({text:details.contactPosition,bold:true})])]:[]),
     approvedLine([new TextRun({text:agency,bold:true})]),
     ...address.map(line=>approvedLine(line)),approvedBlank(),
     approvedLine(details.greeting),approvedBlank(),

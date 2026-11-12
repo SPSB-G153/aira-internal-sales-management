@@ -484,6 +484,35 @@ def save_cached_pop_admin_extraction(data, fields, warnings):
     temporary.replace(path)
 
 
+def namecard_cache_path(data, expected_company):
+    root = private_upload_root() / ".reader-cache"
+    root.mkdir(parents=True, exist_ok=True)
+    company = normalize_agent_company(expected_company).casefold().encode("utf-8")
+    digest = hashlib.sha256(b"namecard-v2-pop-agency-authoritative" + company + data).hexdigest()
+    return root / f"namecard-{digest}.json"
+
+
+def cached_namecard_extraction(data, expected_company):
+    path = namecard_cache_path(data, expected_company)
+    if not path.exists():
+        return None
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        fields = cached.get("fields", {})
+        if not isinstance(fields, dict):
+            return None
+        return {name: str(fields.get(name, "") or "").strip() for name in AGENT_CARD_FIELDS}
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def save_cached_namecard_extraction(data, expected_company, fields):
+    path = namecard_cache_path(data, expected_company)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps({"fields": fields}, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(path)
+
+
 @app.post("/save-file")
 async def save_file(
     file: UploadFile = File(...),
@@ -811,6 +840,14 @@ async def extract_namecard_admin(
     if not is_pdf and not is_image:
         raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP namecard.")
     try:
+        cached = cached_namecard_extraction(data, expected_company)
+        if cached:
+            folder = unit_folder(unit_number)
+            suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
+            path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"
+            if not path.exists():
+                path.write_bytes(data)
+            return {"fields": cached, "warnings": [], "saved_path": str(path), "cached": True}
         if is_pdf:
             card = fitz.open(stream=data, filetype="pdf")
             if not card.page_count:
@@ -862,11 +899,12 @@ async def extract_namecard_admin(
         pop_agency = normalize_agent_company(expected_company)
         if pop_agency and re.search(r"\b(?:agency|realty|properties|sdn\.?|bhd\.?)\b", pop_agency, re.IGNORECASE):
             fields["agent_company"] = pop_agency
+        save_cached_namecard_extraction(data, expected_company, fields)
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
         path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"
         path.write_bytes(data)
-        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+        return {"fields": fields, "warnings": [], "saved_path": str(path), "cached": False}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:

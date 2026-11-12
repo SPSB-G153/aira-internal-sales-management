@@ -113,7 +113,13 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
       }
       setResult((current) => mergeIntoPop && current ? {
         ...current,
-        fields: { ...current.fields, ...Object.fromEntries(Object.entries(extracted.fields).filter(([, value]) => value?.trim())) },
+        fields: {
+          ...current.fields,
+          ...Object.fromEntries(Object.entries(extracted.fields).filter(([key, value]) => key !== "agent_company" && value?.trim())),
+          // The POP identifies the appointed agency. A namecard may also carry
+          // principal/network branding, which must not replace that agency.
+          agent_company: current.fields.agent_company?.trim() || extracted.fields.agent_company?.trim() || "",
+        },
         warnings: [...current.warnings, ...extracted.warnings],
       } : extracted);
       setMessage(extracted.cached ? "Previous private reading reused — no new POP scan was needed." : "");
