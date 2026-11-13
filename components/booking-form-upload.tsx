@@ -20,7 +20,7 @@ const salutationFromSex=(salutation:string,sex:string)=>{
   const normalized=fullSex(sex).toLowerCase();
   return normalized==="male"?"Mr":normalized==="female"?"Ms":"";
 };
-const salutations=["","Mr","Ms","Mrs","Dr","Dato'","Datin","Tan Sri","Puan Sri"];
+const salutations=["","Mr","Ms","Mrs","Dr","Datuk","Dato'","Datin","Tan Sri","Puan Sri"];
 const withDerivedSalutations=(fields:Record<string,string>)=>({
   ...fields,
   customer_name:purchaserNameWithoutSalutation(fields.customer_name),

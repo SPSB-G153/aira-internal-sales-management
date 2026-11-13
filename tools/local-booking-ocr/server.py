@@ -58,6 +58,15 @@ DIRECTOR_SCHEMA = {
     },
     "required": ["director_name", "director_nationality", "director_sex"],
 }
+COMPANY_DIRECTORS_FIELDS = [
+    "director_1_name", "director_1_designation", "director_1_mobile", "director_1_email",
+    "director_2_name", "director_2_designation", "director_2_mobile", "director_2_email",
+]
+COMPANY_DIRECTORS_SCHEMA = {
+    "type": "object",
+    "properties": {name: {"type": "string"} for name in COMPANY_DIRECTORS_FIELDS},
+    "required": COMPANY_DIRECTORS_FIELDS,
+}
 UNIT_SCHEMA = {
     "type": "object",
     "properties": {"unit_number": {"type": "string"}},
@@ -693,6 +702,57 @@ async def extract_booking_fee(
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:
         raise HTTPException(status_code=500, detail=f"The booking-fee receipt could not be read: {error}") from error
+
+
+@app.post("/extract-company-directors")
+async def extract_company_directors(file: UploadFile = File(...)):
+    data = await file.read()
+    if len(data) > 20_000_000:
+        raise HTTPException(status_code=400, detail="Please upload a director document smaller than 20 MB.")
+    filename = str(file.filename or "").lower()
+    is_pdf = file.content_type == "application/pdf" or filename.endswith(".pdf")
+    is_image = str(file.content_type or "").startswith("image/") or filename.endswith((".png", ".jpg", ".jpeg", ".webp"))
+    if not is_pdf and not is_image:
+        raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP director document.")
+    try:
+        if is_pdf:
+            document = fitz.open(stream=data, filetype="pdf")
+            if not document.page_count:
+                raise ValueError("The director document PDF has no pages.")
+            page_indexes = list(range(min(document.page_count, 4)))
+            images = []
+            for index in page_indexes:
+                pixmap = document[index].get_pixmap(matrix=fitz.Matrix(1.7, 1.7), alpha=False)
+                images.append(base64.b64encode(pixmap.tobytes("jpeg", jpg_quality=88)).decode("ascii"))
+        else:
+            images = [base64.b64encode(data).decode("ascii")]
+        payload = {
+            "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+            "messages": [{
+                "role": "user",
+                "content": (
+                    "Read this company document only for up to two authorised directors. Extract each director's full name, "
+                    "designation, mobile number and email. Do not use the company name as a director. Preserve spelling and "
+                    "numbers exactly. If only one director is shown, leave every director 2 field empty. Return an empty string "
+                    "for details that are not clearly shown. Return only the requested JSON."
+                ),
+                "images": images,
+            }],
+            "format": COMPANY_DIRECTORS_SCHEMA,
+            "stream": False,
+            "keep_alive": "30m",
+            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 220},
+        }
+        response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
+        if not response.ok:
+            raise RuntimeError(f"Private model error: {response.text}")
+        parsed = json.loads(response.json()["message"]["content"])
+        fields = {name: str(parsed.get(name, "") or "").strip() for name in COMPANY_DIRECTORS_FIELDS}
+        return {"fields": fields, "warnings": []}
+    except requests.ConnectionError as error:
+        raise HTTPException(status_code=503, detail="The private document reader is not running.") from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"The director document could not be read: {error}") from error
 
 
 @app.post("/extract-pop-admin")

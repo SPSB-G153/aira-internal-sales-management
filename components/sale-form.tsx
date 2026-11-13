@@ -9,6 +9,7 @@ import { solicitorForLetter, solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
 import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { splitAgencyDetails } from "@/lib/agency-details";
+import { CompanyDirectorUpload, type DirectorFields } from "@/components/company-director-upload";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual"; popSource?: "uploaded" | "manual" };
 const Field = ({
@@ -92,6 +93,7 @@ const salutation: Array<[string, string]> = [
   ["Ms", "Ms"],
   ["Mrs", "Mrs"],
   ["Dr", "Dr"],
+  ["Datuk", "Datuk"],
   ["Dato'", "Dato'"],
   ["Datin", "Datin"],
   ["Tan Sri", "Tan Sri"],
@@ -259,7 +261,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   };
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
-    Boolean(sale?.customer_name_2 || initialValues?.customer_name_2 || state.fields?.customer_name_2),
+    Boolean(sale?.customer_name_2 || initialValues?.customer_name_2 || state.fields?.customer_name_2 || sale?.contact_person_2 || initialValues?.contact_person_2 || state.fields?.contact_person_2),
   );
   const [secondRelationship, setSecondRelationship] = useState<"spouse" | "joint">("joint");
   const [purchaserType, setPurchaserType] = useState<"individual" | "company">(
@@ -267,6 +269,37 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
       ? "company"
       : "individual",
   );
+  const applyDirectorFields = (fields: DirectorFields) => {
+    const form = document.querySelector("form.form-card") as HTMLFormElement | null;
+    if (!form) return;
+    const values: Record<string, string> = {
+      contact_person: fields.director_1_name || "",
+      customer_occupation: fields.director_1_designation || "",
+      customer_phone: fields.director_1_mobile || "",
+      customer_email: fields.director_1_email || "",
+      contact_person_2: fields.director_2_name || "",
+      customer_occupation_2: fields.director_2_designation || "",
+      customer_phone_2: fields.director_2_mobile || "",
+      customer_email_2: fields.director_2_email || "",
+    };
+    const writeValues = () => Object.entries(values).forEach(([name, value]) => {
+      const inputs = form.querySelectorAll(`[name="${name}"]`) as NodeListOf<HTMLInputElement>;
+      if (inputs.length) inputs.forEach((input) => { input.value = value; });
+      else if (value) {
+        const hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = name;
+        hidden.value = value;
+        hidden.dataset.secondField = name;
+        form.appendChild(hidden);
+      }
+    });
+    writeValues();
+    if (fields.director_2_name) {
+      setHasSecond(true);
+      window.setTimeout(writeValues, 0);
+    }
+  };
   const changeFt = (x: string) => {
     setAreaFt(x);
     setAreaM(x === "" ? "" : (Number(x) * 0.092903).toFixed(2));
@@ -308,40 +341,54 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <p className="subtle">This selects the correct supporting-document requirements for the booking and acceptance letters.</p>
           </div>
           <div className="purchaser-one-column">
-          <div className="purchaser-column-title"><span>01</span><h3>Purchaser 1</h3></div>
+          <div className="purchaser-column-title"><span>01</span><h3>{purchaserType === "company" ? "Company purchaser" : "Purchaser 1"}</h3></div>
+          {purchaserType === "individual" && <>
           <Select
             name="customer_salutation"
             label="Salutation"
             value={salutation1}
             options={salutation}
           />
+          </>}
           <Field
             name="customer_name"
-            label="Purchaser 1 full name"
+            label={purchaserType === "company" ? "Company name" : "Purchaser 1 full name"}
             required
             defaultValue={v("customer_name")}
             error={state.fieldErrors?.customer_name}
           />
           <Field
             name="customer_ic"
-            label="Purchaser 1 IC / Passport / Company No."
+            label={purchaserType === "company" ? "Company registration no." : "Purchaser 1 IC / Passport / Company No."}
             defaultValue={v("customer_ic")}
           />
           <Field name="customer_tin" label="TIN number" defaultValue={v("customer_tin")} />
-          <Field name="customer_nationality" label={purchaserType === "company" ? "Director nationality" : "Nationality"} defaultValue={v("customer_nationality")} />
-          <Select name="customer_sex" label={purchaserType === "company" ? "Director sex" : "Sex"} value={v("customer_sex")} options={[["Female", "Female"], ["Male", "Male"]]} />
+          {purchaserType === "individual" ? <>
+          <Field name="customer_nationality" label="Nationality" defaultValue={v("customer_nationality")} />
+          <Select name="customer_sex" label="Sex" value={v("customer_sex")} options={[["Female", "Female"], ["Male", "Male"]]} />
           <Field name="customer_race" label="Race" defaultValue={v("customer_race")} />
           <Select name="bumi_status" label="Bumiputera status" value={v("bumi_status")} options={[["true", "Yes"], ["false", "No"]]} />
-          <Field name="customer_occupation" label={purchaserType === "company" ? "Director position / occupation" : "Occupation"} defaultValue={v("customer_occupation")} />
-          <Field name="contact_person" label={purchaserType === "company" ? "Director / contact person" : "Contact person"} defaultValue={v("contact_person")} />
+          <Field name="customer_occupation" label="Occupation" defaultValue={v("customer_occupation")} />
+          <Field name="contact_person" label="Contact person" defaultValue={v("contact_person")} />
+          </> : <>
+          <Field name="contact_person" label="Authorised director 1 name" defaultValue={v("contact_person")} />
+          <Field name="customer_occupation" label="Designation" defaultValue={v("customer_occupation")} />
+          </>}
           <Field name="customer_phone" label="Mobile number" defaultValue={v("customer_phone")} />
           <Field name="customer_email" label="Email" type="email" defaultValue={v("customer_email")} error={state.fieldErrors?.customer_email} />
           <Field name="customer_address" label="Correspondence address" wide defaultValue={v("customer_address")} />
           </div>
           <div className="purchaser-two-column">
-          <div className="purchaser-column-title"><span>02</span><h3>Purchaser 2</h3></div>
+          <div className="purchaser-column-title"><span>02</span><h3>{purchaserType === "company" ? "Authorised director 2" : "Purchaser 2"}</h3></div>
+          {purchaserType === "company" && <CompanyDirectorUpload onUseFields={applyDirectorFields} />}
           {hasSecond ? <>
             {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={name==="customer_salutation_2"?salutation2:String(v(name) || "")} data-second-field={name} readOnly />)}
+            {purchaserType === "company" ? <>
+            <RecordedField label="Director name" value={v("contact_person_2")} />
+            <RecordedField label="Designation" value={v("customer_occupation_2")} />
+            <RecordedField label="Mobile number" value={v("customer_phone_2")} />
+            <RecordedField label="Email" value={v("customer_email_2")} />
+            </> : <>
             <RecordedField label="Salutation" value={salutation2} />
             <RecordedField label="Full name" value={v("customer_name_2")} />
             <RecordedField label="IC / Passport / Company No." value={v("customer_ic_2")} />
@@ -356,15 +403,16 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <RecordedField label="Email" value={v("customer_email_2")} />
             {String(v("customer_address_2") || "").trim() && String(v("customer_address_2") || "").trim().toLowerCase() !== String(v("customer_address") || "").trim().toLowerCase() &&
               <RecordedField label="Correspondence address" value={v("customer_address_2")} wide />}
+            </>}
             <div className="field">
-              <label>Purchaser 2 details</label>
-              <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Edit purchaser 2</button>
-              <p className="subtle">View or edit the remaining purchaser 2 information.</p>
+              <label>{purchaserType === "company" ? "Director record" : "Purchaser 2 details"}</label>
+              <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>{purchaserType === "company" ? "Edit authorised director" : "Edit purchaser 2"}</button>
+              <p className="subtle">{purchaserType === "company" ? "The company remains the purchaser." : "View or edit the remaining purchaser 2 information."}</p>
             </div>
           </> : <div className="field">
-            <label>Joint purchase</label>
-            <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>Add purchaser 2</button>
-            <p className="subtle">For spouses or another joint purchaser.</p>
+            <label>{purchaserType === "company" ? "Company authorisation" : "Joint purchase"}</label>
+            <button type="button" className="button secondary compact-button" onClick={() => setSecondOpen(true)}>{purchaserType === "company" ? "Add authorised director" : "Add purchaser 2"}</button>
+            <p className="subtle">{purchaserType === "company" ? "Add another authorised director without creating a second purchaser." : "For spouses or another joint purchaser."}</p>
           </div>}
           </div>
         </div>
@@ -379,8 +427,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           <div className="purchaser-modal-card">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Joint purchase</p>
-                  <h2>{secondRelationship === "spouse" ? "Spouse particulars" : "Purchaser 2 particulars"}</h2>
+                <p className="eyebrow">{purchaserType === "company" ? "Company records" : "Joint purchase"}</p>
+                  <h2>{purchaserType === "company" ? "Authorised director particulars" : secondRelationship === "spouse" ? "Spouse particulars" : "Purchaser 2 particulars"}</h2>
               </div>
               <button
                 type="button"
@@ -390,7 +438,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
                 Close
               </button>
             </div>
-            <label className="spouse-check">
+            {purchaserType === "individual" && <label className="spouse-check">
               <input
                 type="checkbox"
                 checked={secondRelationship === "spouse"}
@@ -399,11 +447,34 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
                 }
               />
               <span>Spouse</span>
-            </label>
+            </label>}
             <p className="subtle">
-              Complete these details for the second purchaser, then select Done.
+              {purchaserType === "company" ? "Record the authorised director details. The company remains the purchaser." : "Complete these details for the second purchaser, then select Done."}
             </p>
             <div className="form-grid">
+              {purchaserType === "company" ? <>
+              <Field
+                name="contact_person_2"
+                label="Authorised director name"
+                defaultValue={v("contact_person_2")}
+              />
+              <Field
+                name="customer_occupation_2"
+                label="Designation"
+                defaultValue={v("customer_occupation_2")}
+              />
+              <Field
+                name="customer_phone_2"
+                label="Mobile number"
+                defaultValue={v("customer_phone_2")}
+              />
+              <Field
+                name="customer_email_2"
+                label="Email"
+                type="email"
+                defaultValue={v("customer_email_2")}
+              />
+              </> : <>
               <Select
                 name="customer_salutation_2"
                 label="Salutation"
@@ -480,6 +551,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
                 wide
                 defaultValue={v("customer_address_2")}
               />
+              </>}
             </div>
             <div className="form-actions">
               <button
