@@ -396,6 +396,36 @@ async function createAgencyAppointmentWord(content:Record<string,unknown>,fullLo
 
 const escapeWordXml=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
 
+async function removeExternalWordLinks(zip:JSZip){
+  // The approved source contains mailto hyperlinks inherited from Word. Word
+  // treats those as links to other files and asks whether to update fields on
+  // open. Unwrap only the hyperlink containers and remove their relationships;
+  // the runs inside them keep the approved font, size, colour and spacing.
+  const documentFile=zip.file("word/document.xml");
+  if(documentFile){
+    let documentXml=await documentFile.async("string");
+    documentXml=documentXml
+      .replace(/<w:hyperlink\b[^>]*r:id="(?:rId11|rId12)"[^>]*>/g,"")
+      .replace(/<\/w:hyperlink>/g,"");
+    zip.file("word/document.xml",documentXml);
+  }
+  const relationshipsFile=zip.file("word/_rels/document.xml.rels");
+  if(relationshipsFile){
+    let relationships=await relationshipsFile.async("string");
+    relationships=relationships.replace(
+      /<Relationship\b(?=[^>]*Type="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/hyperlink")(?=[^>]*TargetMode="External")[^>]*\/>/g,
+      "",
+    );
+    zip.file("word/_rels/document.xml.rels",relationships);
+  }
+  const appPropertiesFile=zip.file("docProps/app.xml");
+  if(appPropertiesFile){
+    const appProperties=(await appPropertiesFile.async("string"))
+      .replace("<LinksUpToDate>false</LinksUpToDate>","<LinksUpToDate>true</LinksUpToDate>");
+    zip.file("docProps/app.xml",appProperties);
+  }
+}
+
 async function createApprovedAgencyAppointmentWord(content:Record<string,unknown>){
   const agency=text(content,"agent_company","");
   const details=agencyLetterDetails(agency,{company:agency,address:text(content,"agent_address",""),agent_name:text(content,"agent_name",""),agent_designation:text(content,"agent_designation",""),agent_mobile:text(content,"agent_mobile",""),agent_email:text(content,"agent_email","")});
@@ -445,6 +475,7 @@ async function createApprovedAgencyAppointmentWord(content:Record<string,unknown
     const relationships=await relationshipsFile.async("string");
     zip.file("word/_rels/document.xml.rels",relationships.split("madihah.hassan@selangorproperties.com.my").join(escapeWordXml(salespersonEmail)));
   }
+  await removeExternalWordLinks(zip);
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));
 }
 
