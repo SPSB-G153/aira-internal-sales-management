@@ -663,7 +663,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           />
           <div className="agent-fields-heading">
             <h3>Agent</h3>
-            {sale && (storedAgency.company || storedAgency.agent_name) && <button
+            {sale && (popAdmin.agent_company || popAdmin.agent_name) && <button
               type="button"
               className="agent-delete-icon"
               onClick={removeUploadedAgent}
