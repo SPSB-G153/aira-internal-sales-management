@@ -7,6 +7,7 @@ import { solicitorForUnit } from "@/lib/unit-solicitor";
 import { canonicalUnitNumber, detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { findSavedUnitAdministration } from "@/lib/actions/sales";
+import { purchaserNameWithoutSalutation, salutationFromPurchaserName } from "@/lib/purchaser-name";
 
 type Extraction={fields:Record<string,string>;warnings:string[];saved_path?:string;cached?:boolean};
 type SavedDocument={id:string;type:string;wordFilename:string;pdfFilename:string|null};
@@ -22,8 +23,10 @@ const salutationFromSex=(salutation:string,sex:string)=>{
 const salutations=["","Mr","Ms","Mrs","Dr","Dato'","Datin","Tan Sri","Puan Sri"];
 const withDerivedSalutations=(fields:Record<string,string>)=>({
   ...fields,
-  customer_salutation:salutationFromSex(String(fields.customer_salutation||""),String(fields.customer_sex||"")),
-  customer_salutation_2:salutationFromSex(String(fields.customer_salutation_2||""),String(fields.customer_sex_2||"")),
+  customer_name:purchaserNameWithoutSalutation(fields.customer_name),
+  customer_name_2:purchaserNameWithoutSalutation(fields.customer_name_2),
+  customer_salutation:salutationFromSex(String(fields.customer_salutation||salutationFromPurchaserName(fields.customer_name)),String(fields.customer_sex||"")),
+  customer_salutation_2:salutationFromSex(String(fields.customer_salutation_2||salutationFromPurchaserName(fields.customer_name_2)),String(fields.customer_sex_2||"")),
 });
 
 const labels:Record<string,string>={
@@ -135,8 +138,10 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor,...(savedAdministration||{})};
       fields.customer_sex=fullSex(String(fields.customer_sex||""));
       fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
-      fields.customer_salutation=salutationFromSex(String(fields.customer_salutation||""),String(fields.customer_sex||""));
-      fields.customer_salutation_2=salutationFromSex(String(fields.customer_salutation_2||""),String(fields.customer_sex_2||""));
+      fields.customer_salutation=salutationFromSex(String(fields.customer_salutation||salutationFromPurchaserName(fields.customer_name)),String(fields.customer_sex||""));
+      fields.customer_salutation_2=salutationFromSex(String(fields.customer_salutation_2||salutationFromPurchaserName(fields.customer_name_2)),String(fields.customer_sex_2||""));
+      fields.customer_name=purchaserNameWithoutSalutation(fields.customer_name);
+      fields.customer_name_2=purchaserNameWithoutSalutation(fields.customer_name_2);
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));
       fields.customer_nationality_2=normalizeNationality(String(fields.customer_nationality_2||""));
       fields.purchaser_type=normalizePurchaserType(String(fields.purchaser_type||""),String(fields.customer_name||""),String(fields.customer_salutation||""),String(fields.customer_ic||""));

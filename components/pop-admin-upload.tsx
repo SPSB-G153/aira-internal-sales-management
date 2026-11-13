@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
+import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
 
 export type PopAdminFields = Record<string, string>;
 type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string; cached?: boolean };
@@ -40,6 +41,7 @@ const moneyFields = new Set(["purchase_price", "approved_selling_price", "additi
 function formatReviewFields(fields: PopAdminFields) {
   return Object.fromEntries(Object.entries(fields).map(([key, value]) => {
     const raw = String(value || "").trim();
+    if (key === "customer_name" || key === "customer_name_2") return [key, purchaserNameWithoutSalutation(raw)];
     if (!moneyFields.has(key) || !/^\d+(?:\.\d+)?$/.test(raw)) return [key, value];
     const amount = Number(raw);
     return [key, Number.isFinite(amount) ? amount.toLocaleString("en-MY", { maximumFractionDigits: 2 }) : value];
