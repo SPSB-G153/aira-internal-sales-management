@@ -66,6 +66,12 @@ h3 { margin:0; font-size:16px; }
 .purchaser-column-title span { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--gold); color:#111; font-size:12px; font-weight:900; }
 .purchaser-column-title h3 { margin:0; font-size:22px; }
 .field.full { grid-column:1/-1; }
+.agent-fields-heading { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:4px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+.agent-fields-heading h3 { font-size:17px; }
+.agent-delete-icon { display:grid; place-items:center; width:36px; height:36px; padding:0; border:1px solid #6a5521; border-radius:8px; background:#2b2517; color:var(--gold); cursor:pointer; }
+.agent-delete-icon:hover { background:#3a301c; color:#efd37a; }
+.agent-delete-icon:disabled { opacity:.55; cursor:not-allowed; }
+.agent-delete-error { max-width:none; text-align:left; }
 .field label { display:block; margin-bottom:7px; font-size:12px; font-weight:800; }
 .field input,.field textarea,.field select { width:100%; border:1px solid var(--line); border-radius:8px; padding:11px 12px; background:#101218; color:var(--ink); outline:none; }
 .field input:focus,.field textarea:focus { border-color:var(--gold); box-shadow:0 0 0 3px #d4af3720; }

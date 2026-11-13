@@ -661,6 +661,21 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             value={popAdmin.salesperson_email}
             onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_email: value }))}
           />
+          <div className="agent-fields-heading">
+            <h3>Agent</h3>
+            {sale && (storedAgency.company || storedAgency.agent_name) && <button
+              type="button"
+              className="agent-delete-icon"
+              onClick={removeUploadedAgent}
+              disabled={removingAgent}
+              aria-label="Remove agent details"
+              title="Remove agent details"
+            >
+              {removingAgent ? <span aria-hidden="true">…</span> : <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+                <path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>}
+            </button>}
+          </div>
           <Field
             name="agent_company"
             label="Sales agency / company"
@@ -681,13 +696,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
               onChange={(event) => setPopAdmin((current) => ({ ...current, agent_address: event.target.value }))}
             />
           </div>
-          {sale && (storedAgency.company || storedAgency.agent_name) && <div className="field full">
-            <button type="button" className="button secondary" onClick={removeUploadedAgent} disabled={removingAgent}>
-              {removingAgent ? "Removing…" : "Remove wrongly uploaded agent"}
-            </button>
-            <p className="subtle">This removes only the agent details and agent letters for this sale.</p>
-            {removeAgentError && <p className="action-error" role="alert">{removeAgentError}</p>}
-          </div>}
+          {removeAgentError && <p className="field full action-error agent-delete-error" role="alert">{removeAgentError}</p>}
           <div className="field">
             <label htmlFor="solicitor_name">Handling lawyer</label>
             <select id="solicitor_name" name="solicitor_name" value={solicitorName} onChange={(event) => setSolicitorName(event.target.value)}>
