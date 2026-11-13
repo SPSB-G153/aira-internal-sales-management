@@ -1,6 +1,8 @@
 "use client";
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { saveSale, type FormState } from "@/lib/actions/sales";
+import { removeAgentDetails } from "@/lib/actions/agent";
 import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
 import { BookingFeeUpload, type BookingFeeFields } from "@/components/booking-fee-upload";
 import { solicitorForUnit } from "@/lib/unit-solicitor";
@@ -170,6 +172,9 @@ const keepSecondPurchaser = (form: HTMLFormElement) =>
   });
 
 export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", popSource = "manual" }: Props) {
+  const router = useRouter();
+  const [removingAgent, startRemovingAgent] = useTransition();
+  const [removeAgentError, setRemoveAgentError] = useState("");
   const [state, action, pending] = useActionState<FormState, FormData>(
     saveSale,
     {},
@@ -231,6 +236,27 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     }
     return next;
   });
+  const removeUploadedAgent = () => {
+    if (!sale || !window.confirm("Remove this wrongly uploaded agent and its two agent letters from this sale?")) return;
+    setRemoveAgentError("");
+    startRemovingAgent(async () => {
+      const result = await removeAgentDetails(sale.id, {}, new FormData());
+      if (result.error) {
+        setRemoveAgentError(result.error);
+        return;
+      }
+      setPopAdmin((current) => ({
+        ...current,
+        agent_company: "",
+        agent_address: "",
+        agent_name: "",
+        agent_designation: "",
+        agent_mobile: "",
+        agent_email: "",
+      }));
+      router.refresh();
+    });
+  };
   const [secondOpen, setSecondOpen] = useState(false);
   const [hasSecond, setHasSecond] = useState(
     Boolean(sale?.customer_name_2 || initialValues?.customer_name_2 || state.fields?.customer_name_2),
@@ -655,6 +681,13 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
               onChange={(event) => setPopAdmin((current) => ({ ...current, agent_address: event.target.value }))}
             />
           </div>
+          {sale && (storedAgency.company || storedAgency.agent_name) && <div className="field full">
+            <button type="button" className="button secondary" onClick={removeUploadedAgent} disabled={removingAgent}>
+              {removingAgent ? "Removing…" : "Remove wrongly uploaded agent"}
+            </button>
+            <p className="subtle">This removes only the agent details and agent letters for this sale.</p>
+            {removeAgentError && <p className="action-error" role="alert">{removeAgentError}</p>}
+          </div>}
           <div className="field">
             <label htmlFor="solicitor_name">Handling lawyer</label>
             <select id="solicitor_name" name="solicitor_name" value={solicitorName} onChange={(event) => setSolicitorName(event.target.value)}>
