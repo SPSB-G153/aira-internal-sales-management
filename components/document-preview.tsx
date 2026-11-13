@@ -16,9 +16,8 @@ function AcceptanceLetterExact({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const deposit=price*.1;
   const isCompany=value(content,"purchaser_type","individual")==="company";
-  const nameCase=(name:string)=>isCompany?name:name.toLocaleLowerCase("en-MY").replace(/(^|[\s'-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`);
-  const purchaser=nameCase(value(content,"customer_name"));
-  const purchaser2=nameCase(value(content,"customer_name_2",""));
+  const purchaser=value(content,"customer_name").toLocaleUpperCase("en-MY");
+  const purchaser2=value(content,"customer_name_2","").toLocaleUpperCase("en-MY");
   const salutation=value(content,"customer_salutation","Purchaser");
   const contact=value(content,"salesperson_name","Booking contact");
   const designation=designationForSalesPersonnel(contact);
@@ -55,8 +54,8 @@ function AcceptanceLetterExact({content}:{content:Content}){
 function AcceptanceLetterSource({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const deposit=price*.1;
-  const purchaser=value(content,"customer_name");
-  const purchaser2=value(content,"customer_name_2","");
+  const purchaser=value(content,"customer_name").toLocaleUpperCase("en-MY");
+  const purchaser2=value(content,"customer_name_2","").toLocaleUpperCase("en-MY");
   const recipients=purchaser2?`${purchaser} & ${purchaser2}`:purchaser;
   const salutation=value(content,"customer_salutation","Purchaser");
   const isCompany=value(content,"purchaser_type","individual")==="company";

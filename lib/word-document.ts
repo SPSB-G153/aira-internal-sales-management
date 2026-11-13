@@ -83,8 +83,8 @@ const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragr
 });
 
 const acceptanceFactTable=(content:Record<string,unknown>)=>{
-  const purchaser=text(content,"customer_name");
-  const purchaser2=text(content,"customer_name_2","");
+  const purchaser=text(content,"customer_name").toLocaleUpperCase("en-MY");
+  const purchaser2=text(content,"customer_name_2","").toLocaleUpperCase("en-MY");
   const isCompany=text(content,"purchaser_type","individual")==="company";
   const unit=text(content,"unit_number");
   const tower=unit.split("-")[0]?.toUpperCase();
@@ -138,8 +138,8 @@ const templateSignature=(content:Record<string,unknown>)=>new Table({
 });
 
 async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
-  const purchaser=text(content,"customer_name");
-  const purchaser2=text(content,"customer_name_2","");
+  const purchaser=text(content,"customer_name").toLocaleUpperCase("en-MY");
+  const purchaser2=text(content,"customer_name_2","").toLocaleUpperCase("en-MY");
   const isCompany=text(content,"purchaser_type","individual")==="company";
   const salutation=text(content,"customer_salutation","Purchaser");
   const contact=text(content,"salesperson_name","Booking contact");
