@@ -34,7 +34,7 @@ const pageNumberFooter=()=>new Footer({children:[new Table({
 const letterHeader=(image:Uint8Array,emblem=false)=>new Header({children:[new Paragraph({
   alignment:AlignmentType.RIGHT,
   spacing:{before:0,after:0},
-  children:[new ImageRun({type:"png",data:image,transformation:emblem?{width:147,height:41}:{width:168,height:47},altText:{title:"Selangor Properties Sdn. Bhd.",description:"Selangor Properties Sdn. Bhd.",name:"Selangor Properties Sdn. Bhd."}})]
+  children:[new ImageRun({type:"png",data:image,transformation:emblem?{width:76,height:58}:{width:168,height:47},altText:{title:"Selangor Properties Sdn. Bhd.",description:"Selangor Properties Sdn. Bhd.",name:"Selangor Properties Sdn. Bhd."}})]
 })]});
 
 const hovpHeader=(airaLogo:Uint8Array,companyLogo:Uint8Array)=>new Header({children:[new Table({
@@ -161,7 +161,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph("Greetings from Selangor Properties and the AIRA Residence team.",{alignment:AlignmentType.LEFT,spacing:{before:180,after:200,line:341}}),
     acceptanceParagraph([new TextRun("We thank you for your Offer to Purchase the Property described above by way of the Booking Form dated "),...ordinalDateRuns(content.sale_date),new TextRun(" (\u201c"),new TextRun({text:"Offer",bold:true}),new TextRun("”). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence – Kuala Lumpur’s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence’s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.")]),
     acceptanceParagraph([new TextRun("You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (“"),new TextRun({text:"SPA",bold:true}),new TextRun("”), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively “"),new TextRun({text:"Sale Documents",bold:true}),new TextRun("”) in the manner described below.")]),
-    acceptanceParagraph(`Firstly we ask that you kindly contact our ${salespersonDesignation||"sales and marketing agent"}${salespersonDesignation?`, ${contact},`:` ${contact}${agency?` from ${agency}`:""}`} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter.`),
+    acceptanceParagraph(`Firstly, we ask that you kindly contact our ${salespersonDesignation||"sales and marketing agent"}${salespersonDesignation?`, ${contact},`:` ${contact}${agency?` from ${agency}`:""}`} to fix an appointment to execute the Sale Documents within fourteen (14) days from the date of your receipt of this Letter.`),
     acceptanceParagraph("Secondly, to complete the sales process, please bring along the following documents during your appointment to execute the Sale Documents:"),
   ];
   const pageTwo=[
@@ -180,7 +180,6 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph(`c.c.   ${text(content,"solicitor_name","")}`,{alignment:AlignmentType.LEFT,spacing:{before:420,after:0,line:240}}),
   ];
   const document=new Document({
-    features:{updateFields:true},
     styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:320,after:0}}}}},
     sections:[{
       properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1600,right:1134,bottom:1000,left:1134,header:876,footer:360}}},
@@ -193,7 +192,6 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
 }
 
 const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array,twoPages=false,footerDistance=360,topMargin=1600,headerDistance=876,emblemOnly=false)=>new Document({
-  features:{updateFields:true},
   styles:{default:{document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:300,after:0}}}}},
   sections:[{
     properties:{titlePage:twoPages,page:{size:{width:11906,height:16838},margin:{top:topMargin,right:1134,bottom:1000,left:1134,header:headerDistance,footer:footerDistance}}},
@@ -206,7 +204,6 @@ const letterDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLog
 // The approved agency-appointment Word file is the layout authority for this
 // letter. Keep its Calibri 11 pt defaults and original section measurements.
 const agencyAppointmentDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,emblemLogo:Uint8Array)=>new Document({
-  features:{updateFields:true},
   styles:{default:{document:{run:{font:"Calibri",size:22},paragraph:{spacing:{after:0}}}}},
   sections:[{
     properties:{titlePage:true,page:{size:{width:11910,height:16840},margin:{top:1440,right:1304,bottom:1531,left:1304,header:1134,footer:113}}},
@@ -217,7 +214,6 @@ const agencyAppointmentDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Arra
 });
 
 const hovpDocument=(children:(Paragraph|Table)[],fullLogo:Uint8Array,airaLogo:Uint8Array)=>new Document({
-  features:{updateFields:true},
   styles:{default:{document:{run:{font:"Helvetica",size:20},paragraph:{spacing:{line:260,after:0}}}}},
   sections:[{
     properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1220,right:1440,bottom:700,left:1440,header:720,footer:360}}},
@@ -318,7 +314,6 @@ async function createInventoryWord(content:Record<string,unknown>,fullLogo:Uint8
     acknowledgementTable,
   ];
   const document=new Document({
-    features:{updateFields:true},
     styles:{default:{document:{run:{font:"Arial",size:22},paragraph:{spacing:{line:300,after:0}}}}},
     sections:[{
       properties:{titlePage:true,page:{size:{width:11906,height:16838},margin:{top:1040,right:1325,bottom:720,left:1584,header:420,footer:360}}},
@@ -650,7 +645,6 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
   if(type==="hovp_letter"){const handover=text(content,"hovp_date","To be confirmed");title="AIRA Residence — Handover of Vacant Possession";body=[`Dear Sir or Madam,`,`We refer to your purchase of Unit ${unit}, AIRA Residence (“Unit”).`,`We are pleased to inform you that vacant possession of the Unit is available for handover on ${handover}.`,`The handover of the Unit shall be on the following basis:`,`As-Is, Where-Is Basis and No Defect Liability Period`,`The Unit, including all fixtures, fittings, furniture, appliances and other items within the Unit, is handed over and accepted on an “as-is, where-is” basis in its existing condition at the time of handover, in accordance with the terms of the Sale and Purchase Agreement (“SPA”).`,`Handover Items`,`The applicable keys, access cards, remote controls and other handover items relating to the Unit will be handed over upon the completion of procedures and documentation required for the handover of vacant possession of the Unit, including the signing of the relevant handover documents, delivery of keys, access cards and remotes, and fulfilment of the applicable handover requirements imposed by SPSB.`,`Building Management`,`Following handover, matters relating to the building, common areas, facilities and services should be referred to AIRA Building Management.`,`AIRA Building Management`,`AIRA Residence Lobby (Ground Floor)`,`Tel: 03-2011 5908`,`Email: airaresidencemgmt@gmail.com`,`For matters relating to the HOVP and handover arrangements, please contact:`,`Name: ${text(content,"salesperson_name","")}`,`Designation: ${text(content,"salesperson_designation","")}`,`Mobile: ${text(content,"salesperson_mobile","")}`,`Email: ${text(content,"salesperson_email","")}`,`Please sign the HOVP Handover Acknowledgement below as confirmation of receipt and acceptance of vacant possession.`,`Thank you.`];}
   if(type==="booking_form"){const price=typeof content.purchase_price==="number"?content.purchase_price:0;const earnest=typeof content.booking_fee==="number"?content.booking_fee:0;title="BOOKING FORM — OFFER TO PURCHASE";body=[`Purchaser's Name: 1. ${purchaser}  2. ${text(content,"customer_name_2","")}`,`Purchaser's NRIC / Passport / Company No.: 1. ${text(content,"customer_ic")}  2. ${text(content,"customer_ic_2","")}`,`Purchaser's Address: ${text(content,"customer_address")}`,`To: SELANGOR PROPERTIES SDN. BHD., Level 3, Block D, The FIVE @ KPD, Kompleks Pejabat Damansara, Jalan Dungun, Damansara Heights, 50490 Kuala Lumpur, Malaysia`,`Dear Sirs,`,`I/We, the undersigned, hereby irrevocably and unconditionally offer to purchase (“Offer”) from you the Property at the Purchase Price based on the terms hereinafter appearing and subject to the terms and conditions stipulated in the Sale and Purchase Agreement (“SPA”), the Deed of Mutual Covenants and all other documents in relation to the sale of the Property to be executed by me/us in accordance with paragraph 3 below (“Sale Documents”).`,`The sale and purchase of the Property shall be on an as is where is basis, free from all encumbrances, subject to the existing category of land use and all restrictions in interest and conditions, and the Purchase Price shall be final and conclusive unless expressly provided in the Sale Documents.`,`I/We acknowledge and agree that I/we am/are required to pay you ten per centum (10%) of the Purchase Price (“Deposit”). I/We hereby deposit with you a non-refundable sum of Ringgit Malaysia ${amount(earnest)}, being the sum equivalent to two per centum (2%) of the Purchase Price (“Earnest Deposit”) towards part payment of the Deposit.`,`Subject to your Acceptance Notice, I/we agree and undertake to execute the Sale Documents within fourteen (14) days from receipt and to pay the balance of the Deposit of ${amount(price*.08)}, being eight per centum (8%) of the Purchase Price, upon execution of the Sale Documents.`,`If I/we fail to execute the Sale Documents or pay the Balance Deposit within the Execution Period, the Earnest Deposit shall be forfeited as agreed liquidated damages and the Offer shall lapse.`,`I/We acknowledge and agree that I/we am/are required to pay ninety per centum (90%) of the Purchase Price within three (3) months from the date of the Sale Documents / six (6) weeks from State Authority Approval, if applicable.`,`Meanwhile, the following documents are enclosed: the duly completed Appendix; and for an individual, a photocopy of identity card / passport, or for a company, the required certified corporate documents.`,`APPENDIX`,`Project: ${text(content,"project_name")}`,`Property: Parcel No. ${unit}, Tower ${text(content,"storey_number")}`,`Developer: Selangor Properties Sdn. Bhd.`,`Purchaser: ${purchaser}${text(content,"customer_name_2","")?` / ${text(content,"customer_name_2","")}`:""}`,`Purchase Price: ${amount(price)}`];}
   const document=new Document({
-    features:{updateFields:true},
     styles:{
       default:{
         document:{run:{font:"Arial",size:18},paragraph:{spacing:{line:256,after:0}}},
