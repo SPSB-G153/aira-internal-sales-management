@@ -7,7 +7,7 @@ const solicitorByUnit:Record<string,string>={
   "A-03-03":"Zaid Ibrahim & Co",
   "A-03-01":"Jeff Leong, Poon & Wong",
   "A-02-05":"Zaid Ibrahim & Co",
-  "A-02-3A":"Zaid Ibrahim & Co",
+  "A-02-3A":"Jeff Leong, Poon & Wong",
   "A-02-03":"Jeff Leong, Poon & Wong",
   "A-01-3A":"Zaid Ibrahim & Co",
   "A-01-03":"Jeff Leong, Poon & Wong",
@@ -33,9 +33,11 @@ const solicitorByUnit:Record<string,string>={
 
 export const solicitorForUnit=(unit:string)=>solicitorByUnit[unit.trim().toUpperCase()]??"";
 
-// A-03-03 is the approved ZICO exception. Other units retain an explicitly
-// saved lawyer and use the unit schedule only as a fallback.
-export const solicitorForLetter=(unit:string,saved:string|null|undefined)=>
-  unit.trim().toUpperCase()==="A-03-03"
-    ? solicitorByUnit["A-03-03"]
-    : saved||solicitorForUnit(unit);
+// These approved unit-specific assignments override any stale lawyer saved on
+// an existing sale. Other units retain an explicitly saved lawyer and use the
+// unit schedule only as a fallback.
+export const solicitorForLetter=(unit:string,saved:string|null|undefined)=>{
+  const normalizedUnit=unit.trim().toUpperCase();
+  if(normalizedUnit==="A-03-03"||normalizedUnit==="A-02-3A")return solicitorByUnit[normalizedUnit];
+  return saved||solicitorForUnit(unit);
+};

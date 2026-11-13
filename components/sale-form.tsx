@@ -5,7 +5,7 @@ import { saveSale, type FormState } from "@/lib/actions/sales";
 import { removeAgentDetails } from "@/lib/actions/agent";
 import { PopAdminUpload, type PopAdminFields } from "@/components/pop-admin-upload";
 import { BookingFeeUpload, type BookingFeeFields } from "@/components/booking-fee-upload";
-import { solicitorForUnit } from "@/lib/unit-solicitor";
+import { solicitorForLetter, solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
 import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { splitAgencyDetails } from "@/lib/agency-details";
@@ -209,7 +209,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
   const [storeyNumber, setStoreyNumber] = useState(String(sale?.storey_number ?? initialValues?.storey_number ?? state.fields?.storey_number ?? ""));
   const initialUnitNumber=String(sale?.unit_number ?? initialValues?.unit_number ?? state.fields?.unit_number ?? "");
-  const [solicitorName, setSolicitorName] = useState(String(sale?.solicitor_name || initialValues?.solicitor_name || state.fields?.solicitor_name || solicitorForUnit(initialUnitNumber)));
+  const [solicitorName, setSolicitorName] = useState(String(solicitorForLetter(initialUnitNumber,sale?.solicitor_name || initialValues?.solicitor_name || state.fields?.solicitor_name)));
   const [unitNumber, setUnitNumber] = useState(initialUnitNumber);
   const [popAdmin, setPopAdmin] = useState<Record<string, string>>({
     sale_reference: String(v("sale_reference")),
