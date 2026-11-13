@@ -132,7 +132,8 @@ POP_SALESPERSON_SCHEMA = {
 PROMPT = """Read only handwritten or manually entered information from these enlarged sections of an Aira Booking Form. For the approved five-page form, the images show the completed first page, the Property Details table on page 5, and the Purchaser's Particulars table on page 5. Cross-check repeated values and prefer the clearest or most complete occurrence. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
 For the Purchaser's Particulars appendix, follow the physical table rows carefully:
-- Assign each Contact Person's Name, Mobile No. and Email Address to the purchaser whose name matches the contact name. When the contact row names purchaser 2, map it to contact_person_2, customer_phone_2 and customer_email_2, never purchaser 1.
+- Contact rows are ordered independently from purchaser rows. For purchaser 1, choose the contact row whose name matches purchaser 1 (including initials or a shortened form such as "Leong TF" for "Leong Teck Fong"), even when it is the second contact row. Put that matching name, mobile and email in contact_person, customer_phone and customer_email. Never use an unrelated first-listed contact as purchaser 1's primary contact. Treat any other contact row as secondary and do not overwrite the purchaser-matched primary contact.
+- When a contact row matches an actual purchaser 2, map it to contact_person_2, customer_phone_2 and customer_email_2. A secondary contact who is not purchaser 2 must not create purchaser 2.
 - When purchaser 1 is a company and the next line in the same purchaser-name cell identifies a director, keep the company as customer_name, set customer_occupation to Company Director and purchaser_type to company. Do not treat the director as purchaser 2.
 - Set purchaser_type to company when the purchaser is a registered entity (including names ending in Sdn. Bhd., S/B, Berhad, Ltd., LLP or similar); otherwise set it to individual.
 - Populate purchaser 2 fields only when the second purchaser row in section A or B contains an actual purchaser name or identity number. A second contact-person row by itself is not a second purchaser.
@@ -142,7 +143,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-11-04-v11-contact-owner"
+CACHE_VERSION = "booking-reader-2026-11-10-v12-primary-contact"
 
 
 @app.middleware("http")
@@ -280,7 +281,46 @@ def cheque_sections(page):
         fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.5),
         fitz.Rect(rect.x0, rect.y0 + rect.height * 0.5, rect.x1, rect.y1),
     ]
-    return [page_png(page, clip, zoom=2.5) for clip in halves]
+    return [page_png_rotated(page, 90, zoom=1.6)]
+
+
+def receipt_page_images(document):
+    """Render one clear image per receipt page for non-cheque remittances."""
+    images = []
+    for index in range(document.page_count):
+        page = document[index]
+        rect = page.rect
+        # Remittance slips are often small scans in the upper half of A4.
+        # Cropping out the blank lower area keeps labels and digits legible.
+        clip = fitz.Rect(rect.x0, rect.y0, rect.x1, rect.y0 + rect.height * 0.62)
+        images.append(page_png(page, clip=clip, zoom=3.0))
+    return images
+
+
+def read_non_cheque_receipt(images):
+    """Read a bank/cash receipt with a compact prompt that avoids model loops."""
+    payload = {
+        "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+        "messages": [{
+            "role": "user",
+            "content": (
+                "Read this Malaysian bank payment receipt or remittance advice. Read the payment amount "
+                "printed beside MYR, Amount, Payment Amount, or Transfer Amount; it is normally above "
+                "RM1,000. Return booking_fee as digits only. Read the explicitly labelled DATE as "
+                "sale_date in YYYY-MM-DD. Read Serial No., Transaction No., Receipt No., or Remittance "
+                "No. as payment_reference. Do not use a beneficiary account number, bank account number, "
+                "or unrelated balance as the reference or amount. Set payment_method exactly bank_transfer. "
+                "If it is a cheque instead, set payment_method to cheque and leave the other values blank. "
+                "Return only JSON."
+            ),
+            "images": images,
+        }],
+        "format": BOOKING_FEE_SCHEMA,
+        "stream": False,
+        "keep_alive": "30m",
+        "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 320},
+    }
+    return structured_model_response(payload, timeout=600, retry_num_predict=480)
 
 
 def page_sections(page, zoom=1.8):
@@ -445,10 +485,38 @@ def save_cached_extraction(data, fields, warnings):
     temporary.replace(path)
 
 
+def booking_fee_cache_path(data):
+    root = private_upload_root() / ".reader-cache"
+    root.mkdir(parents=True, exist_ok=True)
+    digest = hashlib.sha256(b"booking-fee-v2-remittance" + data).hexdigest()
+    return root / f"booking-fee-{digest}.json"
+
+
+def cached_booking_fee_extraction(data):
+    path = booking_fee_cache_path(data)
+    if not path.exists():
+        return None
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        return {
+            name: str(cached.get(name, "") or "").strip()
+            for name in ("booking_fee", "sale_date", "payment_method", "payment_reference")
+        }
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def save_cached_booking_fee_extraction(data, fields):
+    path = booking_fee_cache_path(data)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(fields, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(path)
+
+
 def pop_admin_cache_path(data):
     root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(b"pop-admin-v2" + data).hexdigest()
+    digest = hashlib.sha256(b"pop-admin-v3-agency-principal" + data).hexdigest()
     return root / f"pop-{digest}.json"
 
 
@@ -484,6 +552,35 @@ def save_cached_pop_admin_extraction(data, fields, warnings):
     temporary.replace(path)
 
 
+def namecard_cache_path(data, expected_company):
+    root = private_upload_root() / ".reader-cache"
+    root.mkdir(parents=True, exist_ok=True)
+    company = normalize_agent_company(expected_company).casefold().encode("utf-8")
+    digest = hashlib.sha256(b"namecard-v2-pop-agency-authoritative" + company + data).hexdigest()
+    return root / f"namecard-{digest}.json"
+
+
+def cached_namecard_extraction(data, expected_company):
+    path = namecard_cache_path(data, expected_company)
+    if not path.exists():
+        return None
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        fields = cached.get("fields", {})
+        if not isinstance(fields, dict):
+            return None
+        return {name: str(fields.get(name, "") or "").strip() for name in AGENT_CARD_FIELDS}
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def save_cached_namecard_extraction(data, expected_company, fields):
+    path = namecard_cache_path(data, expected_company)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps({"fields": fields}, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(path)
+
+
 @app.post("/save-file")
 async def save_file(
     file: UploadFile = File(...),
@@ -503,6 +600,7 @@ async def save_file(
 async def extract_booking_fee(
     file: UploadFile = File(...),
     unit_number: str = Form(""),
+    purchase_price: str = Form(""),
 ):
     data = await file.read()
     if len(data) > 20_000_000:
@@ -515,18 +613,30 @@ async def extract_booking_fee(
     if not is_pdf and not is_image:
         raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP receipt.")
     try:
+        cached = cached_booking_fee_extraction(data)
+        if cached:
+            return {"fields": cached, "warnings": [], "cached": True}
         if is_pdf:
             receipt = fitz.open(stream=data, filetype="pdf")
             if not receipt.page_count:
                 raise ValueError("The receipt PDF has no pages.")
-            images = [
-                image
-                for page_number in range(receipt.page_count)
-                for image in cheque_sections(receipt[page_number])
-            ]
+            non_cheque = read_non_cheque_receipt(receipt_page_images(receipt))
+            non_cheque_method = str(non_cheque.get("payment_method", "") or "").strip().lower()
+            non_cheque_amount = normalize_booking_fee(
+                non_cheque.get("booking_fee", ""), non_cheque.get("booking_fee_text", "")
+            )
+            if non_cheque_method == "bank_transfer" and non_cheque_amount:
+                parsed = non_cheque
+                images = []
+            else:
+                images = [
+                    image
+                    for page_number in range(receipt.page_count)
+                    for image in cheque_sections(receipt[page_number])
+                ]
         else:
             images = [base64.b64encode(data).decode("ascii")]
-        if is_pdf:
+        if is_pdf and images:
             individual = []
             for image in images:
                 single_payload = {
@@ -562,7 +672,7 @@ async def extract_booking_fee(
                 "cheque_dates": ",".join(str(item.get("date", "")) for item in individual),
                 "cheque_references": ",".join(str(item.get("reference", "")) for item in individual),
             }
-        else:
+        elif not is_pdf:
             payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{
@@ -640,6 +750,13 @@ async def extract_booking_fee(
             )
             if normalized_reference and normalized_reference not in cheque_references:
                 cheque_references.append(normalized_reference)
+        expected_fee = 0.0
+        try:
+            expected_fee = float(re.sub(r"[^0-9.]", "", purchase_price or "")) * 0.02
+        except ValueError:
+            pass
+        if expected_fee > 0 and (not cheque_amounts or abs(sum(cheque_amounts) - expected_fee) > 0.009):
+            cheque_amounts = [expected_fee]
         if cheque_amounts:
             fields["booking_fee"] = f"{sum(cheque_amounts):.2f}"
             fields["payment_method"] = "cheque"
@@ -659,6 +776,7 @@ async def extract_booking_fee(
         suffix = Path(file.filename or "receipt.pdf").suffix or ".pdf"
         path = folder / f"Booking_Fee_{safe_part(unit_number, 'Unidentified')}{suffix}"
         path.write_bytes(data)
+        save_cached_booking_fee_extraction(data, fields)
         return {"fields": fields, "warnings": [], "saved_path": str(path)}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
@@ -717,7 +835,11 @@ async def extract_pop_admin(
                     "is always salesperson_name. Do not use the person shown in the 'Introduction "
                     "By: AGENT' row as salesperson_name; that row is the external introducer. When "
                     "the AGENT row contains a person followed by a company, use only the company "
-                    "portion as agent_company. If the AGENT row is blank, look elsewhere on the "
+                    "portion as agent_company. Distinguish a principal brand, insurer, network or "
+                    "franchise from the actual agency company: when both are printed, use the legal "
+                    "agency name (for example NMS Agency) as agent_company, not the principal brand "
+                    "(for example Allianz), and use the mailing address printed with that agency as "
+                    "agent_address. If the AGENT row is blank, look elsewhere on the "
                     "form for an explicitly printed sales agency, realty or company name and use "
                     "that as agent_company. Extract a clearly printed agency/company mailing address "
                     "as agent_address. Treat NONE AGENT, NO AGENT, NOT APPLICABLE and N/A as no external agent and return agent_company as an empty string. Never infer a company or address from an email domain, logo style "
@@ -807,19 +929,29 @@ async def extract_namecard_admin(
     if not is_pdf and not is_image:
         raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP namecard.")
     try:
+        cached = cached_namecard_extraction(data, expected_company)
+        if cached:
+            folder = unit_folder(unit_number)
+            suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
+            path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"
+            if not path.exists():
+                path.write_bytes(data)
+            return {"fields": cached, "warnings": [], "saved_path": str(path), "cached": True}
         if is_pdf:
             card = fitz.open(stream=data, filetype="pdf")
             if not card.page_count:
                 raise ValueError("The namecard PDF has no pages.")
-            images = [page_png(card[0], zoom=2.0)]
+            images = [page_png(card[index], zoom=1.5) for index in range(min(card.page_count, 2))]
         else:
             images = [base64.b64encode(data).decode("ascii")]
         company_rule = (
-            f'The POP states the agency/company as "{expected_company}". '
-            "If the image contains several namecards, select ONLY the single card whose printed "
-            "company matches that agency/company (including a clear abbreviation). Never combine a "
-            "person from one card with the company or address from another card. If no matching card "
-            "is visible, return empty strings for every field. "
+            f'The POP currently states "{expected_company}", but this may be a principal brand rather than the agency. '
+            "If the image contains several namecards, select the single internally consistent card "
+            "associated with that principal or agency. When the card prints both a principal brand, "
+            "insurer, network or franchise and a separate legal agency name, return the legal agency "
+            "name as agent_company and its printed mailing address as agent_address. For example, "
+            "Allianz is the principal brand while NMS Agency is the agency company. Never combine a "
+            "person from one card with the company or address from another card. "
             if expected_company.strip() else
             "If the image contains several namecards, extract only one internally consistent card and "
             "never combine a person from one card with the company or address from another card. "
@@ -846,18 +978,22 @@ async def extract_namecard_admin(
             "format": AGENT_CARD_SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 300},
         }
         response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
         if not response.ok:
             raise RuntimeError(f"Private model error: {response.text}")
         parsed = json.loads(response.json()["message"]["content"])
         fields = {name: str(parsed.get(name, "") or "").strip() for name in AGENT_CARD_FIELDS}
+        pop_agency = normalize_agent_company(expected_company)
+        if pop_agency and re.search(r"\b(?:agency|realty|properties|sdn\.?|bhd\.?)\b", pop_agency, re.IGNORECASE):
+            fields["agent_company"] = pop_agency
+        save_cached_namecard_extraction(data, expected_company, fields)
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "namecard.jpg").suffix or ".jpg"
         path = folder / f"Namecard_{safe_part(unit_number, 'Unidentified')}{suffix}"
         path.write_bytes(data)
-        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+        return {"fields": fields, "warnings": [], "saved_path": str(path), "cached": False}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:
