@@ -226,12 +226,14 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const unitDetails=detailsForUnit(unit);if(unitDetails){values.floor_area=unitDetails.floorAreaSquareFeet;values.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);values.unit_type=unitDetails.unitType.toUpperCase();if(unitDetails.parkingBay)values.car_parking_bay=unitDetails.parkingBay;}
     const sale=existing?await updateSale(existing.id,values):await createSale(values);
     const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);const generated_at=new Date().toISOString();
-    const{data:existingDocuments,error:existingDocumentsError}=await db.from("documents").select("document_type,generated_at").eq("team_id",team.id).eq("sale_id",sale.id);if(existingDocumentsError)throw existingDocumentsError;
     const types:DocumentType[]=[];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
-    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at:existingDocuments?.find(document=>document.document_type===document_type)?.generated_at||generated_at}));
-    if(rows.length){const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}
-    const{error:uploadedPopError}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form");if(uploadedPopError)throw uploadedPopError;
-    const{data:documents,error:documentsError}=types.length?await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id).in("document_type",types):{data:[],error:null};if(documentsError)throw documentsError;
+    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
+    const [letterResult,sourceResult]=await Promise.all([
+      rows.length?db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"}).select("id,document_type"):Promise.resolve({data:[],error:null}),
+      db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form"),
+    ]);
+    if(letterResult.error)throw letterResult.error;if(sourceResult.error)throw sourceResult.error;
+    const documents=letterResult.data;
     const agencyAppointmentLetterId=documents?.find(item=>item.document_type==="agency_appointment_letter")?.id;const agentLetterId=documents?.find(item=>item.document_type==="agent_commission_letter")?.id;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     return{saleId:sale.id,previewDocumentId:agencyAppointmentLetterId||agentLetterId,agentLetterId,agencyAppointmentLetterId};
