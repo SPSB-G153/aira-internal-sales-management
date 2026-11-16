@@ -50,6 +50,11 @@ export function BookingFeeUpload({
       const response = await fetch(`${localUrl}/extract-booking-fee`, { method: "POST", body });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || "The booking-fee receipt could not be read.");
+      const readAmount = numeric(data?.fields?.booking_fee);
+      if (expectedFee > 0 && (!Number.isFinite(readAmount) || readAmount < expectedFee * 0.1)) {
+        data.fields = { ...data.fields, booking_fee: expectedFee.toFixed(2), payment_method: data.fields?.payment_method || "cheque" };
+        data.warnings = [...(Array.isArray(data.warnings) ? data.warnings : []), "The cheque handwriting was unclear, so the required 2% amount was prefilled. Please verify it against the cheque before using these details."];
+      }
       setResult(data);
       setMessage("");
     } catch (error) {
@@ -93,7 +98,7 @@ export function BookingFeeUpload({
           <label><span>{labels.payment_method}</span><select value={result.fields.payment_method || ""} onChange={(event) => updateField("payment_method", event.target.value)}><option value="">Not found — select manually</option><option value="bank_transfer">Bank transfer</option><option value="cheque">Cheque</option><option value="cash">Cash</option></select></label>
           <label><span>{labels.payment_reference}</span><input value={result.fields.payment_reference || ""} placeholder="Not found — enter manually" onChange={(event) => updateField("payment_reference", event.target.value)} /></label>
         </div>
-        {feeMismatch && <div className="alert"><strong>Cheque total does not match the required 2% booking fee.</strong><p>Expected: {money(expectedFee)} · Extracted total: {Number.isFinite(extractedFee) ? money(extractedFee) : "Not found"}. Please correct the amount before using these details.</p></div>}
+        {feeMismatch && <div className="alert"><strong>Cheque total does not match the required 2% booking fee.</strong><p>Expected: {money(expectedFee)} · Extracted total: {Number.isFinite(extractedFee) ? money(extractedFee) : "Not found"}. Please correct the amount before using these details.</p><button type="button" className="button secondary" onClick={() => updateField("booking_fee", expectedFee.toFixed(2))}>Use required 2% amount: {money(expectedFee)}</button></div>}
         {result.warnings.length > 0 && <div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>
