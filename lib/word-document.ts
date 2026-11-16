@@ -5,7 +5,7 @@ import JSZip from "jszip";
 import type { DocumentType } from "@/lib/types";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
-import { designationForSalesPersonnel } from "@/lib/sales-personnel";
+import { designationForSalesPersonnel, profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { agencyLetterDetails } from "@/lib/agency-details";
 
 const text=(content:Record<string,unknown>,key:string,fallback="—")=>content[key]==null||content[key]===""?fallback:String(content[key]);
@@ -437,6 +437,8 @@ async function createApprovedAgencyAppointmentWord(content:Record<string,unknown
   const salespersonHonorific=salesperson.toLowerCase().includes("madihah")?"Pn.":"Ms";
   const salespersonMobile=text(content,"salesperson_mobile","");
   const salespersonEmail=text(content,"salesperson_email","");
+  const secondSalesperson=profileForSalesPersonnel(text(content,"pop_assisting_member_2",""));
+  const secondSalespersonHonorific=secondSalesperson?.name.toLowerCase().includes("madihah")?"Pn.":"Ms";
   const replacements:Record<string,string>={
     "{{DATE_DAY}}":String(day),
     "{{DATE_SUFFIX}}":suffix,
@@ -464,11 +466,18 @@ async function createApprovedAgencyAppointmentWord(content:Record<string,unknown
     `at ${escapeWordXml(salespersonMobile)}</w:t></w:r>`,
   );
   xml=xml.split("madihah.hassan@selangorproperties.com.my").join(escapeWordXml(salespersonEmail));
+  if(secondSalesperson){
+    xml=xml.split("Ms Katherine Chew").join(escapeWordXml(`${secondSalespersonHonorific} ${secondSalesperson.name}`));
+    xml=xml.split("+60193901491").join(escapeWordXml(secondSalesperson.mobile));
+    xml=xml.split("katherine.chew@selangorproperties.com.my").join(escapeWordXml(secondSalesperson.email));
+  }
   zip.file("word/document.xml",xml);
   const relationshipsFile=zip.file("word/_rels/document.xml.rels");
   if(relationshipsFile){
     const relationships=await relationshipsFile.async("string");
-    zip.file("word/_rels/document.xml.rels",relationships.split("madihah.hassan@selangorproperties.com.my").join(escapeWordXml(salespersonEmail)));
+    let updatedRelationships=relationships.split("madihah.hassan@selangorproperties.com.my").join(escapeWordXml(salespersonEmail));
+    if(secondSalesperson)updatedRelationships=updatedRelationships.split("katherine.chew@selangorproperties.com.my").join(escapeWordXml(secondSalesperson.email));
+    zip.file("word/_rels/document.xml.rels",updatedRelationships);
   }
   await removeExternalWordLinks(zip);
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));

@@ -26,6 +26,9 @@ const labels: Record<string, string> = {
   sale_reference: "POP / booking reference",
   salesperson_name: "Sales personnel name",
   pop_assisting_member_2: "Second sales personnel name",
+  salesperson_2_designation: "Second sales personnel designation",
+  salesperson_2_mobile: "Second sales personnel mobile no.",
+  salesperson_2_email: "Second sales personnel email",
   salesperson_designation: "Sales personnel designation",
   salesperson_mobile: "Sales personnel mobile no.",
   salesperson_email: "Sales personnel email",
@@ -37,6 +40,7 @@ const labels: Record<string, string> = {
   agent_email: "Agent email",
 };
 const namecardFields = ["agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_company", "agent_address"];
+const staffReviewFields = new Set(["salesperson_name", "salesperson_designation", "salesperson_mobile", "salesperson_email", "pop_assisting_member_2", "salesperson_2_designation", "salesperson_2_mobile", "salesperson_2_email"]);
 const moneyFields = new Set(["purchase_price", "approved_selling_price", "additional_revenue", "repeat_buyer_discount", "rebate_amount"]);
 
 function formatReviewFields(fields: PopAdminFields) {
@@ -102,7 +106,13 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
           salesperson_mobile: staff.mobile || extracted.fields.salesperson_mobile || "",
         };
         const secondStaff = profileForSalesPersonnel(extracted.fields.pop_assisting_member_2 || "");
-        if (secondStaff) extracted.fields = { ...extracted.fields, pop_assisting_member_2: secondStaff.name };
+        if (secondStaff) extracted.fields = {
+          ...extracted.fields,
+          pop_assisting_member_2: secondStaff.name,
+          salesperson_2_designation: secondStaff.designation,
+          salesperson_2_mobile: secondStaff.mobile,
+          salesperson_2_email: secondStaff.email,
+        };
         const savedSalesperson = await findSavedSalespersonDetails(extracted.fields.salesperson_name || "");
         if (savedSalesperson) extracted.fields = {
           ...extracted.fields,
@@ -223,7 +233,17 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         <p className="subtle">Check the privately extracted details before adding them to the form. Agency/company is filled only when it is shown.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
         <div className="upload-review-fields">
-          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels)).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
+          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !staffReviewFields.has(key))).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
+          {reviewSource === "POP Form" && <>
+            <div className="purchaser-one-column">
+              <div className="purchaser-column-title"><span>01</span><h3>Sales Personnel 1</h3></div>
+              {[["salesperson_name","Name"],["salesperson_designation","Designation"],["salesperson_mobile","Mobile number"],["salesperson_email","Email"]].map(([key,label])=><label key={key}><span>{label}</span><input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={(event)=>updateField(key,event.target.value)}/></label>)}
+            </div>
+            <div className="purchaser-two-column">
+              <div className="purchaser-column-title"><span>02</span><h3>Sales Personnel 2</h3></div>
+              {[["pop_assisting_member_2","Name"],["salesperson_2_designation","Designation"],["salesperson_2_mobile","Mobile number"],["salesperson_2_email","Email"]].map(([key,label])=><label key={key}><span>{label}</span><input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={(event)=>updateField(key,event.target.value)}/></label>)}
+            </div>
+          </>}
         </div>
         {reviewSource === "POP Form" && <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
           {busySource === "namecard" ? "Reading agent namecard…" : "Add agent namecard"}

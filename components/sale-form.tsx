@@ -225,6 +225,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     salesperson_designation: String(v("salesperson_designation")),
     salesperson_mobile: String(storedSalesperson?.mobile || v("salesperson_mobile") || ""),
     salesperson_email: String(v("salesperson_email")),
+    pop_assisting_member_2: String(v("pop_assisting_member_2")),
     agent_company: String(state.fields?.agent_company ?? storedAgency.company),
     agent_address: String(state.fields?.agent_address ?? storedAgency.address),
     agent_name: String(state.fields?.agent_name ?? storedAgency.agent_name),
@@ -242,6 +243,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
       next.salesperson_designation = staff.designation;
       if (staff.mobile) next.salesperson_mobile = staff.mobile;
     }
+    const secondStaff = profileForSalesPersonnel(next.pop_assisting_member_2);
+    if (secondStaff) next.pop_assisting_member_2 = secondStaff.name;
     return next;
   });
   const removeUploadedAgent = () => {
@@ -707,7 +710,6 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
         <div className="form-grid">
           <Field name="pop_introduction_agent" label="Introduction by - Agent" defaultValue={v("pop_introduction_agent")} />
           <Field name="pop_introduction_spsb" label="Introduction by - SPSB" defaultValue={v("pop_introduction_spsb")} />
-          <Field name="pop_assisting_member_2" label="Second team member assisting" defaultValue={v("pop_assisting_member_2")} />
         </div>
       </section>}
       <section className="form-section">
@@ -722,9 +724,12 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             value={popAdmin.sale_reference}
             onChange={(value) => setPopAdmin((current) => ({ ...current, sale_reference: value }))}
           />
+          <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
+          <div className="purchaser-one-column">
+          <div className="purchaser-column-title"><span>01</span><h3>Sales Personnel 1</h3></div>
           <Field
             name="salesperson_name"
-            label="Sales personnel name"
+            label="Name"
             value={popAdmin.salesperson_name}
             list="sales-personnel-list"
             onChange={(value) => setPopAdmin((current) => {
@@ -732,27 +737,42 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
               return { ...current, salesperson_name: value, salesperson_email: staff?.email || current.salesperson_email, salesperson_designation: staff?.designation || "", salesperson_mobile: staff?.mobile || current.salesperson_mobile };
             })}
           />
-          <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
           <Field
             name="salesperson_designation"
-            label="Sales personnel designation"
+            label="Designation"
             value={popAdmin.salesperson_designation}
             onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_designation: value }))}
           />
           <Field
             name="salesperson_mobile"
-            label="Sales personnel mobile no."
+            label="Mobile number"
             type="tel"
             value={popAdmin.salesperson_mobile}
             onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_mobile: value }))}
           />
           <Field
             name="salesperson_email"
-            label="Sales personnel email"
+            label="Email"
             type="email"
             value={popAdmin.salesperson_email}
             onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_email: value }))}
           />
+          </div>
+          <div className="purchaser-two-column">
+          <div className="purchaser-column-title"><span>02</span><h3>Sales Personnel 2</h3></div>
+          <Field
+            name="pop_assisting_member_2"
+            label="Name"
+            value={popAdmin.pop_assisting_member_2}
+            list="sales-personnel-list"
+            onChange={(value) => setPopAdmin((current) => ({ ...current, pop_assisting_member_2: value }))}
+          />
+          {profileForSalesPersonnel(popAdmin.pop_assisting_member_2) && <>
+            <RecordedField label="Designation" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.designation} />
+            <RecordedField label="Mobile number" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.mobile} />
+            <RecordedField label="Email" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.email} />
+          </>}
+          </div>
           <div className="agent-fields-heading">
             <h3>Agent</h3>
             {sale && (popAdmin.agent_company || popAdmin.agent_name) && <button
