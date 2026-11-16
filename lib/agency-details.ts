@@ -101,7 +101,8 @@ export function agencyLetterDetails(company: unknown, stored?: ReturnType<typeof
     const rawFirstName = unprefixed.split(/\s+/)[0];
     const firstName = rawFirstName ? rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1).toLowerCase() : "";
     const suppliedHonorific = suppliedTitle === "mrs" ? "Mrs " : suppliedTitle === "ms" || suppliedTitle === "miss" ? "Ms " : suppliedTitle === "dr" ? "Dr " : suppliedTitle === "mr" ? "Mr " : "";
-    const honorific = suppliedHonorific || (/\bbinti\b/i.test(unprefixed) ? "Cik " : /\bbin\b/i.test(unprefixed) ? "En " : "Mr ");
+    const confirmedHonorific = /^loh\s+kit\s+ming$/i.test(unprefixed.trim()) ? "Ms " : "";
+    const honorific = suppliedHonorific || confirmedHonorific || (/\bbinti\b/i.test(unprefixed) ? "Cik " : /\bbin\b/i.test(unprefixed) ? "En " : "");
     const titledName = unprefixed ? `${honorific}${unprefixed}` : stored.agent_name;
     return { contactName: titledName, contactPosition: stored.agent_designation, greeting: firstName ? `Dear ${honorific}${firstName},` : "Dear Sir or Madam,", appointmentDate: "" };
   }

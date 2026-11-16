@@ -98,15 +98,17 @@ const formattedOrdinalDate=(input:unknown)=>{if(typeof input!=="string"||!input)
 const approvalDate=(input:unknown)=>typeof input==="string"&&input?input.split("-").reverse().map((part,index)=>index===2?part.slice(-2):part).join("."):"";
 
 export function DocumentPreview({type,content}:{type:DocumentType;content:Content}){
-  const preview=type==="pre_booking_form"?<ProspectOfferForm content={content}/>
-    :type==="booking_form"?<BookingFormExact content={content}/>
-    :type==="acceptance_letter"?<AcceptanceLetterExact content={content}/>
-    :type==="agency_appointment_letter"?<AgencyAppointmentLetter content={content}/>
-    :type==="agent_commission_letter"?<AgentCommissionLetter content={content}/>
-    :type==="rebate_letter"?<RebateLetter content={content}/>
-    :type==="inventory_confirmation_letter"?<InventoryConfirmationLetter content={content}/>
-    :<HovpLetterExact content={content}/>;
-  return <LetterDateProvider date={value(content,"letter_issued_at","")}>{preview}</LetterDateProvider>;
+  const isAgentLetter=type==="agency_appointment_letter"||type==="agent_commission_letter";
+  const previewContent=isAgentLetter?{...content,letter_issued_at:new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"})}:content;
+  const preview=type==="pre_booking_form"?<ProspectOfferForm content={previewContent}/>
+    :type==="booking_form"?<BookingFormExact content={previewContent}/>
+    :type==="acceptance_letter"?<AcceptanceLetterExact content={previewContent}/>
+    :type==="agency_appointment_letter"?<AgencyAppointmentLetter content={previewContent}/>
+    :type==="agent_commission_letter"?<AgentCommissionLetter content={previewContent}/>
+    :type==="rebate_letter"?<RebateLetter content={previewContent}/>
+    :type==="inventory_confirmation_letter"?<InventoryConfirmationLetter content={previewContent}/>
+    :<HovpLetterExact content={previewContent}/>;
+  return <LetterDateProvider date={value(previewContent,"letter_issued_at","")}>{preview}</LetterDateProvider>;
 }
 
 function AgencyCommissionTable(){return <table className="agency-commission-table agency-commission-table-approved"><thead><tr><th rowSpan={2}>TOWER / UNIT TYPE</th><th>SALES COMMISSION</th></tr><tr><th className="agency-commission-rate">% Purchase Price</th></tr></thead><tbody><tr><th colSpan={2}>Domestic Sales:</th></tr><tr><th>TOWER A</th><td/></tr><tr><td>Type A1</td><td>2.00</td></tr><tr><td>Type B</td><td>2.00</td></tr><tr><td>Type A2</td><td>2.00</td></tr><tr><td>Types D, E &amp; F</td><td>2.00</td></tr><tr><th>TOWER B</th><td/></tr><tr><td>Types G &amp; H</td><td>3.00</td></tr><tr className="agency-table-spacer"><td colSpan={2} aria-hidden="true"/></tr><tr className="agency-international"><th colSpan={2}>International Sales (Towers A &amp; B): &nbsp;&nbsp;&nbsp; <b>3.0%</b> of the Purchase Price</th></tr></tbody></table>}
