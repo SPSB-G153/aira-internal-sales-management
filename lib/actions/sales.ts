@@ -218,14 +218,24 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const unit=canonicalUnitNumber(clean("unit_number"));const customer=purchaserNameWithoutSalutation(clean("customer_name"));const parsedPrice=Number(clean("purchase_price").replace(/[^0-9.-]/g,""));const price=Number.isFinite(parsedPrice)&&parsedPrice>0?parsedPrice:0;
     if(!unit)return{error:"The unit number could not be read from the uploaded POP. Please enter it in the extracted-details review."};
     const company=clean("agent_company");const agentDetails=combineAgencyDetails(company,clean("agent_address"),clean("agent_name"),clean("agent_designation"),clean("agent_mobile"),clean("agent_email"))||null;
-    const existing=(await getSales(unit)).find(item=>item.unit_number?.trim().toUpperCase()===unit);
+    // Keep the post-extraction save fast: use one database session and look up
+    // only the unit being uploaded.  getSales(unit) fetched and sorted the full
+    // matching sale payload before doing another connection for the write.
+    const db=await createClient();
+    const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const{data:existingRow,error:existingError}=await db.from("sales").select("*").eq("team_id",team.id).eq("unit_number",unit).maybeSingle();
+    if(existingError)throw existingError;
+    const existing=(existingRow as Sale|null)??undefined;
     const popPurchaserType=clean("purchaser_type");
     const numberOrExisting=(key:keyof Sale)=>{const raw=clean(String(key));if(!raw)return(existing?.[key] as number|null|undefined)??null;const parsed=Number(raw.replace(/[^0-9.-]/g,""));return Number.isFinite(parsed)&&parsed>=0?parsed:(existing?.[key] as number|null|undefined)??null;};
     const values:Partial<Sale>={sale_reference:clean("sale_reference")||existing?.sale_reference||`S-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`,customer_name:customer||existing?.customer_name||"Purchaser pending",customer_name_2:purchaserNameWithoutSalutation(clean("customer_name_2"))||existing?.customer_name_2||null,purchaser_type:popPurchaserType?(popPurchaserType.toLowerCase().includes("company")?"company":"individual"):(existing?.purchaser_type||"individual"),project_name:clean("project_name")||existing?.project_name||"Aira Residence",unit_number:unit,unit_type:(clean("unit_type")||existing?.unit_type||"").toUpperCase()||null,floor_area:numberOrExisting("floor_area"),purchase_price:price||existing?.purchase_price||0,approved_selling_price:numberOrExisting("approved_selling_price"),additional_revenue:numberOrExisting("additional_revenue"),repeat_buyer_discount:numberOrExisting("repeat_buyer_discount"),rebate_amount:numberOrExisting("rebate_amount"),status:existing?.status||"draft",sale_date:clean("sale_date")||existing?.sale_date||null,salesperson_name:clean("salesperson_name")||existing?.salesperson_name||null,salesperson_designation:clean("salesperson_designation")||existing?.salesperson_designation||null,salesperson_mobile:clean("salesperson_mobile")||existing?.salesperson_mobile||null,salesperson_email:clean("salesperson_email")||existing?.salesperson_email||null,agent_company:agentDetails||existing?.agent_company||null,solicitor_name:clean("solicitor_name")||existing?.solicitor_name||null,authorised_signatory_name:clean("authorised_signatory_name")||existing?.authorised_signatory_name||null,authorised_signatory_position:clean("authorised_signatory_position")||existing?.authorised_signatory_position||null};
     const secondAssistingMember=clean("pop_assisting_member_2");if(secondAssistingMember)values.pop_assisting_member_2=secondAssistingMember;
     const unitDetails=detailsForUnit(unit);if(unitDetails){values.floor_area=unitDetails.floorAreaSquareFeet;values.floor_area_sqm=squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet);values.unit_type=unitDetails.unitType.toUpperCase();if(unitDetails.parkingBay)values.car_parking_bay=unitDetails.parkingBay;}
-    const sale=existing?await updateSale(existing.id,values):await createSale(values);
-    const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);const generated_at=new Date().toISOString();
+    const saleWrite=existing
+      ?db.from("sales").update(values).eq("team_id",team.id).eq("id",existing.id).select("*").single()
+      :db.from("sales").insert({...values,team_id:team.id,user_id:user?.id??null}).select("*").single();
+    const{data:saleRow,error:saleError}=await saleWrite;if(saleError)throw saleError;
+    const sale=saleRow as Sale;const generated_at=new Date().toISOString();
     const types:DocumentType[]=[];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
     const [letterResult,sourceResult]=await Promise.all([
