@@ -25,6 +25,7 @@ const labels: Record<string, string> = {
   sale_date: "Proposal date",
   sale_reference: "POP / booking reference",
   salesperson_name: "Sales personnel name",
+  pop_assisting_member_2: "Second sales personnel name",
   salesperson_designation: "Sales personnel designation",
   salesperson_mobile: "Sales personnel mobile no.",
   salesperson_email: "Sales personnel email",
@@ -100,6 +101,8 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
           salesperson_email: staff.email,
           salesperson_mobile: staff.mobile || extracted.fields.salesperson_mobile || "",
         };
+        const secondStaff = profileForSalesPersonnel(extracted.fields.pop_assisting_member_2 || "");
+        if (secondStaff) extracted.fields = { ...extracted.fields, pop_assisting_member_2: secondStaff.name };
         const savedSalesperson = await findSavedSalespersonDetails(extracted.fields.salesperson_name || "");
         if (savedSalesperson) extracted.fields = {
           ...extracted.fields,

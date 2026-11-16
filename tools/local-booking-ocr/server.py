@@ -119,7 +119,7 @@ POP_ADMIN_FIELDS = [
     "customer_name", "customer_name_2", "purchaser_type", "project_name", "unit_number",
     "unit_type", "floor_area", "purchase_price", "approved_selling_price",
     "additional_revenue", "repeat_buyer_discount", "rebate_amount", "sale_date",
-    "sale_reference", "salesperson_name", "salesperson_designation",
+    "sale_reference", "salesperson_name", "pop_assisting_member_2", "salesperson_designation",
     "salesperson_mobile", "salesperson_email", "agent_company", "agent_address",
 ]
 POP_ADMIN_SCHEMA = {
@@ -135,8 +135,13 @@ AGENT_CARD_SCHEMA = {
 }
 POP_SALESPERSON_SCHEMA = {
     "type": "object",
-    "properties": {"salesperson_name": {"type": "string"}},
-    "required": ["salesperson_name"],
+    "properties": {"salesperson_name": {"type": "string"}, "pop_assisting_member_2": {"type": "string"}},
+    "required": ["salesperson_name", "pop_assisting_member_2"],
+}
+POP_STAFF_PRESENCE_SCHEMA = {
+    "type": "object",
+    "properties": {"felicia_low_present": {"type": "boolean"}, "madihah_hassan_present": {"type": "boolean"}},
+    "required": ["felicia_low_present", "madihah_hassan_present"],
 }
 PROMPT = """Read only handwritten or manually entered information from these enlarged sections of an Aira Booking Form. For the approved five-page form, the images show the completed first page, the Property Details table on page 5, and the Purchaser's Particulars table on page 5. Cross-check repeated values and prefer the clearest or most complete occurrence. Do not use printed template labels or standard clauses as values. Preserve names, identity numbers, phone numbers, emails, unit numbers and payment references exactly.
 
@@ -151,7 +156,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-11-04-v11-contact-owner"
+CACHE_VERSION = "booking-reader-2026-11-16-v12-two-assistants"
 
 
 @app.middleware("http")
@@ -457,7 +462,7 @@ def save_cached_extraction(data, fields, warnings):
 def pop_admin_cache_path(data):
     root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(b"pop-admin-v3-agency-principal" + data).hexdigest()
+    digest = hashlib.sha256(b"pop-admin-v5-staff-presence" + data).hexdigest()
     return root / f"pop-{digest}.json"
 
 
@@ -843,7 +848,7 @@ async def extract_pop_admin(
                     "the POP or proposal reference as sale_reference; the sales personnel or "
                     "salesperson name; designation; mobile or telephone number; email; and sales "
                     "agency or company. The value beside the printed label 'Team Member Assisting' "
-                    "is always salesperson_name. Do not use the person shown in the 'Introduction "
+                    "must be split into salesperson_name and pop_assisting_member_2 when two names are joined by '&'. Do not use the person shown in the 'Introduction "
                     "By: AGENT' row as salesperson_name; that row is the external introducer. When "
                     "the AGENT row contains a person followed by a company, use only the company "
                     "portion as agent_company. Distinguish a principal brand, insurer, network or "
@@ -880,9 +885,9 @@ async def extract_pop_admin(
                 "content": (
                     "Read only the value inside the box beside the printed label "
                     "'Team Member Assisting' on this AIRA POP Form. The only valid "
-                    "internal salesperson is Madihah Hassan or Felicia Low. Return "
-                    "Madihah Hassan when the box says MADIHAH HASSAN, or Felicia Low "
-                    "when it says FELICIA LOW. Do not use any name from Introduction "
+                    "internal salespeople are Madihah Hassan and Felicia Low. When both are shown, "
+                    "return the first name in salesperson_name and the second name in pop_assisting_member_2. "
+                    "Return an empty second field when only one is shown. Do not use any name from Introduction "
                     "By: AGENT, purchaser, approver or signature rows. Return an empty "
                     "string if neither valid name is visibly present. Return only JSON."
                 ),
@@ -894,17 +899,46 @@ async def extract_pop_admin(
             "options": {"temperature": 0, "num_ctx": 2048, "num_predict": 80},
         }
         salesperson = ""
+        second_salesperson = ""
         try:
             checked = structured_model_response(
                 salesperson_payload, timeout=300, retry_num_predict=120
             )
             salesperson = canonical_salesperson(checked.get("salesperson_name", ""))
+            second_salesperson = canonical_salesperson(checked.get("pop_assisting_member_2", ""))
         except (KeyError, TypeError, ValueError, RuntimeError):
             salesperson = ""
+        if salesperson and not second_salesperson:
+            presence_payload = {
+                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "Look only inside the Team Member Assisting box. Return true for each exact name visibly present: "
+                        "FELICIA LOW and MADIHAH HASSAN. A name joined by '&' is still present. Ignore every other row. Return only JSON."
+                    ),
+                    "images": [images[0]],
+                }],
+                "format": POP_STAFF_PRESENCE_SCHEMA,
+                "stream": False,
+                "keep_alive": "30m",
+                "options": {"temperature": 0, "num_ctx": 1536, "num_predict": 40},
+            }
+            try:
+                presence = structured_model_response(presence_payload, timeout=300, retry_num_predict=60)
+                if salesperson == "Felicia Low" and presence.get("madihah_hassan_present"):
+                    second_salesperson = "Madihah Hassan"
+                elif salesperson == "Madihah Hassan" and presence.get("felicia_low_present"):
+                    second_salesperson = "Felicia Low"
+            except (KeyError, TypeError, ValueError, RuntimeError):
+                pass
         # Also accept the broad pass only when it resolves to the same strict
         # two-person allowlist. Never retain an agent or purchaser as staff.
         fields["salesperson_name"] = salesperson or canonical_salesperson(
             fields.get("salesperson_name", "")
+        )
+        fields["pop_assisting_member_2"] = second_salesperson or canonical_salesperson(
+            fields.get("pop_assisting_member_2", "")
         )
         fields["agent_company"] = normalize_agent_company(fields["agent_company"])
         resolved_unit_number = fields.get("unit_number", "") or unit_number
