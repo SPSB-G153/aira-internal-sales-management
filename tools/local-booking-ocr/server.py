@@ -719,6 +719,12 @@ async def extract_booking_fee(
             fields["payment_reference"] = normalize_cheque_reference(
                 fields["payment_reference"], fields["sale_date"], file.filename or ""
             )
+        filename_date = re.search(r"(?<!\d)(\d{2})[._-](\d{2})[._-](\d{2,4})(?!\d)", Path(file.filename or "").stem)
+        if filename_date:
+            fields["sale_date"] = normalize_payment_date("/".join(filename_date.groups()))
+        filename_reference = normalize_cheque_reference("", fields["sale_date"], file.filename or "")
+        if filename_reference:
+            fields["payment_reference"] = filename_reference
         warnings = list(extraction_warnings)
         try:
             extracted_amount = float(fields["booking_fee"])
