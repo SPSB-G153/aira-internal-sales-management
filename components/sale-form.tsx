@@ -185,6 +185,12 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     const value = state.fields?.[key] ?? sale?.[key] ?? initialValues?.[key] ?? "";
     return typeof value === "boolean" ? String(value) : value;
   };
+  const [companyDirector2, setCompanyDirector2] = useState({
+    name: String(v("contact_person_2") || ""),
+    designation: String(v("customer_occupation_2") || ""),
+    mobile: String(v("customer_phone_2") || ""),
+    email: String(v("customer_email_2") || ""),
+  });
   const salutation1=derivedSalutation(v("customer_salutation"),v("customer_sex"));
   const salutation2=derivedSalutation(v("customer_salutation_2"),v("customer_sex_2"));
   const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
@@ -296,6 +302,12 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
     });
     writeValues();
     if (fields.director_2_name) {
+      setCompanyDirector2({
+        name: fields.director_2_name || "",
+        designation: fields.director_2_designation || "",
+        mobile: fields.director_2_mobile || "",
+        email: fields.director_2_email || "",
+      });
       setHasSecond(true);
       window.setTimeout(writeValues, 0);
     }
@@ -382,13 +394,17 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           <div className="purchaser-column-title"><span>02</span><h3>{purchaserType === "company" ? "Authorised director 2" : "Purchaser 2"}</h3></div>
           {purchaserType === "company" && <CompanyDirectorUpload onUseFields={applyDirectorFields} />}
           {hasSecond ? <>
-            {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={name==="customer_salutation_2"?salutation2:String(v(name) || "")} data-second-field={name} readOnly />)}
             {purchaserType === "company" ? <>
-            <RecordedField label="Director name" value={v("contact_person_2")} />
-            <RecordedField label="Designation" value={v("customer_occupation_2")} />
-            <RecordedField label="Mobile number" value={v("customer_phone_2")} />
-            <RecordedField label="Email" value={v("customer_email_2")} />
+            <input type="hidden" name="contact_person_2" value={companyDirector2.name} readOnly />
+            <input type="hidden" name="customer_occupation_2" value={companyDirector2.designation} readOnly />
+            <input type="hidden" name="customer_phone_2" value={companyDirector2.mobile} readOnly />
+            <input type="hidden" name="customer_email_2" value={companyDirector2.email} readOnly />
+            <RecordedField label="Director name" value={companyDirector2.name} />
+            <RecordedField label="Designation" value={companyDirector2.designation} />
+            <RecordedField label="Mobile number" value={companyDirector2.mobile} />
+            <RecordedField label="Email" value={companyDirector2.email} />
             </> : <>
+            {secondPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={name==="customer_salutation_2"?salutation2:String(v(name) || "")} data-second-field={name} readOnly />)}
             <RecordedField label="Salutation" value={salutation2} />
             <RecordedField label="Full name" value={v("customer_name_2")} />
             <RecordedField label="IC / Passport / Company No." value={v("customer_ic_2")} />
@@ -456,23 +472,27 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
               <Field
                 name="contact_person_2"
                 label="Authorised director name"
-                defaultValue={v("contact_person_2")}
+                value={companyDirector2.name}
+                onChange={(name) => setCompanyDirector2((current) => ({ ...current, name }))}
               />
               <Field
                 name="customer_occupation_2"
                 label="Designation"
-                defaultValue={v("customer_occupation_2")}
+                value={companyDirector2.designation}
+                onChange={(designation) => setCompanyDirector2((current) => ({ ...current, designation }))}
               />
               <Field
                 name="customer_phone_2"
                 label="Mobile number"
-                defaultValue={v("customer_phone_2")}
+                value={companyDirector2.mobile}
+                onChange={(mobile) => setCompanyDirector2((current) => ({ ...current, mobile }))}
               />
               <Field
                 name="customer_email_2"
                 label="Email"
                 type="email"
-                defaultValue={v("customer_email_2")}
+                value={companyDirector2.email}
+                onChange={(email) => setCompanyDirector2((current) => ({ ...current, email }))}
               />
               </> : <>
               <Select
@@ -558,7 +578,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
                 type="button"
                 className="button"
                 onClick={(event) => {
-                  if (event.currentTarget.form) keepSecondPurchaser(event.currentTarget.form);
+                  if (purchaserType === "individual" && event.currentTarget.form) keepSecondPurchaser(event.currentTarget.form);
                   setHasSecond(true);
                   setSecondOpen(false);
                 }}
