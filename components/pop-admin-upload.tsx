@@ -192,6 +192,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
     setMessage("Saving the POP administration details to the booking and letters…");
     const saved = await savePopAdminDetails(saleId, fields);
     setBusy(false);
+    if (!saved.error) onUseFields(fields);
     if (saved.agencyAppointmentLetterId || saved.agentLetterId) {
       setResult(null);
       setAgentDocuments({ appointment: saved.agencyAppointmentLetterId, fee: saved.agentLetterId });
