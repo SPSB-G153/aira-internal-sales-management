@@ -8,6 +8,7 @@ import { detailsForUnit, squareFeetToSquareMetres } from "@/lib/unit-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { combineAgencyDetails } from "@/lib/agency-details";
 import type { Sale } from "@/lib/types";
+import { prepareUploadedPopDocuments } from "@/lib/actions/sales";
 
 const numericFields = new Set(["floor_area", "floor_area_sqm", "purchase_price", "booking_fee"]);
 const isMalayRace = (race: unknown) => /\b(malay|melayu)\b/i.test(String(race || "").trim());
@@ -82,6 +83,11 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
   const [bookingSource, setBookingSource] = useState<"uploaded" | "manual">("manual");
   const [popSource, setPopSource] = useState<"uploaded" | "manual">("manual");
   const entryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!initialValues?.id) return;
+    void prepareUploadedPopDocuments(initialValues.id);
+  }, [initialValues?.id]);
 
   useEffect(() => {
     if (!mode || revision === 0) return;

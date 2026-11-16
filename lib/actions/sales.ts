@@ -1,7 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createSale,getSale,getSales,updateSale } from "@/lib/data/sales";
 import { buildDocumentSnapshot } from "@/lib/templates";
@@ -236,25 +235,24 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
       ?db.from("sales").update(values).eq("team_id",team.id).eq("id",existing.id).select("*").single()
       :db.from("sales").insert({...values,team_id:team.id,user_id:user?.id??null}).select("*").single();
     const{data:saleRow,error:saleError}=await saleWrite;if(saleError)throw saleError;
-    const sale=saleRow as Sale;const generated_at=new Date().toISOString();
-    const types:DocumentType[]=[];if(hasExternalAgent(sale))types.push("agency_appointment_letter","agent_commission_letter");
-    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
+    const sale=saleRow as Sale;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
-    // The sale is now safely stored, so do not hold the user's screen while
-    // preparing its derived documents. Next.js keeps this work alive after the
-    // action response has been sent and the booking step can open immediately.
-    after(async()=>{
-      try{
-        const [letterResult,sourceResult]=await Promise.all([
-          rows.length?db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"}):Promise.resolve({error:null}),
-          db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form"),
-        ]);
-        if(letterResult.error)throw letterResult.error;if(sourceResult.error)throw sourceResult.error;
-        revalidatePath(`/sales/${sale.id}`);revalidatePath("/documents");
-      }catch(error){console.error("Could not prepare uploaded POP documents",error);}
-    });
     return{saleId:sale.id};
   }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
+}
+export async function prepareUploadedPopDocuments(saleId:string):Promise<void>{
+  try{
+    const sale=await getSale(saleId);const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const types:DocumentType[]=hasExternalAgent(sale)?["agency_appointment_letter","agent_commission_letter"]:[];
+    const generated_at=new Date().toISOString();
+    const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
+    const [letterResult,sourceResult]=await Promise.all([
+      rows.length?db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"}):Promise.resolve({error:null}),
+      db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form"),
+    ]);
+    if(letterResult.error)throw letterResult.error;if(sourceResult.error)throw sourceResult.error;
+    revalidatePath(`/sales/${sale.id}`);revalidatePath("/documents");
+  }catch(error){console.error("Could not prepare uploaded POP documents",error);}
 }
 export async function confirmSale(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {
