@@ -644,6 +644,10 @@ async def extract_booking_fee(
             "options": {"temperature": 0, "num_ctx": 6144, "num_predict": 900},
         }
             result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
+            if not result.ok and "token repeat limit" in result.text.lower():
+                payload["messages"][0]["content"] += " Keep the JSON response concise and do not repeat any value or phrase."
+                payload["options"]["num_predict"] = 350
+                result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
             if not result.ok:
                 raise RuntimeError(f"Private model error: {result.text}")
             parsed = json.loads(result.json()["message"]["content"])
