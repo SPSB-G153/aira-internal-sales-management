@@ -541,6 +541,7 @@ async def save_file(
 async def extract_booking_fee(
     file: UploadFile = File(...),
     unit_number: str = Form(""),
+    expected_fee: str = Form(""),
 ):
     data = await file.read()
     if len(data) > 20_000_000:
@@ -553,6 +554,10 @@ async def extract_booking_fee(
     if not is_pdf and not is_image:
         raise HTTPException(status_code=400, detail="Please select a PDF, PNG, JPG or WebP receipt.")
     try:
+        try:
+            expected_amount = float(re.sub(r"[^0-9.]", "", expected_fee or ""))
+        except (TypeError, ValueError):
+            expected_amount = 0.0
         if is_pdf:
             receipt = fitz.open(stream=data, filetype="pdf")
             if not receipt.page_count:
@@ -574,7 +579,8 @@ async def extract_booking_fee(
                         "content": (
                             "This image contains at most one cheque. If present, read the numeric RM amount, "
                             "the written amount-in-words line, the boxed DATE as DD/MM/YY, and the six-digit "
-                            "MICR cheque number. Return empty strings if no cheque is present. Do not add a zero."
+                            "MICR cheque number. Return empty strings if no cheque is present. Do not add a zero. "
+                            + (f"The expected 2% booking fee is RM {expected_amount:,.2f}; use it only to help distinguish the handwritten RM amount from dates and cheque numbers, and return it only if the cheque visibly supports it." if expected_amount > 0 else "")
                         ),
                         "images": [image],
                     }],
@@ -693,11 +699,19 @@ async def extract_booking_fee(
             fields["payment_reference"] = normalize_cheque_reference(
                 fields["payment_reference"], fields["sale_date"], file.filename or ""
             )
+        warnings = []
+        try:
+            extracted_amount = float(fields["booking_fee"])
+        except (TypeError, ValueError):
+            extracted_amount = 0.0
+        if expected_amount > 0 and (extracted_amount <= 0 or extracted_amount < expected_amount * 0.1):
+            fields["booking_fee"] = f"{expected_amount:.2f}"
+            warnings.append("The handwritten cheque amount was unclear, so the expected 2% booking fee was prefilled. Please verify it against the cheque before using these details.")
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "receipt.pdf").suffix or ".pdf"
         path = folder / f"Booking_Fee_{safe_part(unit_number, 'Unidentified')}{suffix}"
         path.write_bytes(data)
-        return {"fields": fields, "warnings": [], "saved_path": str(path)}
+        return {"fields": fields, "warnings": warnings, "saved_path": str(path)}
     except requests.ConnectionError as error:
         raise HTTPException(status_code=503, detail="The private handwriting model is not running.") from error
     except Exception as error:

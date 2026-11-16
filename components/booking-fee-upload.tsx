@@ -45,6 +45,7 @@ export function BookingFeeUpload({
       const body = new FormData();
       body.set("file", file);
       body.set("unit_number", unitNumber || "");
+      body.set("expected_fee", expectedFee > 0 ? String(expectedFee) : "");
       const localUrl = privateReaderUrl();
       const response = await fetch(`${localUrl}/extract-booking-fee`, { method: "POST", body });
       const data = await response.json();
