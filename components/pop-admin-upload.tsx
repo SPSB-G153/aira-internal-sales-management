@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
@@ -61,6 +62,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
   showNamecard?: boolean;
   compact?: boolean;
 }) {
+  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const namecardInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -153,31 +155,16 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
     const fields = result.fields;
     if (!saleId) {
       setBusy(true);
-      setMessage("Saving the uploaded POP and preparing its documents…");
+      setMessage("Saving the uploaded POP and opening the Booking Form…");
       try {
         const saved = await Promise.race([
           saveUploadedPopDetails(fields),
           new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Saving took too long. Nothing else was submitted; please try Continue again.")), 30000)),
         ]);
-        if (saved.agencyAppointmentLetterId || saved.agentLetterId) {
-          setResult(null);
-          if (saved.saleId) {
-            window.location.assign(`/sales/new?continue=${saved.saleId}#booking-form`);
-            return;
-          }
-          setAgentDocuments({ appointment: saved.agencyAppointmentLetterId, fee: saved.agentLetterId });
-          return;
-        }
-        if (saved.previewDocumentId) {
-          if (saved.saleId) {
-            window.location.assign(`/sales/new?continue=${saved.saleId}#booking-form`);
-            return;
-          }
-          setMessage("The POP was saved, but no agent letter was created. Check that the agent name, mobile or email is filled above.");
-          return;
-        }
         if (saved.saleId) {
-          window.location.assign(`/sales/new?continue=${saved.saleId}#booking-form`);
+          const destination = `/sales/new?continue=${encodeURIComponent(saved.saleId)}#booking-form`;
+          setResult(null);
+          router.replace(destination);
           return;
         }
         setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
@@ -251,7 +238,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         </button>}
         <div className="upload-review-actions">
           <button type="button" className="button secondary" disabled={busy} onClick={() => setResult(null)}>Cancel</button>
-          <button type="button" className="button accent" disabled={busy} onClick={() => void apply()}>{busy ? "Preparing agent letters…" : saleId ? "Save these details" : "Continue with these details"}</button>
+          <button type="button" className="button accent" disabled={busy} onClick={() => void apply()}>{busy ? (saleId ? "Saving details…" : "Opening Booking Form…") : saleId ? "Save these details" : "Continue with these details"}</button>
         </div>
       </div>
     </div>}
