@@ -558,6 +558,7 @@ async def extract_booking_fee(
             expected_amount = float(re.sub(r"[^0-9.]", "", expected_fee or ""))
         except (TypeError, ValueError):
             expected_amount = 0.0
+        extraction_warnings = []
         if is_pdf:
             receipt = fitz.open(stream=data, filetype="pdf")
             if not receipt.page_count:
@@ -649,8 +650,23 @@ async def extract_booking_fee(
                 payload["options"]["num_predict"] = 350
                 result = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
             if not result.ok:
-                raise RuntimeError(f"Private model error: {result.text}")
-            parsed = json.loads(result.json()["message"]["content"])
+                if "token repeat limit" in result.text.lower() and expected_amount > 0:
+                    parsed = {
+                        "booking_fee": f"{expected_amount:.2f}",
+                        "booking_fee_text": f"{expected_amount:.2f}",
+                        "sale_date": "",
+                        "payment_method": "cheque",
+                        "payment_reference": "",
+                        "cheque_amounts": "",
+                        "cheque_amount_words": "",
+                        "cheque_dates": "",
+                        "cheque_references": "",
+                    }
+                    extraction_warnings.append("The handwriting model could not finish reading this cheque. The expected 2% amount was prefilled; please enter the cheque date and reference manually if they are blank.")
+                else:
+                    raise RuntimeError(f"Private model error: {result.text}")
+            else:
+                parsed = json.loads(result.json()["message"]["content"])
         fields = {
             name: str(parsed.get(name, "") or "").strip()
             for name in ("booking_fee", "sale_date", "payment_method", "payment_reference")
@@ -703,7 +719,7 @@ async def extract_booking_fee(
             fields["payment_reference"] = normalize_cheque_reference(
                 fields["payment_reference"], fields["sale_date"], file.filename or ""
             )
-        warnings = []
+        warnings = list(extraction_warnings)
         try:
             extracted_amount = float(fields["booking_fee"])
         except (TypeError, ValueError):
