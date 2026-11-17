@@ -38,6 +38,7 @@ h3 { margin:0; font-size:16px; }
 .button.accent { background:linear-gradient(135deg,#e5c158,#aa820a); color:#101217; }
 .button.danger { background:#2b2517; color:var(--red); border-color:#6a5521; }
 .button:disabled { opacity:.55; cursor:not-allowed; }
+.booking-upload>.button.secondary,.tracker-upload.button.secondary,.compact-upload-button.button.secondary { background:linear-gradient(135deg,#e5c158,#aa820a); color:#101217; border-color:#d4af3766; box-shadow:0 6px 18px #0004; }
 .card { background:linear-gradient(145deg,#191c23,#15171d); border:1px solid var(--line); border-radius:14px; box-shadow:0 18px 50px #0003; }
 .sales-list { overflow:hidden; }
 .sales-list-head { display:grid; grid-template-columns:minmax(280px,1.2fr) minmax(150px,.72fr) minmax(160px,.72fr) 220px 20px; column-gap:22px; padding:13px 22px 11px; border-bottom:1px solid var(--line); color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
