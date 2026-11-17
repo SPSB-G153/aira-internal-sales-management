@@ -91,7 +91,7 @@ export function BookingFeeUpload({
         if (file) void extract(file);
       }}
     />
-    <button type="button" className="button secondary" disabled={busy} onClick={() => input.current?.click()}>
+    <button type="button" className="button accent" disabled={busy} onClick={() => input.current?.click()}>
       {busy ? "Reading receipt…" : "Upload Booking Fee Receipt"}
     </button>
     {message && <p className="upload-message">{message}</p>}
