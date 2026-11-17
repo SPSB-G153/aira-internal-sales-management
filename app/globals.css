@@ -62,6 +62,7 @@ h3 { margin:0; font-size:16px; }
 .purchaser-particulars-grid { align-items:start; }
 .purchaser-one-column,.purchaser-two-column { display:grid; gap:16px; min-width:0; padding:22px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.018); }
 .purchaser-two-column { background:rgba(226,185,62,.035); }
+.sales-personnel-grid { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; align-items:start; }
 .purchaser-column-title { display:flex; align-items:center; gap:10px; padding-bottom:14px; margin-bottom:2px; border-bottom:1px solid var(--line); }
 .purchaser-column-title span { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--gold); color:#111; font-size:12px; font-weight:900; }
 .purchaser-column-title h3 { margin:0; font-size:22px; }
@@ -473,6 +474,7 @@ h3 { margin:0; font-size:16px; }
   .management-sale-row>span:nth-child(2) { overflow-wrap:anywhere; }
   .doc-grid,.form-grid { grid-template-columns:minmax(0,1fr); }
   .purchaser-one-column,.purchaser-two-column { padding:18px; }
+  .sales-personnel-grid { grid-template-columns:minmax(0,1fr); gap:15px; }
   .invite-grid { grid-template-columns:minmax(0,1fr); }
   .stats { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .stat { min-width:0; padding:17px 15px; }

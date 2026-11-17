@@ -10,6 +10,7 @@ import { storeyForUnit } from "@/lib/unit-details";
 import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
 import { agencyCompanyForSale, agencyDetailsForSale } from "@/lib/agency-details";
 import { CompanyDirectorUpload, type DirectorFields } from "@/components/company-director-upload";
+import { operationalSaleReference } from "@/lib/sale-state";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual"; popSource?: "uploaded" | "manual" };
 const Field = ({
@@ -221,7 +222,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const [solicitorName, setSolicitorName] = useState(String(solicitorForLetter(initialUnitNumber,sale?.solicitor_name || initialValues?.solicitor_name || state.fields?.solicitor_name)));
   const [unitNumber, setUnitNumber] = useState(initialUnitNumber);
   const [popAdmin, setPopAdmin] = useState<Record<string, string>>({
-    sale_reference: String(v("sale_reference")),
+    sale_reference: operationalSaleReference({ sale_date: String(v("sale_date")) || null, unit_number: initialUnitNumber || null }) || String(v("sale_reference")),
     salesperson_name: String(v("salesperson_name")),
     salesperson_designation: String(v("salesperson_designation")),
     salesperson_mobile: String(storedSalesperson?.mobile || v("salesperson_mobile") || ""),
@@ -721,11 +722,13 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
         <div className="form-grid">
           <Field
             name="sale_reference"
-            label={`${entryMode === "booking" ? "Booking" : "POP"} reference (auto if blank)`}
+            label={`${entryMode === "booking" ? "Booking" : "POP"} reference no.`}
             value={popAdmin.sale_reference}
             onChange={(value) => setPopAdmin((current) => ({ ...current, sale_reference: value }))}
+            wide
           />
           <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
+          <div className="sales-personnel-grid">
           <div className="purchaser-one-column">
           <div className="purchaser-column-title"><span>01</span><h3>Sales Personnel 1</h3></div>
           <Field
@@ -773,6 +776,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <RecordedField label="Mobile number" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.mobile} />
             <RecordedField label="Email" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.email} />
           </>}
+          </div>
           </div>
           <div className="agent-fields-heading">
             <h3>Agent</h3>

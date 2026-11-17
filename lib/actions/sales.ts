@@ -9,7 +9,7 @@ import { canonicalUnitNumber, detailsForUnit, squareFeetToSquareMetres, storeyFo
 import type { DocumentType,Sale } from "@/lib/types";
 import { agencyDetailsForSale, approvedAgentDetailsForUnit, combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
-import { hasRecordedBookingPayment } from "@/lib/sale-state";
+import { hasRecordedBookingPayment, operationalSaleReference } from "@/lib/sale-state";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
 
 export type FormState={error?:string;fields?:Record<string,string>;fieldErrors?:Record<string,string>};
@@ -134,6 +134,7 @@ export async function saveSale(_:FormState,form:FormData):Promise<FormState>{
         }
       }
     }
+    values.sale_reference=operationalSaleReference(values)||values.sale_reference;
     sale=id?await updateSale(id,values):await createSale(values);
     const db=await createClient();
     const{team}=await getTeamContext();
@@ -235,7 +236,11 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
       ?db.from("sales").update(values).eq("team_id",team.id).eq("id",existing.id).select("*").single()
       :db.from("sales").insert({...values,team_id:team.id,user_id:user?.id??null}).select("*").single();
     const{data:saleRow,error:saleError}=await saleWrite;if(saleError)throw saleError;
-    const sale=saleRow as Sale;
+    const preliminarySale=saleRow as Sale;
+    const approvedReference=operationalSaleReference(preliminarySale);
+    const sale=approvedReference&&preliminarySale.sale_reference!==approvedReference
+      ?await updateSale(preliminarySale.id,{sale_reference:approvedReference})
+      :preliminarySale;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     return{saleId:sale.id};
   }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
