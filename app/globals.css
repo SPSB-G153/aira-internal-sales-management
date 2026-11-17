@@ -264,7 +264,7 @@ h3 { margin:0; font-size:16px; }
 .ccd-transmittal-head dd { margin:0; }
 .ccd-transmittal p { margin:0 0 5mm; }
 .ccd-transmittal .ccd-file-line { margin-bottom:2.5mm; font-weight:700; }
-.ccd-checklist { margin:0 0 6mm; padding:0; list-style:none; counter-reset:ccd-item; }
+.ccd-checklist { margin:0 25mm 6mm 0; padding:0; list-style:none; counter-reset:ccd-item; }
 .ccd-checklist li { display:grid; grid-template-columns:9mm minmax(0,1fr) 22mm; min-height:4.1mm; counter-increment:ccd-item; }
 .ccd-checklist li::before { content:counter(ccd-item) "."; padding-left:1.5mm; }
 .ccd-checklist li span small { display:block; margin-top:1px; color:#000; font-size:9pt; }
