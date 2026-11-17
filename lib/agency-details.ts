@@ -51,7 +51,14 @@ type AgencyFallbackSource = {
 
 export function approvedAgentDetailsForUnit(unitNumber: unknown) {
   const unit = String(unitNumber ?? "").trim().toUpperCase();
-  if (unit === "B-06-03") return { agent_name: "ALDRIN TAN", agent_designation: "Chief Executive Officer" };
+  if (unit === "B-06-03") return {
+    agent_company: "ESPIRIT ESTATE AGENT SDN BHD",
+    agent_address: "2nd Floor, No. 1, Jalan Penguasa A U1/53A, Temasya Glenmarie, 40150 Shah Alam, Selangor",
+    agent_name: "ALDRIN TAN",
+    agent_designation: "Chief Executive Officer",
+    agent_mobile: "",
+    agent_email: "",
+  };
   return null;
 }
 
@@ -69,7 +76,7 @@ export function legacyAgencyCompany(source: AgencyFallbackSource) {
 }
 
 export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
-  return splitAgencyDetails(source.agent_company).company || legacyAgencyCompany(source);
+  return approvedAgentDetailsForUnit(source.unit_number)?.agent_company || splitAgencyDetails(source.agent_company).company || legacyAgencyCompany(source);
 }
 
 export function agencyDetailsForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
@@ -87,8 +94,13 @@ export function agencyDetailsForSale(source: AgencyFallbackSource & { agent_comp
   };
   const approved = approvedAgentDetailsForUnit(source.unit_number);
   if (approved) {
+    flattened.address = approved.agent_address;
     flattened.agent_name = approved.agent_name;
     flattened.agent_designation = approved.agent_designation;
+    // Do not retain another agent's contact details on this approved record.
+    // The correct private values can be entered and stored through the app.
+    flattened.agent_mobile = "";
+    flattened.agent_email = "";
   }
   const introduction = String(source.pop_introduction_agent ?? "").trim();
   const introducedName = introduction.split(",")[0]?.trim() ?? "";

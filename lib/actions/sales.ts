@@ -217,7 +217,7 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const clean=(key:string)=>String(fields[key]??"").trim();
     const unit=canonicalUnitNumber(clean("unit_number"));const customer=purchaserNameWithoutSalutation(clean("customer_name"));const parsedPrice=Number(clean("purchase_price").replace(/[^0-9.-]/g,""));const price=Number.isFinite(parsedPrice)&&parsedPrice>0?parsedPrice:0;
     if(!unit)return{error:"The unit number could not be read from the uploaded POP. Please enter it in the extracted-details review."};
-    const company=clean("agent_company");const approvedAgent=approvedAgentDetailsForUnit(unit);const agentDetails=combineAgencyDetails(company,clean("agent_address"),approvedAgent?.agent_name||clean("agent_name"),approvedAgent?.agent_designation||clean("agent_designation"),clean("agent_mobile"),clean("agent_email"))||null;
+    const approvedAgent=approvedAgentDetailsForUnit(unit);const company=approvedAgent?.agent_company||clean("agent_company");const agentDetails=combineAgencyDetails(company,approvedAgent?.agent_address||clean("agent_address"),approvedAgent?.agent_name||clean("agent_name"),approvedAgent?.agent_designation||clean("agent_designation"),approvedAgent?approvedAgent.agent_mobile:clean("agent_mobile"),approvedAgent?approvedAgent.agent_email:clean("agent_email"))||null;
     // Keep the post-extraction save fast: use one database session and look up
     // only the unit being uploaded.  getSales(unit) fetched and sorted the full
     // matching sale payload before doing another connection for the write.

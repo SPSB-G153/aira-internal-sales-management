@@ -8,7 +8,7 @@ import { BookingFeeUpload, type BookingFeeFields } from "@/components/booking-fe
 import { solicitorForLetter, solicitorForUnit } from "@/lib/unit-solicitor";
 import { storeyForUnit } from "@/lib/unit-details";
 import { profileForSalesPersonnel, salesPersonnel } from "@/lib/sales-personnel";
-import { splitAgencyDetails } from "@/lib/agency-details";
+import { agencyCompanyForSale, agencyDetailsForSale } from "@/lib/agency-details";
 import { CompanyDirectorUpload, type DirectorFields } from "@/components/company-director-upload";
 import type { Sale } from "@/lib/types";
 type Props = { sale?: Sale; initialValues?: Partial<Sale>; mode?: "booking" | "pop"; bookingSource?: "uploaded" | "manual"; popSource?: "uploaded" | "manual" };
@@ -194,7 +194,8 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const salutation1=derivedSalutation(v("customer_salutation"),v("customer_sex"));
   const salutation2=derivedSalutation(v("customer_salutation_2"),v("customer_sex_2"));
   const entryMode = sale ? (sale.status === "draft" ? "pop" : "booking") : mode ?? "booking";
-  const storedAgency = splitAgencyDetails(sale?.agent_company ?? initialValues?.agent_company ?? "");
+  const agencySource = sale ?? initialValues ?? {};
+  const storedAgency = { ...agencyDetailsForSale(agencySource), company: agencyCompanyForSale(agencySource) };
   const storedSalesperson = profileForSalesPersonnel(String(v("salesperson_name")));
   const [price, setPrice] = useState(String(sale?.purchase_price ?? initialValues?.purchase_price ?? ""));
   const [bookingFee, setBookingFee] = useState(() => {
