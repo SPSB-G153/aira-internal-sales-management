@@ -629,7 +629,8 @@ async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo
   const purchasers=[text(content,"customer_name",""),text(content,"customer_name_2","")].filter(Boolean).join(" & ").toUpperCase();
   const rawDate=String(content.spa_signed_at||content.letter_issued_at||"");const parsedDate=rawDate?new Date(`${rawDate.slice(0,10)}T00:00:00Z`):null;
   const documentDate=parsedDate&&!Number.isNaN(parsedDate.getTime())?`${String(parsedDate.getUTCDate()).padStart(2,"0")}.${String(parsedDate.getUTCMonth()+1).padStart(2,"0")}.${String(parsedDate.getUTCFullYear()).slice(-2)}`:"—";
-  const signatureDate=parsedDate&&!Number.isNaN(parsedDate.getTime())?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"}).format(parsedDate):"—";
+  const generatedRaw=String(content.letter_issued_at||"");const generatedDate=generatedRaw?new Date(generatedRaw.length===10?`${generatedRaw}T00:00:00Z`:generatedRaw):null;
+  const signatureDate=generatedDate&&!Number.isNaN(generatedDate.getTime())?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(generatedDate):"—";
   const cleanCell=(children:Paragraph[],width:number)=>new TableCell({width:{size:width,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:40,bottom:40,left:40,right:40},children});
   const headCell=(children:Paragraph[],width:number)=>new TableCell({width:{size:width,type:WidthType.DXA},margins:{top:70,bottom:70,left:40,right:40},children});
   const headerRows:[[string,string],...Array<[string,string]>]=[["To","Credit Control Department"],["From","Sales Department"],["Date",documentDate],["RE",`Documents for Unit No : ${unit} (AIRA Residence Damansara)\n- ${purchasers}`]];
@@ -651,7 +652,7 @@ async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo
     new Paragraph({spacing:{after:160},children:[new TextRun(`Customer file unit : ${unit} which contains the followings : -`)]}),
     new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:checklist.map(([label,checked,details],index)=>new TableRow({children:[cleanCell([new Paragraph(String(index+1))],500),cleanCell([new Paragraph({children:[new TextRun(label)]}),...(details?[new Paragraph({children:[new TextRun({text:details,size:16,color:"555555"})]})]:[])],7200),cleanCell([new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:checked?"√":"",bold:true,size:24})]})],800)]}))}),
     new Paragraph({spacing:{before:260,after:260},children:[new TextRun("Thank You.")]}),
-    new Paragraph({children:[new TextRun({text:"Kat",font:"Brush Script MT",bold:true,size:40})]}),
+    new Paragraph({spacing:{before:0,after:0},children:[new TextRun({text:"Kat",font:"Brush Script MT",bold:true,size:32})]}),
     new Paragraph("……………………………………………"),new Paragraph("Katherine Chew"),new Paragraph({children:[new TextRun({text:`Date : ${signatureDate}`,size:22})]}),
   ]}]});
   return new Uint8Array(await Packer.toBuffer(document));

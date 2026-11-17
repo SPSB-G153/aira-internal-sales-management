@@ -118,7 +118,9 @@ function CcdTransmittalLetter({content}:{content:Content}){
   const signedDate=String(content.spa_signed_at||content.letter_issued_at||"");
   const parsedDate=signedDate?new Date(`${signedDate.slice(0,10)}T00:00:00Z`):null;
   const headerDate=parsedDate&&!Number.isNaN(parsedDate.getTime())?`${String(parsedDate.getUTCDate()).padStart(2,"0")}.${String(parsedDate.getUTCMonth()+1).padStart(2,"0")}.${String(parsedDate.getUTCFullYear()).slice(-2)}`:"—";
-  const signatureDate=parsedDate&&!Number.isNaN(parsedDate.getTime())?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"UTC"}).format(parsedDate):"—";
+  const generatedRaw=String(content.letter_issued_at||"");
+  const generatedDate=generatedRaw?new Date(generatedRaw.length===10?`${generatedRaw}T00:00:00Z`:generatedRaw):null;
+  const signatureDate=generatedDate&&!Number.isNaN(generatedDate.getTime())?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(generatedDate):"—";
   const rows=[
     [value(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),value(content,"ccd_identity_details","")],
     ["Notice of Acceptance Letter",Boolean(content.ccd_notice_uploaded),""],
