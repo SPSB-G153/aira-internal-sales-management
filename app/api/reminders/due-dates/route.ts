@@ -49,7 +49,7 @@ export async function GET(request: Request) {
   const db = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
   const { data, error } = await db
     .from("sales")
-    .select("id,unit_number,customer_name,spa_signing_due_at,spa_signing_scheduled_at,spa_signed_at")
+    .select("id,unit_number,customer_name,customer_name_2,spa_signing_due_at,spa_signing_scheduled_at,spa_signed_at")
     .or(`spa_signing_due_at.eq.${tomorrow},spa_signing_scheduled_at.eq.${tomorrow}`);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -60,7 +60,7 @@ export async function GET(request: Request) {
     if (dueDate !== tomorrow) return [];
     return [{
       unit: sale.unit_number || "Unit pending",
-      purchaser: sale.customer_name,
+      purchaser: [sale.customer_name, sale.customer_name_2].filter(Boolean).join(" & "),
       dueDate,
       action: sale.spa_signing_scheduled_at ? "SPA signing is scheduled" : "SPA signing is due",
     }];

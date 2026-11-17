@@ -4,6 +4,13 @@ export function purchaserNameWithoutSalutation(value:string|null|undefined){
   return String(value||"").trim().replace(leadingTitle,"").trim();
 }
 
+export function purchaserDisplayName(sale:{customer_name:string|null|undefined;customer_name_2?:string|null},separator=" & "){
+  return [sale.customer_name,sale.customer_name_2]
+    .map(purchaserNameWithoutSalutation)
+    .filter(Boolean)
+    .join(separator);
+}
+
 export function salutationFromPurchaserName(value:string|null|undefined){
   const match=String(value||"").trim().match(/^(mr|ms|mrs|miss|dr|dato'?|datin|tan\s+sri|puan\s+sri|en|cik)\.?\b/i);
   if(!match)return "";

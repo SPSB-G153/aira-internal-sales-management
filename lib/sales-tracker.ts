@@ -1,5 +1,6 @@
 import type { Sale, SaleDocument } from "@/lib/types";
 import { hasRecordedBookingPayment } from "@/lib/sale-state";
+import { purchaserDisplayName } from "@/lib/purchaser-name";
 
 export type TrackerTone = "on-track" | "action" | "pending" | "overdue" | "completed";
 export type TrackerRow = {
@@ -37,7 +38,7 @@ const malaysiaToday = () => new Intl.DateTimeFormat("en-CA", {
 const isPast = (date: string | null, today: string) => Boolean(date && date < today);
 
 export function trackerRow(sale: Sale, today = malaysiaToday()): TrackerRow {
-  const base = { id: sale.id, unit: sale.unit_number || "Unit pending", purchaser: sale.customer_name };
+  const base = { id: sale.id, unit: sale.unit_number || "Unit pending", purchaser: purchaserDisplayName(sale) };
   if (!hasRecordedBookingPayment(sale)) return { ...base, currentStage: "Booking pending payment", keyDate: sale.sale_date, nextAction: "Upload 2% payment evidence", status: "Pending", tone: "pending" };
   if (sale.status === "hovp_ready" || sale.vacant_possession_delivered_at) return { ...base, currentStage: "HOVP issued", keyDate: sale.vacant_possession_delivered_at, nextAction: "Record handover completion", status: "Completed", tone: "completed" };
   if (sale.balance_purchase_price_received_at) return { ...base, currentStage: "Purchase price settled", keyDate: sale.balance_purchase_price_received_at, nextAction: "Upload clearance letter when received", status: "On Track", tone: "on-track" };
