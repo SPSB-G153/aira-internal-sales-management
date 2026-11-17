@@ -219,11 +219,12 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const [parkingBay, setParkingBay] = useState(String(sale?.car_parking_bay ?? initialValues?.car_parking_bay ?? state.fields?.car_parking_bay ?? ""));
   const [storeyNumber, setStoreyNumber] = useState(String(sale?.storey_number ?? initialValues?.storey_number ?? state.fields?.storey_number ?? ""));
   const initialUnitNumber=String(sale?.unit_number ?? initialValues?.unit_number ?? state.fields?.unit_number ?? "");
+  const todayInMalaysia = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const [solicitorName, setSolicitorName] = useState(String(solicitorForLetter(initialUnitNumber,sale?.solicitor_name || initialValues?.solicitor_name || state.fields?.solicitor_name)));
   const [unitNumber, setUnitNumber] = useState(initialUnitNumber);
-  const approvedSaleReference = operationalSaleReference({ sale_date: paymentDate || null, unit_number: unitNumber || null });
+  const approvedSaleReference = operationalSaleReference({ sale_date: paymentDate || todayInMalaysia, unit_number: unitNumber || null });
   const [popAdmin, setPopAdmin] = useState<Record<string, string>>({
-    sale_reference: operationalSaleReference({ sale_date: String(v("sale_date")) || null, unit_number: initialUnitNumber || null }) || String(v("sale_reference")),
+    sale_reference: operationalSaleReference({ sale_date: String(v("sale_date")) || todayInMalaysia, unit_number: initialUnitNumber || null }) || "",
     salesperson_name: String(v("salesperson_name")),
     salesperson_designation: String(v("salesperson_designation")),
     salesperson_mobile: String(storedSalesperson?.mobile || v("salesperson_mobile") || ""),
