@@ -309,13 +309,46 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
     const updated=await updateSaleIgnoringUnavailableTrackerColumns(id,values);
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
+    const{data:recordedDocuments,error:recordedDocumentsError}=await db.from("documents").select("document_type,generated_at,content").eq("team_id",team.id).eq("sale_id",id);
+    if(recordedDocumentsError)throw recordedDocumentsError;
+    const recordedTypes=new Set((recordedDocuments??[]).map(document=>document.document_type));
     if(updated.inventory_required){
-      const{data:existing,error:existingError}=await db.from("documents").select("generated_at").eq("team_id",team.id).eq("sale_id",id).eq("document_type","inventory_confirmation_letter").maybeSingle();
-      if(existingError)throw existingError;
+      const existing=(recordedDocuments??[]).find(document=>document.document_type==="inventory_confirmation_letter");
       const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"inventory_confirmation_letter",content:buildDocumentSnapshot(updated,"inventory_confirmation_letter"),status:"generated",generated_at:existing?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
       if(error)throw error;
     }else{
       const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",id).eq("document_type","inventory_confirmation_letter");
+      if(error)throw error;
+    }
+    if(signedDate){
+      const isNric=(value:string|null)=>/^\d{6}-?\d{2}-?\d{4}$/.test(String(value||"").replace(/\s/g,""));
+      const identities:Array<[string,string]>=[];
+      if(updated.customer_name&&updated.customer_ic)identities.push([updated.customer_name,updated.customer_ic]);
+      if(updated.customer_name_2&&updated.customer_ic_2)identities.push([updated.customer_name_2,updated.customer_ic_2]);
+      const identityKinds=Array.from(new Set(identities.map(([,identifier])=>isNric(identifier)?"NRIC":"Passport")));
+      const existing=(recordedDocuments??[]).find(document=>document.document_type==="ccd_transmittal_letter");
+      const existingContent=(existing as {content?:Record<string,unknown>}|undefined)?.content;
+      const priorItems=Array.isArray(existingContent?.ccd_uploaded_items)?existingContent.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
+      const bookingPaymentItem=updated.booking_fee?`2% booking fee ${updated.payment_method==="cheque"?"cheque":updated.payment_method==="bank_transfer"?"bank-transfer receipt":updated.payment_method==="cash"?"cash receipt":"payment evidence"}${updated.payment_reference?` (${updated.payment_reference})`:""}`:"";
+      const content={
+        ...buildDocumentSnapshot(updated,"ccd_transmittal_letter"),
+        letter_issued_at:signedDate,
+        spa_signed_at:signedDate,
+        ccd_identity_label:identityKinds.length===1?`Photocopy of ${identityKinds[0]}`:"Photocopy of NRIC / Passport",
+        ccd_identity_details:identities.map(([name,identifier])=>`${name}: ${identifier}`).join("; "),
+        ccd_identity_uploaded:identities.length>0,
+        ccd_notice_uploaded:recordedTypes.has("acceptance_letter"),
+        ccd_rebate_uploaded:recordedTypes.has("rebate_letter"),
+        ccd_pop_uploaded:recordedTypes.has("pre_booking_form")||Boolean(updated.pop_introduction_agent||updated.pop_introduction_spsb||updated.approved_selling_price),
+        ccd_misc_uploaded:false,
+        ccd_booking_uploaded:recordedTypes.has("booking_form"),
+        ccd_spa_completed:true,
+        ccd_uploaded_items:Array.from(new Set([...priorItems,...(bookingPaymentItem?[bookingPaymentItem]:[])])),
+      };
+      const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"ccd_transmittal_letter",content,status:"generated",generated_at:existing?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
+      if(error)throw error;
+    }else{
+      const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",id).eq("document_type","ccd_transmittal_letter");
       if(error)throw error;
     }
     revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/dashboard");revalidatePath("/operations");
@@ -325,6 +358,21 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
 export async function markSpaSigned(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try { await updateSale(id,{status:"spa_signed"}); } catch { return {error:"Could not mark the SPA as signed."}; }
   revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/dashboard");return {};
+}
+export async function recordTransmittalUpload(id:string,label:string):Promise<void>{
+  const cleanLabel=label.trim();if(!cleanLabel)return;
+  try{
+    const sale=await getSale(id);if(!sale.spa_signed_at)return;
+    const db=await createClient();const{team}=await getTeamContext();
+    const{data:document,error}=await db.from("documents").select("id,content").eq("team_id",team.id).eq("sale_id",id).eq("document_type","ccd_transmittal_letter").maybeSingle();
+    if(error)throw error;if(!document)return;
+    const content=(document.content??{}) as Record<string,unknown>;
+    const existing=Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
+    const items=Array.from(new Set([...existing,cleanLabel]));
+    const{error:updateError}=await db.from("documents").update({content:{...content,ccd_uploaded_items:items}}).eq("team_id",team.id).eq("id",document.id);
+    if(updateError)throw updateError;
+    revalidatePath(`/sales/${id}`);revalidatePath(`/documents/${document.id}`);revalidatePath("/documents");
+  }catch(error){console.error("Could not add upload to CCD transmittal",error);}
 }
 export async function generateHovp(id:string,_:ConfirmState,__form:FormData):Promise<ConfirmState>{
   try {

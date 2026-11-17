@@ -252,6 +252,20 @@ h3 { margin:0; font-size:16px; }
 .management-alert.overdue { border-left:3px solid #d4a72c; padding-left:15px; background:#a9781010; }
 .management-alert-clear { display:flex; flex-direction:column; gap:5px; padding:18px 4px 2px; color:var(--muted); }
 .management-alert-clear strong { color:var(--ink); }
+.ccd-transmittal { position:relative; min-height:900px; padding:70px 72px; font-family:Arial,sans-serif; font-size:15px; line-height:1.35; }
+.ccd-transmittal>.source-letter-head-emblem { position:absolute; top:40px; right:48px; width:auto; }
+.ccd-transmittal h1 { margin:0 0 38px; font-size:20px; text-align:left; }
+.ccd-transmittal-head { margin:0 0 28px; }
+.ccd-transmittal-head>div { display:grid; grid-template-columns:70px minmax(0,1fr); min-height:36px; align-items:start; }
+.ccd-transmittal-head dt { font-weight:700; }
+.ccd-transmittal-head dd { margin:0; }
+.ccd-checklist { margin:18px 0 32px; padding-left:28px; }
+.ccd-checklist li { display:grid; grid-template-columns:minmax(0,1fr) 70px; min-height:30px; padding-left:8px; }
+.ccd-checklist li span small { display:block; margin-top:2px; color:#444; font-size:11px; }
+.ccd-checklist li b { text-align:center; font-size:18px; }
+.ccd-signoff { display:flex; flex-direction:column; align-items:flex-start; margin-top:34px; }
+.ccd-signoff strong { margin-bottom:12px; font-family:cursive; font-size:20px; font-weight:400; }
+.ccd-signoff span:last-child { margin-top:2px; }
 .management-section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin-bottom:16px; }
 .management-section-head h2 { margin:3px 0 0; font-size:23px; }
 .management-action-list { display:grid; gap:2px; }

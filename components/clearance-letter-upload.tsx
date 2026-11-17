@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { generateHovpAfterClearance } from "@/lib/actions/sales";
+import { generateHovpAfterClearance, recordTransmittalUpload } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 
 export function ClearanceLetterUpload({ saleId, unitNumber }: { saleId: string; unitNumber: string }) {
@@ -26,6 +26,7 @@ export function ClearanceLetterUpload({ saleId, unitNumber }: { saleId: string; 
       const response = await fetch(`${privateReaderUrl()}/save-file`, { method: "POST", body });
       const result = await response.json();
       if (!response.ok) throw new Error(result.detail || "The clearance letter could not be saved locally.");
+      await recordTransmittalUpload(saleId, `Clearance Letter - ${file.name}`);
 
       setMessage("Clearance letter received locally. Issuing the HOVP Letter…");
       startTransition(async () => {

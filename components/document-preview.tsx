@@ -107,8 +107,25 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
     :type==="agent_commission_letter"?<AgentCommissionLetter content={previewContent}/>
     :type==="rebate_letter"?<RebateLetter content={previewContent}/>
     :type==="inventory_confirmation_letter"?<InventoryConfirmationLetter content={previewContent}/>
+    :type==="ccd_transmittal_letter"?<CcdTransmittalLetter content={previewContent}/>
     :<HovpLetterExact content={previewContent}/>;
   return <LetterDateProvider date={value(previewContent,"letter_issued_at","")}>{preview}</LetterDateProvider>;
+}
+
+function CcdTransmittalLetter({content}:{content:Content}){
+  const unit=value(content,"unit_number","");
+  const purchasers=[value(content,"customer_name",""),value(content,"customer_name_2","")].filter(Boolean).join(" & ").toUpperCase();
+  const rows=[
+    [value(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),value(content,"ccd_identity_details","")],
+    ["Notice of Acceptance Letter",Boolean(content.ccd_notice_uploaded),""],
+    ["Confirmation of Rebate Offer",Boolean(content.ccd_rebate_uploaded),""],
+    ["Approved POP",Boolean(content.ccd_pop_uploaded),""],
+    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded),""],
+    ["Booking Form",Boolean(content.ccd_booking_uploaded),""],
+    ["SPA signing completed",Boolean(content.ccd_spa_completed),value(content,"spa_signed_at","")],
+    ...(Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string").map(item=>[item,true,""] as const):[]),
+  ] as const;
+  return <article className="letter ccd-transmittal"><CompanyEmblem/><h1>TRANSMITTAL</h1><dl className="ccd-transmittal-head"><div><dt>To</dt><dd>Credit Control Department</dd></div><div><dt>From</dt><dd>Sales Department</dd></div><div><dt>Date</dt><dd>{formattedDate(content.spa_signed_at||content.letter_issued_at)}</dd></div><div><dt>RE</dt><dd>Documents for Unit No : {unit} (AIRA Residence Damansara)<br/>- {purchasers}</dd></div></dl><p>We enclose herewith the following documents for your further action.</p><p>Customer file unit : {unit} which contains the followings : -</p><ol className="ccd-checklist">{rows.map(([label,checked,details])=><li key={label}><span>{label}{details&&<small>{details}</small>}</span><b>{checked?"√":""}</b></li>)}</ol><p>Thank You.</p><div className="ccd-signoff"><strong>Kat</strong><span>……………………………………………</span><b>Katherine Chew</b><span>Date : {formattedDate(content.spa_signed_at||content.letter_issued_at)}</span></div></article>;
 }
 
 function AgencyCommissionTable(){return <table className="agency-commission-table agency-commission-table-approved"><thead><tr><th rowSpan={2}>TOWER / UNIT TYPE</th><th>SALES COMMISSION</th></tr><tr><th className="agency-commission-rate">% Purchase Price</th></tr></thead><tbody><tr><th colSpan={2}>Domestic Sales:</th></tr><tr><th>TOWER A</th><td/></tr><tr><td>Type A1</td><td>2.00</td></tr><tr><td>Type B</td><td>2.00</td></tr><tr><td>Type A2</td><td>2.00</td></tr><tr><td>Types D, E &amp; F</td><td>2.00</td></tr><tr><th>TOWER B</th><td/></tr><tr><td>Types G &amp; H</td><td>3.00</td></tr><tr className="agency-table-spacer"><td colSpan={2} aria-hidden="true"/></tr><tr className="agency-international"><th colSpan={2}>International Sales (Towers A &amp; B): &nbsp;&nbsp;&nbsp; <b>3.0%</b> of the Purchase Price</th></tr></tbody></table>}

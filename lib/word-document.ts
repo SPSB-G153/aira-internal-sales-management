@@ -624,6 +624,35 @@ async function createPopWord(content:Record<string,unknown>){
   return new Uint8Array(await Packer.toBuffer(document));
 }
 
+async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo:Uint8Array,emblemLogo:Uint8Array){
+  const unit=text(content,"unit_number","");
+  const purchasers=[text(content,"customer_name",""),text(content,"customer_name_2","")].filter(Boolean).join(" & ").toUpperCase();
+  const documentDate=date(content.spa_signed_at||content.letter_issued_at);
+  const cleanCell=(children:Paragraph[],width:number)=>new TableCell({width:{size:width,type:WidthType.DXA},borders:{top:noBorder,bottom:noBorder,left:noBorder,right:noBorder},margins:{top:40,bottom:40,left:40,right:40},children});
+  const headerRows:[[string,string],...Array<[string,string]>]=[["To","Credit Control Department"],["From","Sales Department"],["Date",documentDate],["RE",`Documents for Unit No : ${unit} (AIRA Residence Damansara)\n- ${purchasers}`]];
+  const checklist=[
+    [text(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),text(content,"ccd_identity_details","")],
+    ["Notice of Acceptance Letter",Boolean(content.ccd_notice_uploaded),""],
+    ["Confirmation of Rebate Offer",Boolean(content.ccd_rebate_uploaded),""],
+    ["Approved POP",Boolean(content.ccd_pop_uploaded),""],
+    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded),""],
+    ["Booking Form",Boolean(content.ccd_booking_uploaded),""],
+    ["SPA signing completed",Boolean(content.ccd_spa_completed),text(content,"spa_signed_at","")],
+    ...(Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string").map(item=>[item,true,""] as const):[]),
+  ] as const;
+  const document=new Document({styles:{default:{document:{run:{font:"Arial",size:20},paragraph:{spacing:{after:0,line:260}}}}},sections:[{properties:{page:{margin:{top:720,right:850,bottom:720,left:850}}},headers:{default:new Header({children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new ImageRun({data:emblemLogo,type:"png",transformation:{width:62,height:46}})]})]})},children:[
+    new Paragraph({spacing:{before:0,after:420},children:[new TextRun({text:"TRANSMITTAL",bold:true,size:24})]}),
+    new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:headerRows.map(([label,value])=>new TableRow({children:[cleanCell([new Paragraph({children:[new TextRun({text:label,bold:true})]})],1000),cleanCell(value.split("\n").map(line=>new Paragraph({children:[new TextRun(line)]})),7800)]}))}),
+    new Paragraph({spacing:{before:300,after:200},children:[new TextRun("We enclose herewith the following documents for your further action.")]}),
+    new Paragraph({spacing:{after:160},children:[new TextRun(`Customer file unit : ${unit} which contains the followings : -`)]}),
+    new Table({width:{size:100,type:WidthType.PERCENTAGE},rows:checklist.map(([label,checked,details],index)=>new TableRow({children:[cleanCell([new Paragraph(String(index+1))],500),cleanCell([new Paragraph({children:[new TextRun(label)]}),...(details?[new Paragraph({children:[new TextRun({text:details,size:16,color:"555555"})]})]:[])],7200),cleanCell([new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({text:checked?"√":"",bold:true,size:24})]})],800)]}))}),
+    new Paragraph({spacing:{before:260,after:260},children:[new TextRun("Thank You.")]}),
+    new Paragraph({children:[new TextRun({text:"Kat",italics:true,size:24})]}),
+    new Paragraph("……………………………………………"),new Paragraph({children:[new TextRun({text:"Katherine Chew",bold:true})]}),new Paragraph(`Date : ${documentDate}`),
+  ]}]});
+  return new Uint8Array(await Packer.toBuffer(document));
+}
+
 export async function createWordLetter(type:DocumentType,content:Record<string,unknown>){
   if(type==="pre_booking_form")return createPopWord(content);
   const [fullLogo,emblemLogo]=await Promise.all([
@@ -636,6 +665,7 @@ export async function createWordLetter(type:DocumentType,content:Record<string,u
     agent_commission_letter:createAgentCommissionWord,
     rebate_letter:createRebateWord,
     inventory_confirmation_letter:createInventoryWord,
+    ccd_transmittal_letter:createCcdTransmittalWord,
     hovp_letter:createHovpWord,
   };
   const exactGenerator=exactLetterGenerators[type];
