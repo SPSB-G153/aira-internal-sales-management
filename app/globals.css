@@ -267,7 +267,7 @@ h3 { margin:0; font-size:16px; }
 .ccd-checklist { margin:0 25mm 6mm 0; padding:0; list-style:none; counter-reset:ccd-item; }
 .ccd-checklist li { display:grid; grid-template-columns:9mm minmax(0,1fr) 22mm; min-height:4.1mm; counter-increment:ccd-item; }
 .ccd-checklist li::before { content:counter(ccd-item) "."; padding-left:1.5mm; }
-.ccd-checklist li span small { display:block; margin-top:1px; color:#000; font-size:9pt; }
+.ccd-checklist li span small { display:block; margin-top:1px; color:#000; font-size:9pt; white-space:pre-line; }
 .ccd-checklist li b { text-align:center; font-family:Calibri,Arial,sans-serif; font-size:12pt; font-weight:400; }
 .ccd-signoff { display:flex; flex-direction:column; align-items:flex-start; margin-top:3mm; line-height:1.05; }
 .ccd-signoff strong { margin-bottom:0; font-family:"Brush Script MT",cursive; font-size:16pt; font-weight:700; }
