@@ -731,13 +731,16 @@ async def extract_booking_fee(
             normalized_amount = normalize_booking_fee(value, value)
             try:
                 numeric_amount = float(normalized_amount)
-                words_amount = amount_from_words(cheque_word_values[index]) if index < len(cheque_word_values) else None
-                cheque_amounts.append(float(words_amount) if words_amount and abs(words_amount - numeric_amount) > 0.009 else numeric_amount)
+                # The numeric RM box is the amount actually written on the
+                # cheque.  Amount-in-words is only a fallback when that box
+                # cannot be read; it must never silently replace a visible
+                # numeric amount with a different interpretation.
+                cheque_amounts.append(numeric_amount)
             except (TypeError, ValueError):
-                pass
-        # Written words are the safer source when the scan clearly contains
-        # multiple cheques: handwriting OCR can add a zero to a boxed amount.
-        if word_amounts and (len(word_amounts) == len(cheque_amount_values) or len(word_amounts) >= 2):
+                words_amount = amount_from_words(cheque_word_values[index]) if index < len(cheque_word_values) else None
+                if words_amount is not None:
+                    cheque_amounts.append(float(words_amount))
+        if not cheque_amounts and word_amounts:
             cheque_amounts = word_amounts
         for value in cheque_date_values:
             normalized_date = normalize_payment_date(value)
@@ -775,9 +778,9 @@ async def extract_booking_fee(
             extracted_amount = float(fields["booking_fee"])
         except (TypeError, ValueError):
             extracted_amount = 0.0
-        if expected_amount > 0 and (extracted_amount <= 0 or extracted_amount < expected_amount * 0.1):
+        if expected_amount > 0 and extracted_amount <= 0:
             fields["booking_fee"] = f"{expected_amount:.2f}"
-            warnings.append("The handwritten cheque amount was unclear, so the expected 2% booking fee was prefilled. Please verify it against the cheque before using these details.")
+            warnings.append("The cheque amount could not be read, so the expected 2% booking fee was prefilled. Please verify it against the cheque before using these details.")
         folder = unit_folder(unit_number)
         suffix = Path(file.filename or "receipt.pdf").suffix or ".pdf"
         path = folder / f"Booking_Fee_{safe_part(unit_number, 'Unidentified')}{suffix}"
