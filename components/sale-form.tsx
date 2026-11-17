@@ -727,7 +727,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <input id="sale_reference" name="sale_reference" value={approvedSaleReference || popAdmin.sale_reference} readOnly />
           </div>
           <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
-          <div className="sales-personnel-grid">
+          <div className={`sales-personnel-grid ${popAdmin.pop_assisting_member_2.trim() ? "has-second" : ""}`}>
           <div className="purchaser-one-column">
           <div className="purchaser-column-title"><span>01</span><h3>Sales Personnel 1</h3></div>
           <Field
@@ -761,7 +761,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             onChange={(value) => setPopAdmin((current) => ({ ...current, salesperson_email: value }))}
           />
           </div>
-          <div className="purchaser-two-column">
+          {popAdmin.pop_assisting_member_2.trim() && <div className="purchaser-two-column">
           <div className="purchaser-column-title"><span>02</span><h3>Sales Personnel 2</h3></div>
           <Field
             name="pop_assisting_member_2"
@@ -775,7 +775,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <RecordedField label="Mobile number" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.mobile} />
             <RecordedField label="Email" value={profileForSalesPersonnel(popAdmin.pop_assisting_member_2)?.email} />
           </>}
-          </div>
+          </div>}
           </div>
           <div className="agent-fields-heading">
             <h3>Agent</h3>

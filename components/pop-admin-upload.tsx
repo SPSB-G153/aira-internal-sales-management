@@ -230,10 +230,10 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
               <div className="purchaser-column-title"><span>01</span><h3>Sales Personnel 1</h3></div>
               {[["salesperson_name","Name"],["salesperson_designation","Designation"],["salesperson_mobile","Mobile number"],["salesperson_email","Email"]].map(([key,label])=><label key={key}><span>{label}</span><input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={(event)=>updateField(key,event.target.value)}/></label>)}
             </div>
-            <div className="purchaser-two-column">
+            {result.fields.pop_assisting_member_2?.trim() && <div className="purchaser-two-column">
               <div className="purchaser-column-title"><span>02</span><h3>Sales Personnel 2</h3></div>
               {[["pop_assisting_member_2","Name"],["salesperson_2_designation","Designation"],["salesperson_2_mobile","Mobile number"],["salesperson_2_email","Email"]].map(([key,label])=><label key={key}><span>{label}</span><input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={(event)=>updateField(key,event.target.value)}/></label>)}
-            </div>
+            </div>}
           </>}
         </div>
         {reviewSource === "POP Form" && <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>

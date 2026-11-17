@@ -5,6 +5,7 @@ export const salesPersonnel = [
 
 export function profileForSalesPersonnel(name: string) {
   const normalized = name.trim().toLocaleLowerCase("en-MY");
+  if (!normalized) return undefined;
   return salesPersonnel.find((person) => {
     const fullName = person.name.toLocaleLowerCase("en-MY");
     return fullName === normalized || fullName.startsWith(normalized) || normalized.startsWith(fullName);
