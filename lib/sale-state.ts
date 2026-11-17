@@ -29,7 +29,7 @@ export function saleDisplayStatus(sale: Sale) {
     if (!sale.balance_deposit_received_at) return { label: "SPA Signed - 8% Pending", className: "draft" };
     const inventoryIncluded=sale.inventory_payment_not_required||sale.inventory_payment_reference==="Included in selling price";
     if (sale.inventory_required && !inventoryIncluded && !sale.inventory_payment_received_at) return { label: "Inventory Payment Pending", className: "draft" };
-    return { label: "SPA & Payments Completed", className: "confirmed" };
+    return { label: "10% Completed", className: "confirmed" };
   }
   if (sale.notice_issued_at) {
     if (sale.spa_signing_scheduled_at) return { label: "SPA Signing Scheduled", className: "generated" };
