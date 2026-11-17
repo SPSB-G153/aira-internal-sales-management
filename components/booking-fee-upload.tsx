@@ -30,7 +30,8 @@ export function BookingFeeUpload({
   const price = numeric(purchasePrice);
   const extractedFee = numeric(result?.fields.booking_fee);
   const expectedFee = Number.isFinite(price) && price > 0 ? Math.round(price * 2) / 100 : 0;
-  const feeMismatch = Boolean(result && expectedFee > 0 && (!Number.isFinite(extractedFee) || Math.abs(extractedFee - expectedFee) > 0.009));
+  const feeShortfall = Boolean(result && expectedFee > 0 && (!Number.isFinite(extractedFee) || extractedFee + 0.009 < expectedFee));
+  const feeOverpayment = Boolean(result && expectedFee > 0 && Number.isFinite(extractedFee) && extractedFee > expectedFee + 0.009);
   const money = (value: number) => new Intl.NumberFormat("en-MY", { style: "currency", currency: "MYR" }).format(value);
 
   function updateField(key: string, value: string) {
@@ -51,18 +52,21 @@ export function BookingFeeUpload({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || "The booking-fee receipt could not be read.");
       const readAmount = numeric(data?.fields?.booking_fee);
-      const closeToExpected = expectedFee > 0 && Number.isFinite(readAmount) && Math.abs(readAmount - expectedFee) / expectedFee <= 0.05;
-      if (closeToExpected && Math.abs(readAmount - expectedFee) > 0.009) {
-        data.fields = { ...data.fields, booking_fee: expectedFee.toFixed(2), payment_method: data.fields?.payment_method || "cheque" };
-        data.warnings = [...(Array.isArray(data.warnings) ? data.warnings : []), "The handwritten numeric amount was read unclearly. It closely matches the required 2% booking fee, so the exact 2% amount was used. Please verify it against the cheque."];
-      } else if (expectedFee > 0 && (!Number.isFinite(readAmount) || readAmount < expectedFee * 0.1)) {
+      if (expectedFee > 0 && (!Number.isFinite(readAmount) || readAmount < expectedFee * 0.1)) {
         data.fields = { ...data.fields, booking_fee: expectedFee.toFixed(2), payment_method: data.fields?.payment_method || "cheque" };
         data.warnings = [...(Array.isArray(data.warnings) ? data.warnings : []), "The cheque handwriting was unclear, so the required 2% amount was prefilled. Please verify it against the cheque before using these details."];
       }
       setResult(data);
       setMessage("");
     } catch (error) {
-      setMessage(error instanceof Error && error.message !== "Failed to fetch" ? error.message : "The private receipt reader is not running on this computer. Please start it and try again.");
+      const reason = error instanceof Error && error.message !== "Failed to fetch"
+        ? error.message
+        : "The private receipt reader could not complete the extraction.";
+      setResult({
+        fields: { booking_fee: "", sale_date: "", payment_method: "cheque", payment_reference: "" },
+        warnings: [`${reason} Enter the amount, cheque date and cheque number manually below, then continue.`],
+      });
+      setMessage("");
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -102,11 +106,12 @@ export function BookingFeeUpload({
           <label><span>{labels.payment_method}</span><select value={result.fields.payment_method || ""} onChange={(event) => updateField("payment_method", event.target.value)}><option value="">Not found — select manually</option><option value="bank_transfer">Bank transfer</option><option value="cheque">Cheque</option><option value="cash">Cash</option></select></label>
           <label><span>{labels.payment_reference}</span><input value={result.fields.payment_reference || ""} placeholder="Not found — enter manually" onChange={(event) => updateField("payment_reference", event.target.value)} /></label>
         </div>
-        {feeMismatch && <div className="alert"><strong>Cheque total does not match the required 2% booking fee.</strong><p>Expected: {money(expectedFee)} · Extracted total: {Number.isFinite(extractedFee) ? money(extractedFee) : "Not found"}. Please correct the amount before using these details.</p><button type="button" className="button secondary" onClick={() => updateField("booking_fee", expectedFee.toFixed(2))}>Use required 2% amount: {money(expectedFee)}</button></div>}
+        {feeShortfall && <div className="alert"><strong>Payment is below the required 2% booking fee.</strong><p>Required: {money(expectedFee)} · Entered total: {Number.isFinite(extractedFee) ? money(extractedFee) : "Not found"}. Please correct the amount before using these details.</p><button type="button" className="button secondary" onClick={() => updateField("booking_fee", expectedFee.toFixed(2))}>Use required 2% amount: {money(expectedFee)}</button></div>}
+        {feeOverpayment && <div className="alert success"><strong>Payment exceeds the required 2% booking fee.</strong><p>Required: {money(expectedFee)} · Amount received: {money(extractedFee)}. The higher amount can be accepted and will be recorded as paid.</p></div>}
         {result.warnings.length > 0 && <div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning, index) => <li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions">
           <button type="button" className="button secondary" onClick={() => setResult(null)}>Cancel</button>
-          <button type="button" className="button accent" disabled={feeMismatch} onClick={apply}>Use these details</button>
+          <button type="button" className="button accent" disabled={feeShortfall} onClick={apply}>Use these details</button>
         </div>
       </div>
     </div>}
