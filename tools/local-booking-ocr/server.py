@@ -778,7 +778,15 @@ async def extract_booking_fee(
             extracted_amount = float(fields["booking_fee"])
         except (TypeError, ValueError):
             extracted_amount = 0.0
-        if expected_amount > 0 and extracted_amount <= 0:
+        close_to_expected = (
+            expected_amount > 0
+            and extracted_amount > 0
+            and abs(extracted_amount - expected_amount) / expected_amount <= 0.05
+        )
+        if close_to_expected and abs(extracted_amount - expected_amount) > 0.009:
+            fields["booking_fee"] = f"{expected_amount:.2f}"
+            warnings.append("The handwritten numeric amount was read unclearly. It closely matches the required 2% booking fee, so the exact 2% amount was used. Please verify it against the cheque.")
+        elif expected_amount > 0 and extracted_amount <= 0:
             fields["booking_fee"] = f"{expected_amount:.2f}"
             warnings.append("The cheque amount could not be read, so the expected 2% booking fee was prefilled. Please verify it against the cheque before using these details.")
         folder = unit_folder(unit_number)

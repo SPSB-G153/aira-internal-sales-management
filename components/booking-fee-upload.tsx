@@ -51,7 +51,11 @@ export function BookingFeeUpload({
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || data.detail || "The booking-fee receipt could not be read.");
       const readAmount = numeric(data?.fields?.booking_fee);
-      if (expectedFee > 0 && (!Number.isFinite(readAmount) || readAmount < expectedFee * 0.1)) {
+      const closeToExpected = expectedFee > 0 && Number.isFinite(readAmount) && Math.abs(readAmount - expectedFee) / expectedFee <= 0.05;
+      if (closeToExpected && Math.abs(readAmount - expectedFee) > 0.009) {
+        data.fields = { ...data.fields, booking_fee: expectedFee.toFixed(2), payment_method: data.fields?.payment_method || "cheque" };
+        data.warnings = [...(Array.isArray(data.warnings) ? data.warnings : []), "The handwritten numeric amount was read unclearly. It closely matches the required 2% booking fee, so the exact 2% amount was used. Please verify it against the cheque."];
+      } else if (expectedFee > 0 && (!Number.isFinite(readAmount) || readAmount < expectedFee * 0.1)) {
         data.fields = { ...data.fields, booking_fee: expectedFee.toFixed(2), payment_method: data.fields?.payment_method || "cheque" };
         data.warnings = [...(Array.isArray(data.warnings) ? data.warnings : []), "The cheque handwriting was unclear, so the required 2% amount was prefilled. Please verify it against the cheque before using these details."];
       }

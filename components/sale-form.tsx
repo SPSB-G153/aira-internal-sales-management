@@ -221,6 +221,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const initialUnitNumber=String(sale?.unit_number ?? initialValues?.unit_number ?? state.fields?.unit_number ?? "");
   const [solicitorName, setSolicitorName] = useState(String(solicitorForLetter(initialUnitNumber,sale?.solicitor_name || initialValues?.solicitor_name || state.fields?.solicitor_name)));
   const [unitNumber, setUnitNumber] = useState(initialUnitNumber);
+  const approvedSaleReference = operationalSaleReference({ sale_date: paymentDate || null, unit_number: unitNumber || null });
   const [popAdmin, setPopAdmin] = useState<Record<string, string>>({
     sale_reference: operationalSaleReference({ sale_date: String(v("sale_date")) || null, unit_number: initialUnitNumber || null }) || String(v("sale_reference")),
     salesperson_name: String(v("salesperson_name")),
@@ -720,13 +721,10 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
           {!(entryMode === "pop" && popSource === "uploaded" && !sale) && <PopAdminUpload saleId={sale?.id} unitNumber={unitNumber} expectedCompany={popAdmin.agent_company} onUseFields={applyPopAdmin} />}
         </div>
         <div className="form-grid">
-          <Field
-            name="sale_reference"
-            label={`${entryMode === "booking" ? "Booking" : "POP"} reference no.`}
-            value={popAdmin.sale_reference}
-            onChange={(value) => setPopAdmin((current) => ({ ...current, sale_reference: value }))}
-            wide
-          />
+          <div className="field full">
+            <label htmlFor="sale_reference">{entryMode === "booking" ? "Booking" : "POP"} reference no.</label>
+            <input id="sale_reference" name="sale_reference" value={approvedSaleReference || popAdmin.sale_reference} readOnly />
+          </div>
           <datalist id="sales-personnel-list">{salesPersonnel.map((person) => <option key={person.email} value={person.name} />)}</datalist>
           <div className="sales-personnel-grid">
           <div className="purchaser-one-column">
