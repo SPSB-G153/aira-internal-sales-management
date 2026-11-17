@@ -341,7 +341,11 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
         ccd_rebate_uploaded:recordedTypes.has("rebate_letter"),
         ccd_pop_uploaded:recordedTypes.has("pre_booking_form")||Boolean(updated.pop_introduction_agent||updated.pop_introduction_spsb||updated.approved_selling_price),
         ccd_misc_uploaded:false,
-        ccd_booking_uploaded:recordedTypes.has("booking_form"),
+        // Uploaded booking forms intentionally do not create a printable
+        // `booking_form` document card.  A completed booking record is the
+        // retained evidence for those uploads, while manual bookings still
+        // have the document card.
+        ccd_booking_uploaded:recordedTypes.has("booking_form")||Boolean(updated.sale_date&&updated.customer_name&&updated.unit_number&&updated.purchase_price),
         ccd_spa_completed:true,
         ccd_uploaded_items:Array.from(new Set([...priorItems,...(bookingPaymentItem?[bookingPaymentItem]:[])])),
       };
