@@ -328,26 +328,26 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       const identityKinds=Array.from(new Set(identities.map(([,identifier])=>isNric(identifier)?"NRIC":"Passport")));
       const existing=(recordedDocuments??[]).find(document=>document.document_type==="ccd_transmittal_letter");
       const existingContent=(existing as {content?:Record<string,unknown>}|undefined)?.content;
-      const priorItems=Array.isArray(existingContent?.ccd_uploaded_items)?existingContent.ccd_uploaded_items.filter((item):item is string=>typeof item==="string").map(item=>/^Supporting Document\b/i.test(item)?"Inventory fully signed":item):[];
-      const bookingPaymentItem=updated.booking_fee?`2% booking fee ${updated.payment_method==="cheque"?"cheque":updated.payment_method==="bank_transfer"?"bank-transfer receipt":updated.payment_method==="cash"?"cash receipt":"payment evidence"}${updated.payment_reference?` (${updated.payment_reference})`:""}`:"";
+      const priorItems=Array.isArray(existingContent?.ccd_uploaded_items)?existingContent.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
+      const bookingPaymentItem=updated.booking_fee?(updated.payment_method==="cheque"?"Post-dated cheques provided":`2% booking fee ${updated.payment_method==="bank_transfer"?"bank-transfer receipt":updated.payment_method==="cash"?"cash receipt":"payment evidence"}${updated.payment_reference?` (${updated.payment_reference})`:""}`):"";
       const content={
         ...buildDocumentSnapshot(updated,"ccd_transmittal_letter"),
         letter_issued_at:signedDate,
         spa_signed_at:signedDate,
-        ccd_identity_label:identityKinds.length===1?`Photocopy of ${identityKinds[0]}`:"Photocopy of NRIC / Passport",
+        ccd_identity_label:updated.purchaser_type==="company"?"Company documents":identityKinds.length===1?`Photocopy of ${identityKinds[0]}`:"Photocopy of NRIC / Passport",
         ccd_identity_details:identities.map(([name,identifier])=>`${name}: ${identifier}`).join("; "),
         ccd_identity_uploaded:identities.length>0,
         ccd_notice_uploaded:recordedTypes.has("acceptance_letter"),
         ccd_rebate_uploaded:recordedTypes.has("rebate_letter"),
         ccd_pop_uploaded:recordedTypes.has("pre_booking_form")||Boolean(updated.pop_introduction_agent||updated.pop_introduction_spsb||updated.approved_selling_price),
-        ccd_misc_uploaded:recordedTypes.has("inventory_confirmation_letter")||priorItems.some(item=>/^(Supporting Document|Inventory fully signed)\b/i.test(item)),
+        ccd_misc_uploaded:recordedTypes.has("inventory_confirmation_letter")||priorItems.some(item=>/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(item)),
         // Uploaded booking forms intentionally do not create a printable
         // `booking_form` document card.  A completed booking record is the
         // retained evidence for those uploads, while manual bookings still
         // have the document card.
         ccd_booking_uploaded:recordedTypes.has("booking_form")||Boolean(updated.sale_date&&updated.customer_name&&updated.unit_number&&updated.purchase_price),
         ccd_spa_completed:true,
-        ccd_uploaded_items:Array.from(new Set([...priorItems.filter(item=>!/^(Supporting Document|Inventory fully signed)\b/i.test(item)),...(bookingPaymentItem?[bookingPaymentItem]:[])])),
+        ccd_uploaded_items:Array.from(new Set([...priorItems,...(bookingPaymentItem?[bookingPaymentItem]:[])])),
       };
       const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"ccd_transmittal_letter",content,status:"generated",generated_at:existing?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
       if(error)throw error;
@@ -371,10 +371,10 @@ export async function recordTransmittalUpload(id:string,label:string):Promise<vo
     const{data:document,error}=await db.from("documents").select("id,content").eq("team_id",team.id).eq("sale_id",id).eq("document_type","ccd_transmittal_letter").maybeSingle();
     if(error)throw error;if(!document)return;
     const content=(document.content??{}) as Record<string,unknown>;
-    const isInventoryCorrespondence=/^(Supporting Document|Inventory fully signed)\b/i.test(cleanLabel);
-    const existing=Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string").filter(item=>!/^(Supporting Document|Inventory fully signed)\b/i.test(item)):[];
-    const items=isInventoryCorrespondence?existing:Array.from(new Set([...existing,cleanLabel]));
-    const{error:updateError}=await db.from("documents").update({content:{...content,ccd_misc_uploaded:Boolean(content.ccd_misc_uploaded||isInventoryCorrespondence),ccd_uploaded_items:items}}).eq("team_id",team.id).eq("id",document.id);
+    const isCorrespondence=/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(cleanLabel);
+    const existing=Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
+    const items=Array.from(new Set([...existing,cleanLabel]));
+    const{error:updateError}=await db.from("documents").update({content:{...content,ccd_misc_uploaded:Boolean(content.ccd_misc_uploaded||isCorrespondence),ccd_uploaded_items:items}}).eq("team_id",team.id).eq("id",document.id);
     if(updateError)throw updateError;
     revalidatePath(`/sales/${id}`);revalidatePath(`/documents/${document.id}`);revalidatePath("/documents");
   }catch(error){console.error("Could not add upload to CCD transmittal",error);}

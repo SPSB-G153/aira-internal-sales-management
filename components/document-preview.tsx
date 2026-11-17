@@ -122,16 +122,19 @@ function CcdTransmittalLetter({content}:{content:Content}){
   const generatedDate=generatedRaw?new Date(generatedRaw.length===10?`${generatedRaw}T00:00:00Z`:generatedRaw):null;
   const signatureDate=generatedDate&&!Number.isNaN(generatedDate.getTime())?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(generatedDate):"—";
   const uploadedItems=Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
-  const hasInventoryCorrespondence=uploadedItems.some(item=>/^(Supporting Document|Inventory fully signed)\b/i.test(item));
+  const correspondenceItems=uploadedItems.filter(item=>/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(item));
+  const correspondenceDetails=correspondenceItems.map(item=>{const clean=item.replace(/^(Supporting Document|Other correspondence)\s*-\s*/i,"").replace(/\.(pdf|docx?|xlsx?)$/i,"");if(/^Inventory fully signed$/i.test(item))return"Inventory fully signed";if(/cheque|purchase conditions/i.test(clean))return clean;return /^Supporting Document\b/i.test(item)?"Inventory fully signed":clean;}).filter((item,index,items)=>items.indexOf(item)===index).join("; ");
+  const hasPostDatedCheques=content.payment_method==="cheque"||uploadedItems.some(item=>/cheque/i.test(item));
   const rows=[
-    [value(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),value(content,"ccd_identity_details","")],
+    [content.purchaser_type==="company"?"Company documents":value(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),value(content,"ccd_identity_details","")],
     ["Notice of Acceptance Letter",Boolean(content.ccd_notice_uploaded),""],
     ["Confirmation of Rebate Offer",Boolean(content.ccd_rebate_uploaded),""],
     ["Approved POP",Boolean(content.ccd_pop_uploaded),""],
-    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded||hasInventoryCorrespondence),""],
+    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded||correspondenceItems.length),correspondenceDetails],
     ["Booking Form",Boolean(content.ccd_booking_uploaded||(content.sale_date&&content.customer_name&&content.unit_number&&content.purchase_price)),""],
+    ["Post-dated cheques provided",hasPostDatedCheques,""],
     ["SPA signing completed",Boolean(content.ccd_spa_completed),value(content,"spa_signed_at","")],
-    ...uploadedItems.filter(item=>!/^(Supporting Document|Inventory fully signed)\b/i.test(item)).map(item=>[item,true,""] as const),
+    ...uploadedItems.filter(item=>!/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(item)&&!/cheque/i.test(item)).map(item=>[item,true,""] as const),
   ].filter(([,checked])=>checked) as ReadonlyArray<readonly [string,boolean,string]>;
   return <article className="letter ccd-transmittal"><CompanyEmblem/><h1>TRANSMITTAL</h1><dl className="ccd-transmittal-head"><div><dt>To</dt><dd>Credit Control Department</dd></div><div><dt>From</dt><dd>Sales Department</dd></div><div><dt>Date</dt><dd>{headerDate}</dd></div><div><dt>RE</dt><dd>Documents for Unit No : {unit} (AIRA Residence Damansara)<br/><b>- {purchasers}</b></dd></div></dl><p>We enclose herewith the following documents for your further action.</p><p className="ccd-file-line">Customer file unit : {unit} which contains the followings : -</p><ol className="ccd-checklist">{rows.map(([label,checked,details])=><li key={label}><span>{label}{details&&<small>{details}</small>}</span><b>{checked?"√":""}</b></li>)}</ol><p>Thank You.</p><div className="ccd-signoff"><strong>Kat</strong><span>……………………………………………</span><b>Katherine Chew</b><span>Date : {signatureDate}</span></div></article>;
 }

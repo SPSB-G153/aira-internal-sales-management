@@ -635,16 +635,19 @@ async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo
   const headCell=(children:Paragraph[],width:number)=>new TableCell({width:{size:width,type:WidthType.DXA},margins:{top:70,bottom:70,left:40,right:40},children});
   const headerRows:[[string,string],...Array<[string,string]>]=[["To","Credit Control Department"],["From","Sales Department"],["Date",documentDate],["RE",`Documents for Unit No : ${unit} (AIRA Residence Damansara)\n- ${purchasers}`]];
   const uploadedItems=Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
-  const hasInventoryCorrespondence=uploadedItems.some(item=>/^(Supporting Document|Inventory fully signed)\b/i.test(item));
+  const correspondenceItems=uploadedItems.filter(item=>/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(item));
+  const correspondenceDetails=correspondenceItems.map(item=>{const clean=item.replace(/^(Supporting Document|Other correspondence)\s*-\s*/i,"").replace(/\.(pdf|docx?|xlsx?)$/i,"");if(/^Inventory fully signed$/i.test(item))return"Inventory fully signed";if(/cheque|purchase conditions/i.test(clean))return clean;return /^Supporting Document\b/i.test(item)?"Inventory fully signed":clean;}).filter((item,index,items)=>items.indexOf(item)===index).join("; ");
+  const hasPostDatedCheques=content.payment_method==="cheque"||uploadedItems.some(item=>/cheque/i.test(item));
   const checklist=[
-    [text(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),text(content,"ccd_identity_details","")],
+    [content.purchaser_type==="company"?"Company documents":text(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),text(content,"ccd_identity_details","")],
     ["Notice of Acceptance Letter",Boolean(content.ccd_notice_uploaded),""],
     ["Confirmation of Rebate Offer",Boolean(content.ccd_rebate_uploaded),""],
     ["Approved POP",Boolean(content.ccd_pop_uploaded),""],
-    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded||hasInventoryCorrespondence),""],
+    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded||correspondenceItems.length),correspondenceDetails],
     ["Booking Form",Boolean(content.ccd_booking_uploaded||(content.sale_date&&content.customer_name&&content.unit_number&&content.purchase_price)),""],
+    ["Post-dated cheques provided",hasPostDatedCheques,""],
     ["SPA signing completed",Boolean(content.ccd_spa_completed),text(content,"spa_signed_at","")],
-    ...uploadedItems.filter(item=>!/^(Supporting Document|Inventory fully signed)\b/i.test(item)).map(item=>[item,true,""] as const),
+    ...uploadedItems.filter(item=>!/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(item)&&!/cheque/i.test(item)).map(item=>[item,true,""] as const),
   ].filter(([,checked])=>checked) as ReadonlyArray<readonly [string,boolean,string]>;
   const thinBorder={style:BorderStyle.SINGLE,size:4,color:"000000"};const mediumBorder={style:BorderStyle.SINGLE,size:12,color:"000000"};
   const document=new Document({styles:{default:{document:{run:{font:"Arial",size:24},paragraph:{spacing:{after:0,line:276}}}}},sections:[{properties:{page:{margin:{top:734,right:1022,bottom:1080,left:1022}}},headers:{default:new Header({children:[new Paragraph({alignment:AlignmentType.RIGHT,children:[new ImageRun({data:emblemLogo,type:"png",transformation:{width:64,height:48}})]})]})},children:[
