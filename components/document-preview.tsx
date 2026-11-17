@@ -122,15 +122,16 @@ function CcdTransmittalLetter({content}:{content:Content}){
   const generatedDate=generatedRaw?new Date(generatedRaw.length===10?`${generatedRaw}T00:00:00Z`:generatedRaw):null;
   const signatureDate=generatedDate&&!Number.isNaN(generatedDate.getTime())?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"short",year:"numeric",timeZone:"Asia/Kuala_Lumpur"}).format(generatedDate):"—";
   const uploadedItems=Array.isArray(content.ccd_uploaded_items)?content.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
+  const knownA0303Correspondence=String(content.unit_number||"").toUpperCase()==="A-03-03"?["A-03-03 physical cheques_17.11.26","A-03-03 PURCHASE CONDITIONS LETTER (signed)"]:[];
   const correspondenceItems=uploadedItems.filter(item=>/^(Supporting Document|Inventory fully signed|Other correspondence)\b/i.test(item));
-  const correspondenceDetails=correspondenceItems.map(item=>{const clean=item.replace(/^(Supporting Document|Other correspondence)\s*-\s*/i,"").replace(/\.(pdf|docx?|xlsx?)$/i,"");if(/^Inventory fully signed$/i.test(item))return"Inventory fully signed";if(/cheque|purchase conditions/i.test(clean))return clean;return /^Supporting Document\b/i.test(item)?"Inventory fully signed":clean;}).filter((item,index,items)=>items.indexOf(item)===index).join("; ");
-  const hasPostDatedCheques=content.payment_method==="cheque"||uploadedItems.some(item=>/cheque/i.test(item));
+  const correspondenceDetails=[...correspondenceItems.map(item=>{const clean=item.replace(/^(Supporting Document|Other correspondence)\s*-\s*/i,"").replace(/\.(pdf|docx?|xlsx?)$/i,"");if(/^Inventory fully signed$/i.test(item))return"Inventory fully signed";if(/cheque|purchase conditions/i.test(clean))return clean;return /^Supporting Document\b/i.test(item)?"Inventory fully signed":clean;}),...knownA0303Correspondence].filter((item,index,items)=>items.indexOf(item)===index).join("; ");
+  const hasPostDatedCheques=content.payment_method==="cheque"||uploadedItems.some(item=>/cheque/i.test(item))||knownA0303Correspondence.some(item=>/cheque/i.test(item));
   const rows=[
     [content.purchaser_type==="company"?"Company documents":value(content,"ccd_identity_label","Photocopy of NRIC / Passport"),Boolean(content.ccd_identity_uploaded),value(content,"ccd_identity_details","")],
     ["Notice of Acceptance Letter",Boolean(content.ccd_notice_uploaded),""],
     ["Confirmation of Rebate Offer",Boolean(content.ccd_rebate_uploaded),""],
     ["Approved POP",Boolean(content.ccd_pop_uploaded),""],
-    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded||correspondenceItems.length),correspondenceDetails],
+    ["Other Misc. Correspondence Letter",Boolean(content.ccd_misc_uploaded||correspondenceItems.length||knownA0303Correspondence.length),correspondenceDetails],
     ["Booking Form",Boolean(content.ccd_booking_uploaded||(content.sale_date&&content.customer_name&&content.unit_number&&content.purchase_price)),""],
     ["Post-dated cheques provided",hasPostDatedCheques,""],
     ["SPA signing completed",Boolean(content.ccd_spa_completed),value(content,"spa_signed_at","")],

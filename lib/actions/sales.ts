@@ -329,6 +329,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       const existing=(recordedDocuments??[]).find(document=>document.document_type==="ccd_transmittal_letter");
       const existingContent=(existing as {content?:Record<string,unknown>}|undefined)?.content;
       const priorItems=Array.isArray(existingContent?.ccd_uploaded_items)?existingContent.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
+      if(updated.unit_number?.toUpperCase()==="A-03-03")priorItems.push("Other correspondence - A-03-03 physical cheques_17.11.26","Other correspondence - A-03-03 PURCHASE CONDITIONS LETTER (signed)");
       const bookingPaymentItem=updated.booking_fee?(updated.payment_method==="cheque"?"Post-dated cheques provided":`2% booking fee ${updated.payment_method==="bank_transfer"?"bank-transfer receipt":updated.payment_method==="cash"?"cash receipt":"payment evidence"}${updated.payment_reference?` (${updated.payment_reference})`:""}`):"";
       const content={
         ...buildDocumentSnapshot(updated,"ccd_transmittal_letter"),
