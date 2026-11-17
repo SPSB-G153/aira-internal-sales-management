@@ -1,5 +1,5 @@
 import type { DocumentType,Sale } from "@/lib/types";
-import { agencyDetailsForSale, legacyAgencyCompany } from "@/lib/agency-details";
+import { agencyCompanyForSale, agencyDetailsForSale } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { solicitorForLetter } from "@/lib/unit-solicitor";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
@@ -8,7 +8,7 @@ export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booki
 const properPersonName=(name:string|null)=>name?name.toLocaleLowerCase("en-MY").replace(/(^|[\s'-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`):null;
 const common=(s:Sale)=>{
   const agency=agencyDetailsForSale(s);
-  const agencyCompany=agency.company||legacyAgencyCompany(s);
+  const agencyCompany=agencyCompanyForSale(s);
   const salesperson=profileForSalesPersonnel(s.salesperson_name||"");
   return ({
   sale_reference:s.sale_reference,customer_name:s.purchaser_type==="company"?s.customer_name:properPersonName(purchaserNameWithoutSalutation(s.customer_name)),customer_ic:s.customer_ic,purchaser_type:s.purchaser_type,
