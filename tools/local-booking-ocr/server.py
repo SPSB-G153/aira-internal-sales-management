@@ -585,7 +585,9 @@ async def extract_booking_fee(
                         "content": (
                             "This image contains at most one cheque. If present, read the numeric RM amount, "
                             "the written amount-in-words line, the boxed DATE as DD/MM/YY, and the six-digit "
-                            "MICR cheque number. Return empty strings if no cheque is present. Do not add a zero. "
+                            "cheque number. The cheque number may be printed near the top of the cheque or in the "
+                            "MICR line at the bottom; do not confuse it with a bank account number. Return empty "
+                            "strings if no cheque is present. Do not add a zero. "
                             + (f"The expected 2% booking fee is RM {expected_amount:,.2f}; use it only to help distinguish the handwritten RM amount from dates and cheque numbers, and return it only if the cheque visibly supports it." if expected_amount > 0 else "")
                         ),
                         "images": [image],
@@ -599,7 +601,45 @@ async def extract_booking_fee(
                 if not single_result.ok:
                     raise RuntimeError(f"Private model error: {single_result.text}")
                 cheque = json.loads(single_result.json()["message"]["content"])
-                if str(cheque.get("amount", "")).strip() or str(cheque.get("amount_words", "")).strip():
+                # A small or rotated scan may yield the amount on the first pass but
+                # miss the boxed date or printed cheque number.  Re-read the same
+                # image with a deliberately narrow prompt so those two fields are
+                # not discarded merely because the amount was easier to recognise.
+                if (
+                    str(cheque.get("amount", "")).strip()
+                    and (
+                        not str(cheque.get("date", "")).strip()
+                        or not str(cheque.get("reference", "")).strip()
+                    )
+                ):
+                    detail_payload = {
+                        "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                        "messages": [{
+                            "role": "user",
+                            "content": (
+                                "Look only for two details on this cheque: (1) the date written in the small "
+                                "boxes labelled DATE, returned as DD/MM/YY, and (2) the cheque number, normally "
+                                "a six-digit number printed near the top or in the MICR line at the bottom. "
+                                "Do not return the amount, account number, bank code or date digits as the "
+                                "cheque number. Return empty strings only when the detail is genuinely unreadable."
+                            ),
+                            "images": [image],
+                        }],
+                        "format": SINGLE_CHEQUE_SCHEMA,
+                        "stream": False,
+                        "keep_alive": "30m",
+                        "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 160},
+                    }
+                    detail_result = requests.post(
+                        "http://127.0.0.1:11434/api/chat", json=detail_payload, timeout=600
+                    )
+                    if detail_result.ok:
+                        detail = json.loads(detail_result.json()["message"]["content"])
+                        if not str(cheque.get("date", "")).strip():
+                            cheque["date"] = detail.get("date", "")
+                        if not str(cheque.get("reference", "")).strip():
+                            cheque["reference"] = detail.get("reference", "")
+                if any(str(cheque.get(key, "")).strip() for key in ("amount", "amount_words", "date", "reference")):
                     individual.append(cheque)
             parsed = {
                 "booking_fee": "",
