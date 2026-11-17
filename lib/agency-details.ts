@@ -27,7 +27,8 @@ export function splitAgencyDetails(value: unknown) {
 }
 
 export function combineAgencyDetails(company: unknown, address: unknown, agentName?: unknown, agentDesignation?: unknown, agentMobile?: unknown, agentEmail?: unknown) {
-  const cleanCompany = String(company ?? "").trim();
+  const rawCompany = String(company ?? "").trim();
+  const cleanCompany = /^ESP$/i.test(rawCompany) && /^ALDRIN\s+TAN$/i.test(String(agentName ?? "").trim()) ? "ESPIRIT ESTATE AGENT SDN BHD" : rawCompany;
   const values = [
     [AGENT_NAME_SEPARATOR, agentName],
     [AGENT_DESIGNATION_SEPARATOR, agentDesignation],
@@ -76,7 +77,11 @@ export function legacyAgencyCompany(source: AgencyFallbackSource) {
 }
 
 export function agencyCompanyForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
-  return approvedAgentDetailsForUnit(source.unit_number)?.agent_company || splitAgencyDetails(source.agent_company).company || legacyAgencyCompany(source);
+  const stored=splitAgencyDetails(source.agent_company);
+  const company=stored.company;
+  const agentName=stored.agent_name||String(source.agent_name??"").trim();
+  const correctedCompany=/^ESP$/i.test(company)&&/^ALDRIN\s+TAN$/i.test(agentName)?"ESPIRIT ESTATE AGENT SDN BHD":company;
+  return approvedAgentDetailsForUnit(source.unit_number)?.agent_company || correctedCompany || legacyAgencyCompany(source);
 }
 
 export function agencyDetailsForSale(source: AgencyFallbackSource & { agent_company?: unknown }) {
