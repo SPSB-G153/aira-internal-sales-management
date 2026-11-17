@@ -35,6 +35,7 @@ export function saleDisplayStatus(sale: Sale) {
     if (sale.spa_signing_scheduled_at) return { label: "SPA Signing Scheduled", className: "generated" };
     return { label: "Notice Issued", className: "generated" };
   }
+  if (sale.status === "confirmed" && hasRecordedBookingPayment(sale) && sale.payment_method === "cheque") return { label: "Pending 2% Clearance", className: "draft" };
   if (sale.status === "booking_draft") return { label: "Booking Draft", className: "draft" };
   if (sale.status === "draft") return { label: "POP", className: "draft" };
   return { label: sale.status.replaceAll("_", " "), className: sale.status };

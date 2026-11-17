@@ -51,7 +51,8 @@ export function trackerRow(sale: Sale, today = malaysiaToday()): TrackerRow {
     const overdue = isPast(sale.spa_signing_due_at, today);
     return { ...base, currentStage: "Notice of Acceptance issued", keyDate: sale.notice_issued_at, nextAction: "Enter SPA signing date", status: overdue ? "Overdue" : "Action Needed", tone: overdue ? "overdue" : "action" };
   }
-  return { ...base, currentStage: sale.status === "draft" ? "POP saved" : "Booking confirmed", keyDate: sale.sale_date, nextAction: sale.status === "draft" ? "Upload Booking Form" : "Issue Notice of Acceptance", status: "Action Needed", tone: "action" };
+  const chequePending=sale.status!=="draft"&&sale.payment_method==="cheque";
+  return { ...base, currentStage: sale.status === "draft" ? "POP saved" : chequePending ? "Pending 2% clearance" : "Booking confirmed", keyDate: sale.sale_date, nextAction: sale.status === "draft" ? "Upload Booking Form" : chequePending ? "Confirm 2% clearance and issue Notice of Acceptance" : "Issue Notice of Acceptance", status: "Action Needed", tone: "action" };
 }
 
 export function trackerRows(sales: Sale[]) { return sales.map((sale) => trackerRow(sale)); }
