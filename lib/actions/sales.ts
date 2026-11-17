@@ -7,7 +7,7 @@ import { buildDocumentSnapshot } from "@/lib/templates";
 import { getTeamContext } from "@/lib/tenancy";
 import { canonicalUnitNumber, detailsForUnit, squareFeetToSquareMetres, storeyForUnit } from "@/lib/unit-details";
 import type { DocumentType,Sale } from "@/lib/types";
-import { combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
+import { agencyDetailsForSale, approvedAgentDetailsForUnit, combineAgencyDetails, hasExternalAgent, splitAgencyDetails } from "@/lib/agency-details";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { hasRecordedBookingPayment } from "@/lib/sale-state";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
@@ -66,7 +66,7 @@ export async function findSavedUnitAdministration(unitNumber:string):Promise<Sav
   const wanted=normalized(unitNumber);if(!wanted)return null;
   const sale=(await getSales()).find(item=>normalized(item.unit_number)===wanted);if(!sale)return null;
   const staff=profileForSalesPersonnel(sale.salesperson_name||"");
-  const agency=splitAgencyDetails(sale.agent_company);
+  const agency=agencyDetailsForSale(sale);
   return{
     salesperson_name:staff?.name||sale.salesperson_name||"",
     salesperson_designation:staff?.designation||sale.salesperson_designation||"",
@@ -217,7 +217,7 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const clean=(key:string)=>String(fields[key]??"").trim();
     const unit=canonicalUnitNumber(clean("unit_number"));const customer=purchaserNameWithoutSalutation(clean("customer_name"));const parsedPrice=Number(clean("purchase_price").replace(/[^0-9.-]/g,""));const price=Number.isFinite(parsedPrice)&&parsedPrice>0?parsedPrice:0;
     if(!unit)return{error:"The unit number could not be read from the uploaded POP. Please enter it in the extracted-details review."};
-    const company=clean("agent_company");const agentDetails=combineAgencyDetails(company,clean("agent_address"),clean("agent_name"),clean("agent_designation"),clean("agent_mobile"),clean("agent_email"))||null;
+    const company=clean("agent_company");const approvedAgent=approvedAgentDetailsForUnit(unit);const agentDetails=combineAgencyDetails(company,clean("agent_address"),approvedAgent?.agent_name||clean("agent_name"),approvedAgent?.agent_designation||clean("agent_designation"),clean("agent_mobile"),clean("agent_email"))||null;
     // Keep the post-extraction save fast: use one database session and look up
     // only the unit being uploaded.  getSales(unit) fetched and sorted the full
     // matching sale payload before doing another connection for the write.

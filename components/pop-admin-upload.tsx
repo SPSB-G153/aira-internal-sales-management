@@ -6,6 +6,7 @@ import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
+import { approvedAgentDetailsForUnit } from "@/lib/agency-details";
 
 export type PopAdminFields = Record<string, string>;
 type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: string; cached?: boolean };
@@ -128,6 +129,8 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
           if (savedAgent) extracted.fields = { ...extracted.fields, ...savedAgent };
         }
       }
+      const approvedAgent = approvedAgentDetailsForUnit(extracted.fields.unit_number);
+      if (approvedAgent) extracted.fields = { ...extracted.fields, ...approvedAgent };
       setResult((current) => mergeIntoPop && current ? {
         ...current,
         fields: {

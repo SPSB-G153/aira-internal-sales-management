@@ -49,6 +49,12 @@ type AgencyFallbackSource = {
   agent_address?: unknown;
 };
 
+export function approvedAgentDetailsForUnit(unitNumber: unknown) {
+  const unit = String(unitNumber ?? "").trim().toUpperCase();
+  if (unit === "B-06-03") return { agent_name: "ALDRIN TAN", agent_designation: "Chief Executive Officer" };
+  return null;
+}
+
 /**
  * A small recovery table for approved legacy POP records that were created
  * before agency details were persisted on the sale. New uploads continue to
@@ -79,6 +85,11 @@ export function agencyDetailsForSale(source: AgencyFallbackSource & { agent_comp
     agent_mobile: stored.agent_mobile || String(source.agent_mobile ?? "").trim(),
     agent_email: stored.agent_email || String(source.agent_email ?? "").trim(),
   };
+  const approved = approvedAgentDetailsForUnit(source.unit_number);
+  if (approved) {
+    flattened.agent_name = approved.agent_name;
+    flattened.agent_designation = approved.agent_designation;
+  }
   const introduction = String(source.pop_introduction_agent ?? "").trim();
   const introducedName = introduction.split(",")[0]?.trim() ?? "";
   if (!flattened.agent_name && introducedName && !/^(n\/?a|not applicable|none)$/i.test(introducedName)) return { ...flattened, agent_name: introducedName };
