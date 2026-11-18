@@ -157,14 +157,12 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
     if (!saleId) {
       setBusy(true);
       setMessage("Saving the uploaded POP and opening the Booking Form…");
-      try {
-        const saved = await saveUploadedPopDetailsAndContinue(fields);
-        setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
-      } catch (error) {
-        setMessage(error instanceof Error ? error.message : "The uploaded POP could not be saved.");
-      } finally {
-        setBusy(false);
-      }
+      // Do not catch this server action: Next.js delivers a successful
+      // `redirect()` through its navigation signal. Catching it here keeps the
+      // modal open and makes the Continue button appear to do nothing.
+      const saved = await saveUploadedPopDetailsAndContinue(fields);
+      setBusy(false);
+      setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
       return;
     }
     setBusy(true);
@@ -196,7 +194,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
     {showNamecard && <button type="button" className="button secondary compact-upload-button" disabled={busy} onClick={() => namecardInput.current?.click()}>
       {busySource === "namecard" ? "Reading agent namecard…" : saleId ? "Replace agent namecard" : "Upload agent namecard"}
     </button>}
-    {message && <p className="upload-message" role="status">{message}</p>}
+    {message && !result && <p className="upload-message" role="status">{message}</p>}
     {(agentDocuments.appointment || agentDocuments.fee) && <div className="upload-modal" role="dialog" aria-modal="true" aria-label="Agent letters ready">
       <div className="card upload-review agent-letter-ready-card">
         <h2>Agent letters are ready</h2>
@@ -212,6 +210,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         <h2>Review {reviewSource} administration details</h2>
         <p className="subtle">Check the privately extracted details before adding them to the form. Agency/company is filled only when it is shown.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
+        {message && <p className="upload-message" role="status">{message}</p>}
         <div className="upload-review-fields">
           {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !staffReviewFields.has(key))).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
           {reviewSource === "POP Form" && <>
