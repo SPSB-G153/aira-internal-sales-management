@@ -3,6 +3,7 @@ import { getSales } from "@/lib/data/sales";
 import { hasRecordedBookingPayment, saleDisplayStatus } from "@/lib/sale-state";
 import { formatTrackerDate, trackerRows } from "@/lib/sales-tracker";
 import { purchaserDisplayName } from "@/lib/purchaser-name";
+import { solicitorForLetter } from "@/lib/unit-solicitor";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export default async function Dashboard() {
     </section>
 
     <div className="management-grid management-grid-single">
-      <section className="card management-sales"><div className="management-section-head"><div><h2>Recent sales</h2></div><Link href="/sales" className="text-link">View all sales</Link></div><div className="management-table"><div className="management-table-head"><span>Unit</span><span>Purchaser</span><span>Purchase price</span><span>Status</span><span /></div>{sales.slice(0, 6).map((sale) => {const status = saleDisplayStatus(sale);return <Link href={`/sales/${sale.id}`} className="management-sale-row" key={sale.id}><strong>{sale.unit_number || "Pending"}</strong><span>{purchaserDisplayName(sale).toUpperCase()}</span><span className="management-price">{money(sale.purchase_price)}</span><span className={`badge ${status.className}`}>{status.label}</span><span>›</span></Link>})}</div></section>
+      <section className="card management-sales"><div className="management-section-head"><div><h2>Recent sales</h2></div><Link href="/sales" className="text-link">View all sales</Link></div><div className="management-table"><div className="management-table-head"><span>Unit</span><span>Purchaser</span><span>Solicitor</span><span>Purchase price</span><span>Status</span><span /></div>{sales.slice(0, 6).map((sale) => {const status = saleDisplayStatus(sale);const solicitor=solicitorForLetter(sale.unit_number||"",sale.solicitor_name);return <Link href={`/sales/${sale.id}`} className="management-sale-row" key={sale.id}><strong>{sale.unit_number || "Pending"}</strong><span>{purchaserDisplayName(sale).toUpperCase()}</span><span>{solicitor||"—"}</span><span className="management-price">{money(sale.purchase_price)}</span><span className={`badge ${status.className}`}>{status.label}</span><span>›</span></Link>})}</div></section>
     </div>
   </div>;
 }
