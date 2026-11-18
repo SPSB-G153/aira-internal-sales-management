@@ -119,7 +119,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
           </button>
         </div>
       </div>
-      <div className="optional-pop-action booking-second-action">
+      <div id="booking-form-upload" className="optional-pop-action booking-second-action">
         <div><strong>Booking Form</strong><span>Use this first or add it later. The unit number links it to the same sale.</span></div>
         <div className="new-sale-intake-actions">
           <BookingFormUpload
