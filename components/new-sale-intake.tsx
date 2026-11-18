@@ -76,7 +76,7 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
   return values as Partial<Sale>;
 }
 
-export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale> }) {
+export function NewSaleIntake({ initialValues, bookingOnly = false }: { initialValues?: Partial<Sale>; bookingOnly?: boolean }) {
   const [mode, setMode] = useState<"booking" | "pop" | null>(initialValues ? "booking" : null);
   const [values, setValues] = useState<Partial<Sale> | undefined>(initialValues);
   const [revision, setRevision] = useState(0);
@@ -96,12 +96,12 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
 
   return <>
     <section className="card new-sale-intake">
-      <div className="new-sale-intake-copy">
+      {!bookingOnly && <div className="new-sale-intake-copy">
         <p className="eyebrow">Start here</p>
         <h2>Upload either completed form</h2>
         <p className="subtle">Start with the POP Form or the Booking Form. Upload the other one later and it will update the same sale by unit number.</p>
-      </div>
-      <div className="optional-pop-action required-pop-action">
+      </div>}
+      {!bookingOnly && <div className="optional-pop-action required-pop-action">
         <div><strong>POP Form</strong><span>Use this first or add it later. Agent details will prepare the two agent letters.</span></div>
         <div className="pop-intake-actions">
           <PopAdminUpload
@@ -118,7 +118,7 @@ export function NewSaleIntake({ initialValues }: { initialValues?: Partial<Sale>
             Enter POP manually
           </button>
         </div>
-      </div>
+      </div>}
       <div id="booking-form-upload" className="optional-pop-action booking-second-action">
         <div><strong>Booking Form</strong><span>Use this first or add it later. The unit number links it to the same sale.</span></div>
         <div className="new-sale-intake-actions">

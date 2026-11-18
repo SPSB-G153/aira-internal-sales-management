@@ -247,7 +247,7 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
 }
 export async function saveUploadedPopDetailsAndContinue(fields:Record<string,string>):Promise<UploadedPopSaveState>{
   const saved=await saveUploadedPopDetails(fields);
-  if(saved.saleId)redirect(`/sales/new?continue=${encodeURIComponent(saved.saleId)}#booking-form-upload`);
+  if(saved.saleId)redirect(`/sales/new/booking?continue=${encodeURIComponent(saved.saleId)}#booking-form-upload`);
   return saved;
 }
 export async function prepareUploadedPopDocuments(saleId:string):Promise<void>{
