@@ -83,30 +83,34 @@ export function salesTargetMetrics(sales: Sale[]) {
   return { confirmedValue, pendingValue, towerAValue, towerBValue, towerAUnits, towerBUnits, towerATargetUnits, towerBTargetUnits, towerABalanceUnits, towerBBalanceUnits, remaining, progress };
 }
 
-export function monthlySalesPerformance(sales: Sale[], documents: SaleDocument[] = [], today = malaysiaToday()) {
-  // A Notice of Acceptance is generated only after the completed Booking Form
-  // and 2% payment have both been recorded. Its system timestamp is therefore
-  // the authoritative management reporting month. The cheque date (sale_date)
-  // and an earlier POP/sale creation timestamp must not determine Actual.
-  const acceptedAt = new Map(documents.filter((document) => document.document_type === "acceptance_letter").map((document) => [document.sale_id, document.generated_at || document.created_at]));
-  const actualRecordedAt = (sale: Sale) => sale.notice_issued_at || acceptedAt.get(sale.id) || null;
-  const confirmed = sales.filter((sale) => hasRecordedBookingPayment(sale) && sale.status !== "draft" && sale.status !== "booking_draft" && actualRecordedAt(sale));
+export function monthlySalesPerformance(sales: Sale[], _documents: SaleDocument[] = [], today = malaysiaToday()) {
+  // Management Actual is counted by the Booking Form date recorded on the
+  // sale, independent of when the Notice of Acceptance is generated.
+  const booked = sales.filter((sale) => sale.status !== "draft" && sale.status !== "booking_draft" && sale.sale_date);
   const actualByMonth = new Map<string, { units: number; value: number }>();
-  confirmed.forEach((sale) => {
-    const month = actualRecordedAt(sale)!.slice(0, 7);
+  const collectionByMonth = new Map<string, number>();
+  const addCollection = (date: string | null, amount: number) => {
+    if (!date || amount <= 0) return;
+    const month = date.slice(0, 7);
+    collectionByMonth.set(month, (collectionByMonth.get(month) || 0) + amount);
+  };
+  booked.forEach((sale) => {
+    const month = sale.sale_date!.slice(0, 7);
     const current = actualByMonth.get(month) || { units: 0, value: 0 };
-    current.units += 1; current.value += sale.purchase_price;
+    current.units += 1;
+    current.value += sale.purchase_price;
     actualByMonth.set(month, current);
+    addCollection(sale.sale_date, sale.booking_fee || 0);
+    addCollection(sale.balance_deposit_received_at, sale.balance_deposit_received_at ? sale.purchase_price * 0.08 : 0);
+    if (!sale.inventory_payment_not_required) addCollection(sale.inventory_payment_received_at, sale.inventory_payment_amount || 0);
   });
   const targetByMonth = new Map(MONTHLY_SALES_TARGETS.map(([month, towerA, towerB]) => [month, { towerA, towerB }]));
-  const months = Array.from(new Set([...targetByMonth.keys(), ...actualByMonth.keys()])).sort();
-  let cumulativeTarget = 0, cumulativeActual = 0;
+  const months = Array.from(new Set([...targetByMonth.keys(), ...actualByMonth.keys(), ...collectionByMonth.keys()])).sort();
   const rows = months.map((month) => {
     const target = targetByMonth.get(month) || { towerA: 0, towerB: 0 };
     const actual = actualByMonth.get(month) || { units: 0, value: 0 };
     const targetUnits = target.towerA + target.towerB;
-    cumulativeTarget += targetUnits; cumulativeActual += actual.units;
-    return { month, towerA: target.towerA, towerB: target.towerB, targetUnits, actualUnits: actual.units, actualValue: actual.value, cumulativeTarget, cumulativeActual, variance: actual.units - targetUnits };
+    return { month, towerA: target.towerA, towerB: target.towerB, targetUnits, actualUnits: actual.units, actualValue: actual.value, collectionReceived: collectionByMonth.get(month) || 0, variance: actual.units - targetUnits };
   });
   const currentMonth = today.slice(0, 7), currentYear = today.slice(0, 4);
   const current = rows.find((row) => row.month === currentMonth) || { targetUnits: 0, actualUnits: 0 };
@@ -119,7 +123,7 @@ export function monthlySalesPerformance(sales: Sale[], documents: SaleDocument[]
     ytdTarget: ytd.reduce((sum, row) => sum + row.targetUnits, 0),
     ytdActual: ytd.reduce((sum, row) => sum + row.actualUnits, 0),
     campaignTarget: MONTHLY_SALES_TARGETS.reduce((sum, [, towerA, towerB]) => sum + towerA + towerB, 0),
-    campaignActual: confirmed.length,
+    campaignActual: booked.length,
   };
 }
 

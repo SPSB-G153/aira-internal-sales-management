@@ -29,10 +29,10 @@ export async function GET() {
   monthlySheet.mergeCells("A2:H2"); monthlySheet.getCell("A2").value = `Current month target ${monthly.currentTarget} | Actual ${monthly.currentActual} | YTD target ${monthly.ytdTarget} | YTD actual ${monthly.ytdActual}`;
   monthlySheet.mergeCells("A3:H3"); monthlySheet.getCell("A3").value = `Campaign target ${monthly.campaignTarget} units | Actual ${monthly.campaignActual} units`;
   monthlySheet.columns = [{ width: 15 }, { width: 12 }, { width: 12 }, { width: 13 }, { width: 13 }, { width: 19 }, { width: 18 }, { width: 13 }];
-  const monthlyHeader = monthlySheet.getRow(5); monthlyHeader.values = ["Month", "Tower A Target", "Tower B Target", "Total Target", "Actual Units", "Actual Sales Value", "Actual / Target Cumulative", "Variance"];
+  const monthlyHeader = monthlySheet.getRow(5); monthlyHeader.values = ["Month", "Tower A Target", "Tower B Target", "Total Target", "Actual Sales (Qty)", "Actual Sales Value", "Collection Received", "Variance"];
   monthlyHeader.font = { bold: true, color: { argb: "FFFFFFFF" } }; monthlyHeader.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF111319" } };
-  monthly.rows.forEach((row) => monthlySheet.addRow([formatTrackerMonth(row.month), row.towerA, row.towerB, row.targetUnits, row.actualUnits, row.actualValue, `${row.cumulativeActual} / ${row.cumulativeTarget}`, row.variance]));
-  monthlySheet.getColumn(6).numFmt = '"RM" #,##0'; monthlySheet.eachRow((row, number) => { row.alignment = { vertical: "middle", wrapText: true }; if (number >= 5) row.height = 24; });
+  monthly.rows.forEach((row) => monthlySheet.addRow([formatTrackerMonth(row.month), row.towerA, row.towerB, row.targetUnits, row.actualUnits, row.actualValue, row.collectionReceived, row.variance]));
+  monthlySheet.getColumn(6).numFmt = '"RM" #,##0'; monthlySheet.getColumn(7).numFmt = '"RM" #,##0'; monthlySheet.eachRow((row, number) => { row.alignment = { vertical: "middle", wrapText: true }; if (number >= 5) row.height = 24; });
   const buffer = await workbook.xlsx.writeBuffer();
   return new Response(buffer, { headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Content-Disposition": `attachment; filename="AIRA-Sales-Tracker.xlsx"`, "Cache-Control": "no-store" } });
 }
