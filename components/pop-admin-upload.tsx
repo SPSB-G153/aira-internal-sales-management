@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetails } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
@@ -63,7 +62,6 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
   showNamecard?: boolean;
   compact?: boolean;
 }) {
-  const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const namecardInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -167,7 +165,11 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         if (saved.saleId) {
           const destination = `/sales/new?continue=${encodeURIComponent(saved.saleId)}#booking-form`;
           setResult(null);
-          router.replace(destination);
+          // This must be a full navigation because the destination reloads the
+          // newly saved sale as the Booking Form continuation step. A client
+          // route replacement can retain the current intake state and leave
+          // the user at the completed POP review instead.
+          window.location.assign(destination);
           return;
         }
         setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
