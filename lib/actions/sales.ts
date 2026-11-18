@@ -224,7 +224,7 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     // matching sale payload before doing another connection for the write.
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const{data:existingRow,error:existingError}=await db.from("sales").select("*").eq("team_id",team.id).eq("unit_number",unit).maybeSingle();
+    const{data:existingRow,error:existingError}=await db.from("sales").select("*").eq("team_id",team.id).eq("unit_number",unit).order("created_at",{ascending:false}).limit(1).maybeSingle();
     if(existingError)throw existingError;
     const existing=(existingRow as Sale|null)??undefined;
     const popPurchaserType=clean("purchaser_type");
@@ -244,6 +244,11 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     return{saleId:sale.id};
   }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
+}
+export async function saveUploadedPopDetailsAndContinue(fields:Record<string,string>):Promise<UploadedPopSaveState>{
+  const saved=await saveUploadedPopDetails(fields);
+  if(saved.saleId)redirect(`/sales/new?continue=${encodeURIComponent(saved.saleId)}#booking-form-upload`);
+  return saved;
 }
 export async function prepareUploadedPopDocuments(saleId:string):Promise<void>{
   try{

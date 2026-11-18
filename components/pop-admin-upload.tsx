@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetails } from "@/lib/actions/sales";
+import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetailsAndContinue } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
@@ -158,24 +158,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
       setBusy(true);
       setMessage("Saving the uploaded POP and opening the Booking Form…");
       try {
-        const saved = await Promise.race([
-          saveUploadedPopDetails(fields),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Saving took too long. Nothing else was submitted; please try Continue again.")), 30000)),
-        ]);
-        if (saved.saleId) {
-          const destination = `/sales/new?continue=${encodeURIComponent(saved.saleId)}#booking-form-upload`;
-          setResult(null);
-          // This must be a full navigation because the destination reloads the
-          // newly saved sale as the Booking Form continuation step. A client
-          // route replacement can retain the current intake state and leave
-          // the user at the completed POP review instead.
-          window.location.assign(destination);
-          // When the POP belongs to the sale already open in this page, the
-          // destination URL can be unchanged. Explicitly bring the real
-          // Booking Form upload row into view in that case as well.
-          window.setTimeout(() => document.getElementById("booking-form-upload")?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
-          return;
-        }
+        const saved = await saveUploadedPopDetailsAndContinue(fields);
         setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "The uploaded POP could not be saved.");
