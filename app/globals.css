@@ -291,7 +291,7 @@ h3 { margin:0; font-size:16px; }
 .management-action small { margin-top:4px; color:var(--muted); font-size:12px; line-height:1.35; }
 .management-action b { font:700 24px/1 Georgia,serif; color:var(--gold); }
 .management-table { border-top:1px solid var(--border); }
-.management-table-head,.management-sale-row { display:grid; grid-template-columns:100px minmax(220px,1fr) minmax(170px,.7fr) 150px 200px 12px; column-gap:18px; align-items:center; }
+.management-table-head,.management-sale-row { display:grid; grid-template-columns:90px minmax(240px,1fr) 88px 145px 190px 12px; column-gap:14px; align-items:center; }
 .management-table-head { padding:12px 10px 9px; color:#737d8c; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
 .management-sale-row { min-height:70px; padding:13px 10px; border-top:1px solid var(--border); color:inherit; }
 .management-sale-row strong { color:var(--gold); font-size:13px; letter-spacing:.04em; }
