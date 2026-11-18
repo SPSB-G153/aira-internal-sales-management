@@ -44,8 +44,8 @@ export default async function SalesTrackerPage({ searchParams }: { searchParams:
         <div><span>YTD actual</span><strong>{monthly.ytdActual}</strong></div>
       </div>
       <div className="monthly-target-table">
-        <div className="monthly-target-row monthly-target-head"><span>Month</span><span>Tower A</span><span>Tower B</span><span>Target</span><span>Actual sales (qty)</span><span>Actual sales value</span><span>Collection received</span><span>Variance</span></div>
-        {monthly.rows.map((row) => <div className={`monthly-target-row${row.month === monthly.currentMonth ? " current" : ""}`} key={row.month}><strong>{formatTrackerMonth(row.month)}</strong><span>{row.towerA}</span><span>{row.towerB}</span><span>{row.targetUnits}</span><span>{row.actualUnits}</span><span>{formatRinggit(row.actualValue)}</span><span>{formatRinggit(row.collectionReceived)}</span><span className={row.variance < 0 ? "negative" : ""}>{row.variance > 0 ? "+" : ""}{row.variance}</span></div>)}
+        <div className="monthly-target-row monthly-target-head monthly-target-head-grouped"><span className="month-head">Month</span><span className="target-head">Target</span><span className="tower-a-head">Tower A</span><span className="tower-b-head">Tower B</span><span className="actual-qty-head">Actual sales (qty)</span><span className="actual-value-head">Actual sales value</span><span className="collection-head">Collection received</span><span className="variance-head">Variance</span></div>
+        {monthly.rows.map((row) => <div className={`monthly-target-row${row.month === monthly.currentMonth ? " current" : ""}`} key={row.month}><strong>{formatTrackerMonth(row.month)}</strong><span>{row.towerA}</span><span>{row.towerB}</span><span>{row.actualUnits}</span><span>{formatRinggit(row.actualValue)}</span><span>{formatRinggit(row.collectionReceived)}</span><span className={row.variance < 0 ? "negative" : ""}>{row.variance > 0 ? "+" : ""}{row.variance}</span></div>)}
       </div>
     </section>
     <form className="card tracker-filters">

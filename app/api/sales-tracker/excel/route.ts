@@ -24,15 +24,16 @@ export async function GET() {
   rows.forEach((row) => sheet.addRow([row.unit, row.purchaser, row.currentStage, formatTrackerDate(row.keyDate), row.nextAction, row.status]));
   sheet.eachRow((row, number) => { row.alignment = { vertical: "middle", wrapText: true }; if (number >= 5) row.height = 24; });
   const monthlySheet = workbook.addWorksheet("Monthly Targets", { views: [{ state: "frozen", ySplit: 5 }] });
-  monthlySheet.mergeCells("A1:H1"); monthlySheet.getCell("A1").value = "AIRA RESIDENCE — MONTHLY SALES TARGETS";
+  monthlySheet.mergeCells("A1:G1"); monthlySheet.getCell("A1").value = "AIRA RESIDENCE — MONTHLY SALES TARGETS";
   monthlySheet.getCell("A1").font = { bold: true, size: 18, color: { argb: "FFD4AF37" } }; monthlySheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF111319" } };
-  monthlySheet.mergeCells("A2:H2"); monthlySheet.getCell("A2").value = `Current month target ${monthly.currentTarget} | Actual ${monthly.currentActual} | YTD target ${monthly.ytdTarget} | YTD actual ${monthly.ytdActual}`;
-  monthlySheet.mergeCells("A3:H3"); monthlySheet.getCell("A3").value = `Campaign target ${monthly.campaignTarget} units | Actual ${monthly.campaignActual} units`;
-  monthlySheet.columns = [{ width: 15 }, { width: 12 }, { width: 12 }, { width: 13 }, { width: 13 }, { width: 19 }, { width: 18 }, { width: 13 }];
-  const monthlyHeader = monthlySheet.getRow(5); monthlyHeader.values = ["Month", "Tower A Target", "Tower B Target", "Total Target", "Actual Sales (Qty)", "Actual Sales Value", "Collection Received", "Variance"];
-  monthlyHeader.font = { bold: true, color: { argb: "FFFFFFFF" } }; monthlyHeader.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF111319" } };
-  monthly.rows.forEach((row) => monthlySheet.addRow([formatTrackerMonth(row.month), row.towerA, row.towerB, row.targetUnits, row.actualUnits, row.actualValue, row.collectionReceived, row.variance]));
-  monthlySheet.getColumn(6).numFmt = '"RM" #,##0'; monthlySheet.getColumn(7).numFmt = '"RM" #,##0'; monthlySheet.eachRow((row, number) => { row.alignment = { vertical: "middle", wrapText: true }; if (number >= 5) row.height = 24; });
+  monthlySheet.mergeCells("A2:G2"); monthlySheet.getCell("A2").value = `Current month target ${monthly.currentTarget} | Actual ${monthly.currentActual} | YTD target ${monthly.ytdTarget} | YTD actual ${monthly.ytdActual}`;
+  monthlySheet.mergeCells("A3:G3"); monthlySheet.getCell("A3").value = `Campaign target ${monthly.campaignTarget} units | Actual ${monthly.campaignActual} units`;
+  monthlySheet.columns = [{ width: 15 }, { width: 12 }, { width: 12 }, { width: 18 }, { width: 19 }, { width: 20 }, { width: 13 }];
+  monthlySheet.mergeCells("A4:A5"); monthlySheet.mergeCells("B4:C4"); monthlySheet.mergeCells("D4:D5"); monthlySheet.mergeCells("E4:E5"); monthlySheet.mergeCells("F4:F5"); monthlySheet.mergeCells("G4:G5");
+  monthlySheet.getCell("A4").value="Month"; monthlySheet.getCell("B4").value="Target"; monthlySheet.getCell("B5").value="Tower A"; monthlySheet.getCell("C5").value="Tower B"; monthlySheet.getCell("D4").value="Actual Sales (Qty)"; monthlySheet.getCell("E4").value="Actual Sales Value"; monthlySheet.getCell("F4").value="Collection Received"; monthlySheet.getCell("G4").value="Variance";
+  for(const rowNumber of [4,5]){const row=monthlySheet.getRow(rowNumber);row.font={bold:true,color:{argb:"FFFFFFFF"}};row.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF111319"}};row.alignment={vertical:"middle",horizontal:"center",wrapText:true};}
+  monthly.rows.forEach((row) => monthlySheet.addRow([formatTrackerMonth(row.month), row.towerA, row.towerB, row.actualUnits, row.actualValue, row.collectionReceived, row.variance]));
+  monthlySheet.getColumn(5).numFmt = '"RM" #,##0'; monthlySheet.getColumn(6).numFmt = '"RM" #,##0'; monthlySheet.eachRow((row, number) => { row.alignment = { vertical: "middle", wrapText: true }; if (number >= 6) row.height = 24; });
   const buffer = await workbook.xlsx.writeBuffer();
   return new Response(buffer, { headers: { "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Content-Disposition": `attachment; filename="AIRA-Sales-Tracker.xlsx"`, "Cache-Control": "no-store" } });
 }
