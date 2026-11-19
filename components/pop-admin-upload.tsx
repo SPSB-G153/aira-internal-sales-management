@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, saveUploadedPopDetailsAndContinue } from "@/lib/actions/sales";
+import { useActionState, useRef, useState } from "react";
+import { continueUploadedPopDetails, findSavedAgentDetails, findSavedSalespersonDetails, savePopAdminDetails, type UploadedPopSaveState } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
@@ -70,6 +70,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
   const [result, setResult] = useState<Extraction | null>(null);
   const [message, setMessage] = useState("");
   const [agentDocuments, setAgentDocuments] = useState<{ appointment?: string; fee?: string }>({});
+  const [continueState, continueAction, continuePending] = useActionState<UploadedPopSaveState, FormData>(continueUploadedPopDetails, {});
 
   function updateField(key: string, value: string) {
     setResult((current) => current ? { ...current, fields: { ...current.fields, [key]: value } } : current);
@@ -154,17 +155,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
   async function apply() {
     if (!result) return;
     const fields = result.fields;
-    if (!saleId) {
-      setBusy(true);
-      setMessage("Saving the uploaded POP and opening the Booking Form…");
-      // Do not catch this server action: Next.js delivers a successful
-      // `redirect()` through its navigation signal. Catching it here keeps the
-      // modal open and makes the Continue button appear to do nothing.
-      const saved = await saveUploadedPopDetailsAndContinue(fields);
-      setBusy(false);
-      setMessage(saved.error || "The uploaded POP could not be saved. Please correct the extracted details above.");
-      return;
-    }
+    if (!saleId) return;
     setBusy(true);
     setMessage("Saving the POP administration details to the booking and letters…");
     const saved = await savePopAdminDetails(saleId, fields);
@@ -210,7 +201,7 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         <h2>Review {reviewSource} administration details</h2>
         <p className="subtle">Check the privately extracted details before adding them to the form. Agency/company is filled only when it is shown.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
-        {message && <p className="upload-message" role="status">{message}</p>}
+        {(message || continueState.error) && <p className="upload-message" role="status">{continueState.error || message}</p>}
         <div className="upload-review-fields">
           {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !staffReviewFields.has(key))).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
           {reviewSource === "POP Form" && <>
@@ -228,8 +219,13 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
           {busySource === "namecard" ? "Reading agent namecard…" : "Add agent namecard"}
         </button>}
         <div className="upload-review-actions">
-          <button type="button" className="button secondary" disabled={busy} onClick={() => setResult(null)}>Cancel</button>
-          <button type="button" className="button accent" disabled={busy} onClick={() => void apply()}>{busy ? (saleId ? "Saving details…" : "Opening Booking Form…") : saleId ? "Save these details" : "Continue with these details"}</button>
+          <button type="button" className="button secondary" disabled={busy || continuePending} onClick={() => setResult(null)}>Cancel</button>
+          {saleId
+            ? <button type="button" className="button accent" disabled={busy} onClick={() => void apply()}>{busy ? "Saving details…" : "Save these details"}</button>
+            : <form action={continueAction} style={{display:"contents"}}>
+                <input type="hidden" name="reviewed_pop_fields" value={JSON.stringify(result.fields)} />
+                <button type="submit" className="button accent" disabled={continuePending}>{continuePending ? "Opening Booking Form…" : "Continue with these details"}</button>
+              </form>}
         </div>
       </div>
     </div>}

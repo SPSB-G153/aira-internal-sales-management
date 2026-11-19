@@ -250,6 +250,12 @@ export async function saveUploadedPopDetailsAndContinue(fields:Record<string,str
   if(saved.saleId)redirect(`/sales/new/booking?continue=${encodeURIComponent(saved.saleId)}#booking-form-upload`);
   return saved;
 }
+export async function continueUploadedPopDetails(_:UploadedPopSaveState,form:FormData):Promise<UploadedPopSaveState>{
+  const raw=String(form.get("reviewed_pop_fields")??"");
+  let fields:Record<string,string>;
+  try{fields=JSON.parse(raw) as Record<string,string>;}catch{return{error:"The reviewed POP details could not be submitted. Please reopen the POP and try again."};}
+  return saveUploadedPopDetailsAndContinue(fields);
+}
 export async function prepareUploadedPopDocuments(saleId:string):Promise<void>{
   try{
     const sale=await getSale(saleId);const db=await createClient();const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
