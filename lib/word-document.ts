@@ -94,7 +94,7 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
     ["Property",property],
     ["Developer","Selangor Properties Sdn. Bhd."],
     ["Proprietor",text(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")],
-    ["Purchaser",purchaser2?`1. ${purchaser}\n2. ${purchaser2}`:purchaser],
+    ["Purchaser(s)",purchaser2?`1. ${purchaser}\n2. ${purchaser2}`:purchaser],
     ["Purchase Price",amount(content.purchase_price)],
   ];
   return new Table({
@@ -103,7 +103,7 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
     rows:rows.map(([label,value],index)=>{const bottom=index===rows.length-1?{style:BorderStyle.SINGLE,size:4,color:"777777"}:noBorder;return new TableRow({children:[
       new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
       new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
-      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:value,bold:true})]})]}),
+      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:label==="Purchaser(s)"&&purchaser2?[new TextRun({text:`1. ${purchaser}`,bold:true}),new TextRun({text:`2. ${purchaser2}`,bold:true,break:1})]:[new TextRun({text:value,bold:true})]})]}),
     ]});})
   });
 };
@@ -149,7 +149,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
   const deposit=price*.1;
   const addressLines=noticeAddressLines(text(content,"customer_address",""));
   const pageOne=[
-    acceptanceParagraph(ordinalDateRuns(text(content,"letter_issued_at",""),true),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
+    acceptanceParagraph(ordinalDateRuns(new Date(),true),{alignment:AlignmentType.LEFT,spacing:{before:220,after:200,line:341}}),
     acceptanceParagraph([
       new TextRun({text:purchaser,bold:true}),
       ...(purchaser2?[new TextRun({text:purchaser2,bold:true,break:1})]:[]),

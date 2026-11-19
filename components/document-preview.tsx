@@ -30,7 +30,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
       <p className="notice-recipient"><b className="notice-recipient-names">{purchaser}{purchaser2&&<><br/>{purchaser2}</>}</b><span className="notice-recipient-address"><NoticeAddress address={value(content,"customer_address")}/></span></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
-      <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
+      <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser(s)"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
       <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
       <p>We thank you for your Offer to Purchase the Property described above by way of the Booking Form dated {formattedOrdinalDate(content.sale_date)} (&ldquo;<b>Offer</b>&rdquo;). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence &ndash; Kuala Lumpur&rsquo;s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence&rsquo;s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.</p>
       <p>You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (&ldquo;<b>SPA</b>&rdquo;), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively &ldquo;<b>Sale Documents</b>&rdquo;) in the manner described below.</p>
@@ -72,7 +72,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
       <Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact>
       <Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact>
       <Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact>
-      <Fact label="Purchaser"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact>
+      <Fact label="Purchaser(s)"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact>
       <Fact label="Purchase Price"><b>{money(price)}</b></Fact>
     </dl>
     <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
@@ -99,7 +99,7 @@ const approvalDate=(input:unknown)=>typeof input==="string"&&input?input.split("
 
 export function DocumentPreview({type,content}:{type:DocumentType;content:Content}){
   const isAgentLetter=type==="agency_appointment_letter"||type==="agent_commission_letter";
-  const previewContent=isAgentLetter?{...content,letter_issued_at:new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"})}:content;
+  const previewContent=isAgentLetter||type==="acceptance_letter"?{...content,letter_issued_at:new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"})}:content;
   const preview=type==="pre_booking_form"?<ProspectOfferForm content={previewContent}/>
     :type==="booking_form"?<BookingFormExact content={previewContent}/>
     :type==="acceptance_letter"?<AcceptanceLetterExact content={previewContent}/>
