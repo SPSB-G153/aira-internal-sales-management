@@ -243,7 +243,14 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
       :preliminarySale;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     return{saleId:sale.id};
-  }catch(error){return{error:error instanceof Error?error.message:"The uploaded POP could not be saved."};}
+  }catch(error){
+    console.error("Uploaded POP save failed",error);
+    const databaseError=error&&typeof error==="object"?error as {message?:unknown;details?:unknown;hint?:unknown;code?:unknown}:null;
+    const message=error instanceof Error?error.message:typeof databaseError?.message==="string"?databaseError.message:"The uploaded POP could not be saved.";
+    const details=typeof databaseError?.details==="string"&&databaseError.details!==message?` ${databaseError.details}`:"";
+    const hint=typeof databaseError?.hint==="string"&&databaseError.hint?` ${databaseError.hint}`:"";
+    return{error:`${message}${details}${hint}`.trim()};
+  }
 }
 export async function saveUploadedPopDetailsAndContinue(fields:Record<string,string>):Promise<UploadedPopSaveState>{
   const saved=await saveUploadedPopDetails(fields);
