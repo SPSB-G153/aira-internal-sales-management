@@ -108,8 +108,8 @@ export function NewSaleIntake({ initialValues, bookingOnly = false }: { initialV
             showNamecard={false}
             compact
             onUseFields={(fields) => {
-              setValues(fields as unknown as Partial<Sale>);
-              setMode("pop");
+              setValues((current) => ({ ...current, ...(fields as unknown as Partial<Sale>) }));
+              setMode(null);
               setPopSource("uploaded");
               setRevision((current) => current + 1);
             }}
@@ -125,7 +125,7 @@ export function NewSaleIntake({ initialValues, bookingOnly = false }: { initialV
           <BookingFormUpload
             buttonLabel="Upload Booking Form"
             onUseFields={(fields) => {
-              setValues({ ...initialValues, ...bookingValues(fields) });
+              setValues((current) => ({ ...initialValues, ...current, ...bookingValues(fields) }));
               setMode("booking");
               setBookingSource("uploaded");
               setRevision((current) => current + 1);
