@@ -45,6 +45,12 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
     }
     values[key] = value;
   }
+  // The reader can confuse a passport/identity number with a company
+  // registration number. Treat the purchaser as a company only when the
+  // purchaser name itself contains clear corporate wording.
+  const purchaserName = String(values.customer_name || fields.customer_name || "").trim();
+  const corporateName = /\b(?:SDN\.?\s*BHD\.?|BERHAD|LIMITED|LTD\.?|LLP|PLT|INC\.?|CORP(?:ORATION)?|ENTERPRISE)\b/i.test(purchaserName);
+  values.purchaser_type = corporateName ? "company" : "individual";
   const unit = typeof values.unit_number === "string" ? values.unit_number : "";
   const unitDetails = detailsForUnit(unit);
   if (unitDetails) {
