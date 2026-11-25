@@ -26,6 +26,7 @@ const common=(s:Sale)=>{
   salesperson_name:s.salesperson_name,salesperson_designation:salesperson?.designation||s.salesperson_designation||null,salesperson_mobile:salesperson?.mobile||s.salesperson_mobile||null,salesperson_email:salesperson?.email||s.salesperson_email||null,
   agent_company:agencyCompany,agent_address:agency.address,agent_name:agency.agent_name,agent_designation:agency.agent_designation,agent_mobile:agency.agent_mobile,agent_email:agency.agent_email,solicitor_name:solicitorForLetter(s.unit_number||"",s.solicitor_name),proprietor_name:s.proprietor_name,sale_date:s.sale_date,
   authorised_signatory_name:s.authorised_signatory_name,authorised_signatory_position:s.authorised_signatory_position,
+  spa_signed_at:s.spa_signed_at,balance_deposit_received_at:s.balance_deposit_received_at,balance_deposit_payment_method:s.balance_deposit_payment_method,balance_deposit_reference:s.balance_deposit_reference,
   inventory_required:s.inventory_required,inventory_payment_not_required:s.inventory_payment_not_required||s.inventory_payment_reference==="Included in selling price",inventory_payment_amount:s.inventory_payment_amount,
   inventory_payment_received_at:s.inventory_payment_received_at,inventory_payment_method:s.inventory_payment_method,inventory_payment_reference:s.inventory_payment_reference,
   pop_proposal_note:s.pop_proposal_note,pop_conditions_note:s.pop_conditions_note,pop_recommendation_note:s.pop_recommendation_note,pop_feasibility_note:s.pop_feasibility_note,pop_comments_note:s.pop_comments_note,

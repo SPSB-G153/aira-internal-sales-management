@@ -645,7 +645,7 @@ async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo
   const correspondenceDetails=correspondenceDetailItems.length?`• ${correspondenceDetailItems.join("\n• ")}`:"";
   const bookingCheque=content.payment_method==="cheque"&&Boolean(content.booking_fee);
   const balanceCheque=content.balance_deposit_payment_method==="cheque"||uploadedItems.some(item=>/^8% balance deposit|^SPA Balance 8 Percent/i.test(item));
-  const postDatedCheques=uploadedItems.some(item=>/post[- ]dated cheque/i.test(item));
+  const postDatedCheques=!balanceCheque&&uploadedItems.some(item=>/post[- ]dated cheque/i.test(item));
   const bookingChequeDetails=[content.payment_reference?`Reference: ${String(content.payment_reference)}`:"",content.sale_date?`Date: ${String(content.sale_date)}`:""].filter(Boolean).join(" • ");
   const balanceChequeDetails=[content.balance_deposit_reference?`Reference: ${String(content.balance_deposit_reference)}`:"",content.balance_deposit_received_at?`Date: ${String(content.balance_deposit_received_at)}`:""].filter(Boolean).join(" • ");
   const checklist=[
