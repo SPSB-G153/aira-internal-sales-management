@@ -368,7 +368,9 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       const existingContent=(existing as {content?:Record<string,unknown>}|undefined)?.content;
       const priorItems=Array.isArray(existingContent?.ccd_uploaded_items)?existingContent.ccd_uploaded_items.filter((item):item is string=>typeof item==="string"):[];
       if(updated.unit_number?.toUpperCase()==="A-03-03")priorItems.push("Other correspondence - A-03-03 physical cheques_17.11.26","Other correspondence - A-03-03 PURCHASE CONDITIONS LETTER (signed)");
-      const bookingPaymentItem=updated.booking_fee?(updated.payment_method==="cheque"?"Post-dated cheques provided":`2% booking fee ${updated.payment_method==="bank_transfer"?"bank-transfer receipt":updated.payment_method==="cash"?"cash receipt":"payment evidence"}${updated.payment_reference?` (${updated.payment_reference})`:""}`):"";
+      if(updated.unit_number?.toUpperCase()==="A-03-3A")priorItems.push("Other correspondence - A-03-3A_Parking");
+      const bookingPaymentItem=updated.booking_fee?`2% booking fee ${updated.payment_method==="cheque"?"cheque":updated.payment_method==="bank_transfer"?"bank-transfer receipt":updated.payment_method==="cash"?"cash receipt":"payment evidence"}${updated.payment_reference?` (${updated.payment_reference})`:""}`:"";
+      const balancePaymentItem=(updated.balance_deposit_received_at||updated.balance_deposit_payment_method||updated.balance_deposit_reference)?`8% balance deposit ${updated.balance_deposit_payment_method==="cheque"?"cheque":updated.balance_deposit_payment_method==="bank_transfer"?"bank-transfer receipt":updated.balance_deposit_payment_method==="cash"?"cash receipt":"payment evidence"}${updated.balance_deposit_reference?` (${updated.balance_deposit_reference})`:""}${updated.balance_deposit_received_at?` - ${updated.balance_deposit_received_at}`:""}`:"";
       const content={
         ...buildDocumentSnapshot(updated,"ccd_transmittal_letter"),
         letter_issued_at:signedDate,
@@ -386,7 +388,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
         // have the document card.
         ccd_booking_uploaded:recordedTypes.has("booking_form")||Boolean(updated.sale_date&&updated.customer_name&&updated.unit_number&&updated.purchase_price),
         ccd_spa_completed:true,
-        ccd_uploaded_items:Array.from(new Set([...priorItems,...(bookingPaymentItem?[bookingPaymentItem]:[])])),
+        ccd_uploaded_items:Array.from(new Set([...priorItems,...(bookingPaymentItem?[bookingPaymentItem]:[]),...(balancePaymentItem?[balancePaymentItem]:[])])),
       };
       const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"ccd_transmittal_letter",content,status:"generated",generated_at:existing?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
       if(error)throw error;
