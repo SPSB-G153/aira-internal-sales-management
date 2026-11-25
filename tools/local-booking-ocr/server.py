@@ -88,6 +88,24 @@ PURCHASER_IDENTITY_SCHEMA = {
     },
     "required": ["customer_name", "customer_ic", "customer_name_2", "customer_ic_2", "customer_name_3", "customer_ic_3"],
 }
+THIRD_PURCHASER_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "customer_name_3": {"type": "string"},
+        "customer_ic_3": {"type": "string"},
+        "customer_salutation_3": {"type": "string"},
+        "customer_tin_3": {"type": "string"},
+        "customer_nationality_3": {"type": "string"},
+        "customer_sex_3": {"type": "string"},
+        "customer_race_3": {"type": "string"},
+        "customer_occupation_3": {"type": "string"},
+    },
+    "required": [
+        "customer_name_3", "customer_ic_3", "customer_salutation_3",
+        "customer_tin_3", "customer_nationality_3", "customer_sex_3",
+        "customer_race_3", "customer_occupation_3",
+    ],
+}
 PRICE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -162,7 +180,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-11-25-v14-three-purchasers"
+CACHE_VERSION = "booking-reader-2026-11-25-v17-third-purchaser-particulars"
 
 
 @app.middleware("http")
@@ -178,6 +196,7 @@ def health():
         "ok": True,
         "private": True,
         "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+        "cache_version": CACHE_VERSION,
         "upload_folder": str(private_upload_root()),
     }
 
@@ -1169,6 +1188,50 @@ async def extract(file: UploadFile = File(...)):
                     fields[key] = focused_value
         except (KeyError, TypeError, ValueError, RuntimeError):
             warnings.append("The numbered purchaser rows need manual review.")
+        # A compact model can still stop after row 2 even when row 3 is clearly
+        # completed. If that happens, perform a dedicated read of only the
+        # third numbered row on the cover and the third particulars row in the
+        # appendix. The appendix supplies TIN, nationality, sex and race while
+        # the cover supplies the matching identity number.
+        third_required = (
+            "customer_name_3", "customer_ic_3", "customer_tin_3",
+            "customer_nationality_3", "customer_sex_3", "customer_race_3",
+        )
+        if any(not fields.get(key, "").strip() for key in third_required):
+            third_payload = {
+                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "This Booking Form has numbered purchaser rows. Read ONLY purchaser row 3. "
+                        "On the cover, copy the handwritten third purchaser name and the matching "
+                        "third NRIC/passport number. In the Purchaser's Particulars appendix, copy "
+                        "the third handwritten row's name, TIN, nationality, sex, race and occupation. "
+                        "Use the cover and appendix together for the same person. Do not return row 1 "
+                        "or row 2 and do not merge names. Infer salutation only from the sex: M means Mr "
+                        "and F means Ms. Return an empty string only when the third row is genuinely blank. "
+                        "Return only the requested JSON."
+                    ),
+                    "images": [
+                        booking_cover_section(pdf[0]),
+                        appendix_purchaser_section(pdf[appendix_index]),
+                    ],
+                }],
+                "format": THIRD_PURCHASER_SCHEMA,
+                "stream": False,
+                "keep_alive": "30m",
+                "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 320},
+            }
+            try:
+                third = structured_model_response(
+                    third_payload, timeout=300, retry_num_predict=500
+                )
+                for key in THIRD_PURCHASER_SCHEMA["properties"]:
+                    value = str(third.get(key, "") or "").strip()
+                    if value:
+                        fields[key] = value
+            except (KeyError, TypeError, ValueError, RuntimeError):
+                warnings.append("Purchaser 3 needs manual review.")
         # Price is too important to accept from the broad whole-form reading.
         # Verify only the actual Purchase Price row. A blank box must remain
         # blank; it must never inherit a previous sale or a model guess.
