@@ -24,7 +24,7 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
       if (Number.isFinite(number)) values[key] = number;
       continue;
     }
-    if (key === "bumi_status" || key === "bumi_status_2") {
+    if (key === "bumi_status" || key === "bumi_status_2" || key === "bumi_status_3") {
       const normalized = value.toLowerCase();
       if (["yes", "true", "bumi"].includes(normalized)) values[key] = true;
       if (["no", "false", "non-bumi", "non bumi"].includes(normalized)) values[key] = false;
@@ -63,6 +63,8 @@ function bookingValues(fields: BookingUploadFields): Partial<Sale> {
   values.customer_sex = fullSex(values.customer_sex);
   if (values.customer_name_2 || values.customer_ic_2) values.customer_sex_2 = fullSex(values.customer_sex_2);
   if (values.customer_name_2 || values.customer_ic_2) values.bumi_status_2 = isMalayRace(values.customer_race_2);
+  if (values.customer_name_3 || values.customer_ic_3) values.customer_sex_3 = fullSex(values.customer_sex_3);
+  if (values.customer_name_3 || values.customer_ic_3) values.bumi_status_3 = isMalayRace(values.customer_race_3);
   const salesperson = profileForSalesPersonnel(String(values.salesperson_name || ""));
   if (salesperson) {
     values.salesperson_name = salesperson.name;

@@ -162,7 +162,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-11-16-v12-two-assistants"
+CACHE_VERSION = "booking-reader-2026-11-25-v13-three-purchasers"
 
 
 @app.middleware("http")
@@ -468,7 +468,7 @@ def save_cached_extraction(data, fields, warnings):
 def pop_admin_cache_path(data):
     root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(b"pop-admin-v5-staff-presence" + data).hexdigest()
+    digest = hashlib.sha256(b"pop-admin-v6-exact-team-member-box" + data).hexdigest()
     return root / f"pop-{digest}.json"
 
 
@@ -957,38 +957,12 @@ async def extract_pop_admin(
             second_salesperson = canonical_salesperson(checked.get("pop_assisting_member_2", ""))
         except (KeyError, TypeError, ValueError, RuntimeError):
             salesperson = ""
-        if salesperson and not second_salesperson:
-            presence_payload = {
-                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
-                "messages": [{
-                    "role": "user",
-                    "content": (
-                        "Look only inside the Team Member Assisting box. Return true for each exact name visibly present: "
-                        "FELICIA LOW and MADIHAH HASSAN. A name joined by '&' is still present. Ignore every other row. Return only JSON."
-                    ),
-                    "images": [images[0]],
-                }],
-                "format": POP_STAFF_PRESENCE_SCHEMA,
-                "stream": False,
-                "keep_alive": "30m",
-                "options": {"temperature": 0, "num_ctx": 1536, "num_predict": 40},
-            }
-            try:
-                presence = structured_model_response(presence_payload, timeout=300, retry_num_predict=60)
-                if salesperson == "Felicia Low" and presence.get("madihah_hassan_present"):
-                    second_salesperson = "Madihah Hassan"
-                elif salesperson == "Madihah Hassan" and presence.get("felicia_low_present"):
-                    second_salesperson = "Felicia Low"
-            except (KeyError, TypeError, ValueError, RuntimeError):
-                pass
         # Also accept the broad pass only when it resolves to the same strict
         # two-person allowlist. Never retain an agent or purchaser as staff.
         fields["salesperson_name"] = salesperson or canonical_salesperson(
             fields.get("salesperson_name", "")
         )
-        fields["pop_assisting_member_2"] = second_salesperson or canonical_salesperson(
-            fields.get("pop_assisting_member_2", "")
-        )
+        fields["pop_assisting_member_2"] = second_salesperson
         fields["agent_company"] = normalize_agent_company(fields["agent_company"])
         resolved_unit_number = fields.get("unit_number", "") or unit_number
         folder = unit_folder(resolved_unit_number)
