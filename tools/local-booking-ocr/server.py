@@ -106,6 +106,21 @@ THIRD_PURCHASER_SCHEMA = {
         "customer_race_3", "customer_occupation_3",
     ],
 }
+PURCHASER_PARTICULARS_SCHEMA = {
+    "type": "object",
+    "properties": {
+        key: {"type": "string"}
+        for suffix in ("", "_2", "_3")
+        for key in (
+            f"customer_name{suffix}", f"customer_tin{suffix}",
+            f"customer_nationality{suffix}", f"customer_sex{suffix}",
+            f"customer_race{suffix}",
+        )
+    },
+}
+PURCHASER_PARTICULARS_SCHEMA["required"] = list(
+    PURCHASER_PARTICULARS_SCHEMA["properties"].keys()
+)
 PRICE_SCHEMA = {
     "type": "object",
     "properties": {
@@ -1229,6 +1244,42 @@ async def extract(file: UploadFile = File(...)):
                         fields[key] = value
             except (KeyError, TypeError, ValueError, RuntimeError, requests.RequestException):
                 warnings.append("Purchaser 3 needs manual review.")
+        # TIN, nationality, sex and race are printed as aligned columns in the
+        # page-5 Purchaser's Particulars table. Read that table independently
+        # whenever the broad form pass misses a TIN; do not infer these values
+        # from the cover page or identity number.
+        tin_keys = ("customer_tin", "customer_tin_2", "customer_tin_3")
+        if any(not fields.get(key, "").strip() for key in tin_keys):
+            particulars_payload = {
+                "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
+                "messages": [{
+                    "role": "user",
+                    "content": (
+                        "Read only the completed handwritten purchaser rows in this page-5 "
+                        "Purchaser's Particulars table. Row 1 maps to fields without a suffix, "
+                        "row 2 to suffix _2, and row 3 to suffix _3. For each row copy the "
+                        "purchaser name, TIN number, nationality, sex and race from their exact "
+                        "printed columns. M'sian means Malaysian nationality. Malay belongs in "
+                        "race, never nationality. Preserve every TIN digit exactly. Do not read "
+                        "NRIC numbers from another section. Return only the requested JSON."
+                    ),
+                    "images": [appendix_purchaser_section(pdf[appendix_index])],
+                }],
+                "format": PURCHASER_PARTICULARS_SCHEMA,
+                "stream": False,
+                "keep_alive": "30m",
+                "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 420},
+            }
+            try:
+                particulars = structured_model_response(
+                    particulars_payload, timeout=300, retry_num_predict=600
+                )
+                for key in PURCHASER_PARTICULARS_SCHEMA["properties"]:
+                    value = str(particulars.get(key, "") or "").strip()
+                    if value:
+                        fields[key] = value
+            except (KeyError, TypeError, ValueError, RuntimeError, requests.RequestException):
+                warnings.append("The page-5 purchaser TIN particulars need manual review.")
         # Price is too important to accept from the broad whole-form reading.
         # Verify only the actual Purchase Price row. A blank box must remain
         # blank; it must never inherit a previous sale or a model guess.
