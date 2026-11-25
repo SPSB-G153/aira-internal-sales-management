@@ -121,7 +121,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",e
   const hasPurchaser2=Boolean(result&&(result.fields.customer_name_2?.trim()||result.fields.customer_ic_2?.trim()));
   const hasPurchaser3=Boolean(result&&(result.fields.customer_name_3?.trim()||result.fields.customer_ic_3?.trim()));
   const reviewFields=Object.keys(labels).filter(key=>(hasPurchaser2||!purchaser2Fields.has(key))&&(hasPurchaser3||!purchaser3Fields.has(key)));
-  const purchaser1ReviewFields=reviewFields.filter(key=>purchaser1Fields.has(key));
+  const purchaser1ReviewFields=reviewFields.filter(key=>purchaser1Fields.has(key)&&key!=="customer_address");
   const purchaser2ReviewFields=reviewFields.filter(key=>purchaser2Fields.has(key)&&key!=="customer_address_2");
   const purchaser3ReviewFields=reviewFields.filter(key=>purchaser3Fields.has(key)&&key!=="customer_address_3");
   const otherReviewFields=reviewFields.filter(key=>!purchaser1Fields.has(key)&&!purchaser2Fields.has(key)&&!purchaser3Fields.has(key));
@@ -277,6 +277,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",e
           {hasPurchaser2&&<section className="upload-review-person upload-review-person-secondary"><div className="purchaser-column-title"><span>02</span><h3>Purchaser 2</h3></div><div className="upload-review-person-fields">{purchaser2ReviewFields.map(key=>reviewField(key,true))}</div></section>}
           {hasPurchaser3&&<section className="upload-review-person upload-review-person-secondary"><div className="purchaser-column-title"><span>03</span><h3>Purchaser 3</h3></div><div className="upload-review-person-fields">{purchaser3ReviewFields.map(key=>reviewField(key,true))}</div></section>}
         </div>
+        {reviewFields.includes("customer_address")&&<div className="upload-review-fields upload-review-shared-address">{reviewField("customer_address",true)}</div>}
         <div className="upload-review-fields">{otherReviewFields.map(key=>reviewField(key))}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}
         <div className="upload-review-actions"><button type="button" className="button secondary" disabled={busy} onClick={()=>setResult(null)}>Cancel</button><button type="button" className="button accent" disabled={busy||entries.length===0} onClick={()=>void apply()}>{documentId?"Save information":"Use these details"}</button></div>
