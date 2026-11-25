@@ -21,15 +21,37 @@ const salutationFromSex=(salutation:string,sex:string)=>{
   return normalized==="male"?"Mr":normalized==="female"?"Ms":"";
 };
 const salutations=["","Mr","Ms","Mrs","Dr","Datuk","Dato'","Datin","Tan Sri","Puan Sri"];
-const withDerivedSalutations=(fields:Record<string,string>)=>({
-  ...fields,
-  customer_name:purchaserNameWithoutSalutation(fields.customer_name),
-  customer_name_2:purchaserNameWithoutSalutation(fields.customer_name_2),
-  customer_name_3:purchaserNameWithoutSalutation(fields.customer_name_3),
-  customer_salutation:salutationFromSex(String(fields.customer_salutation||salutationFromPurchaserName(fields.customer_name)),String(fields.customer_sex||"")),
-  customer_salutation_2:salutationFromSex(String(fields.customer_salutation_2||salutationFromPurchaserName(fields.customer_name_2)),String(fields.customer_sex_2||"")),
-  customer_salutation_3:salutationFromSex(String(fields.customer_salutation_3||salutationFromPurchaserName(fields.customer_name_3)),String(fields.customer_sex_3||"")),
-});
+const withDerivedSalutations=(source:Record<string,string>)=>{
+  const fields={...source};
+  fields.customer_name=purchaserNameWithoutSalutation(fields.customer_name);
+  fields.customer_name_2=purchaserNameWithoutSalutation(fields.customer_name_2);
+  fields.customer_name_3=purchaserNameWithoutSalutation(fields.customer_name_3);
+  fields.customer_salutation=salutationFromSex(String(fields.customer_salutation||salutationFromPurchaserName(fields.customer_name)),String(fields.customer_sex||""));
+  fields.customer_salutation_2=salutationFromSex(String(fields.customer_salutation_2||salutationFromPurchaserName(fields.customer_name_2)),String(fields.customer_sex_2||""));
+  fields.customer_salutation_3=salutationFromSex(String(fields.customer_salutation_3||salutationFromPurchaserName(fields.customer_name_3)),String(fields.customer_sex_3||""));
+  for(const suffix of ["","_2","_3"]){
+    const name=String(fields[`customer_name${suffix}`]||"").trim();
+    const identity=String(fields[`customer_ic${suffix}`]||"").trim();
+    if(!name&&!identity)continue;
+    const nationalityKey=`customer_nationality${suffix}`;
+    const raceKey=`customer_race${suffix}`;
+    const bumiKey=`bumi_status${suffix}`;
+    const nationality=String(fields[nationalityKey]||"").trim();
+    const race=String(fields[raceKey]||"").trim();
+    // The appendix sometimes abbreviates Malaysian as "M'sian". If the
+    // reader places Malay in nationality and leaves race blank, restore the
+    // intended columns before deriving Bumi status.
+    if(/^(?:malay|melayu)$/i.test(nationality)&&!race)fields[raceKey]="Malay";
+    if(/^(?:malay|melayu|m'?sian|malaysian)$/i.test(nationality))fields[nationalityKey]="Malaysian";
+    if(isMalayRace(String(fields[raceKey]||"")))fields[bumiKey]="yes";
+  }
+  const sharedAddress=String(fields.customer_address||"").trim();
+  if(sharedAddress){
+    if((fields.customer_name_2||fields.customer_ic_2)&&!String(fields.customer_address_2||"").trim())fields.customer_address_2=sharedAddress;
+    if((fields.customer_name_3||fields.customer_ic_3)&&!String(fields.customer_address_3||"").trim())fields.customer_address_3=sharedAddress;
+  }
+  return fields;
+};
 
 const labels:Record<string,string>={
   customer_name:"Purchaser 1 name",customer_ic:"Purchaser 1 NRIC / passport",customer_salutation:"Purchaser 1 salutation",customer_tin:"Purchaser 1 TIN",customer_nationality:"Purchaser 1 nationality",customer_sex:"Purchaser 1 sex",customer_race:"Purchaser 1 race",bumi_status:"Purchaser 1 Bumi status",customer_occupation:"Purchaser 1 occupation",contact_person:"Contact person 1",customer_phone:"Mobile number 1",customer_email:"Email 1",customer_address:"Correspondence address 1",
@@ -197,7 +219,7 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",e
         if(unitDetails.parkingBay)fields.car_parking_bay=unitDetails.parkingBay;
         warnings.push(`Storey, area, unit type and parking were checked against the approved details for ${unit}.`);
       }
-      setResult({...data,fields,warnings});setMessage(data.cached?"Previous private reading reused — no handwriting scan was needed.":"");
+      setResult({...data,fields:withDerivedSalutations(fields),warnings});setMessage(data.cached?"Previous private reading reused — no handwriting scan was needed.":"");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}
     finally{setBusy(false);if(input.current)input.current.value="";}
   }
