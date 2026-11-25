@@ -609,7 +609,7 @@ async function createPopWord(content:Record<string,unknown>){
   const psf=(value:number)=>size?`(RM${popMoney(value/size)} psf)`:"";
   const fields:[string,string][]=[
     ["Introduction By - Agent",text(content,"pop_introduction_agent","NOT APPLICABLE")],
-    ["SPSB",text(content,"pop_introduction_spsb","DIRECT SALES")],["Team Member Assisting",[text(content,"salesperson_name",""),text(content,"pop_assisting_member_2","")].filter(Boolean).join(" / ")],["Purchaser's Name",text(content,"customer_name","")],
+    ["SPSB",text(content,"pop_introduction_spsb","DIRECT SALES")],["Team Member Assisting",[text(content,"salesperson_name",""),text(content,"pop_assisting_member_2","")].filter(Boolean).join(" / ")],["Purchaser's Name",[text(content,"customer_name",""),text(content,"customer_name_2",""),text(content,"customer_name_3","")].filter(Boolean).map((name,index)=>`${index+1}. ${name}`).join("\n")],
     ["Unit No.",text(content,"unit_number","")],["Unit Type",text(content,"unit_type","")],["Size",`${popMoney(size)} ft²`],
     ["Approved Selling Price",`RM ${popMoney(approved)} ${psf(approved)}`],["Actual Proposed Selling Price",`RM ${popMoney(price)} ${psf(price)}`],["Additional Revenue",`RM ${popMoney(additional)}`],["Repeat Buyer Discount Offered",`RM ${popMoney(discount)}`],["SPA Price",`RM ${popMoney(spa)} ${psf(spa)}`],
     ["Value of any Rebate being proposed for the Purchaser",`RM ${popMoney(rebate)}`],["Hence, PROPOSED NET SELLING PRICE",`RM ${popMoney(net)} ${psf(net)}`],

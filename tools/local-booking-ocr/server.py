@@ -122,7 +122,7 @@ SINGLE_CHEQUE_SCHEMA = {
     "required": ["amount", "amount_words", "date", "reference"],
 }
 POP_ADMIN_FIELDS = [
-    "customer_name", "customer_name_2", "purchaser_type", "project_name", "unit_number",
+    "customer_name", "customer_name_2", "customer_name_3", "purchaser_type", "project_name", "unit_number",
     "unit_type", "floor_area", "purchase_price", "approved_selling_price",
     "additional_revenue", "repeat_buyer_discount", "rebate_amount", "sale_date",
     "sale_reference", "salesperson_name", "pop_assisting_member_2", "salesperson_designation",
@@ -893,7 +893,7 @@ async def extract_pop_admin(
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract both purchaser names separately as customer_name and customer_name_2; purchaser type; project; unit or parcel number; unit type; floor area in square feet; purchase or SPA price; approved selling price; additional revenue; repeat-buyer discount; rebate amount; and proposal date. Purchaser type must only be Individual or Company; Direct Sales and Agent describe the sales channel, not the purchaser type. "
+                    "Read this AIRA Prospect Offer Proposal (POP) Form privately. Extract every listed purchaser name separately: purchaser 1 as customer_name, purchaser 2 as customer_name_2, and purchaser 3 as customer_name_3. Never merge or omit a completed purchaser row. Extract purchaser type; project; unit or parcel number; unit type; floor area in square feet; purchase or SPA price; approved selling price; additional revenue; repeat-buyer discount; rebate amount; and proposal date. Purchaser type must only be Individual or Company; Direct Sales and Agent describe the sales channel, not the purchaser type. "
                     "the POP or proposal reference as sale_reference; the sales personnel or "
                     "salesperson name; designation; mobile or telephone number; email; and sales "
                     "agency or company. The value beside the printed label 'Team Member Assisting' "

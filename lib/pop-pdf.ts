@@ -41,6 +41,7 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
 
   const clear = (x: number, top: number, width: number, height: number, color = white) => page.drawRectangle({ x: x / 2, y: y(top + height), width: width / 2, height: height / 2, color });
   const write = (value: string, x: number, top: number, size = 8, weight = false) => page.drawText(fit(value), { x: x / 2, y: y(top), size, font: weight ? bold : font, color: ink });
+  const writePurchasers = (value: string) => value.split("\n").filter(Boolean).slice(0,3).forEach((line,index)=>write(line,526,434+index*13,6.2,true));
   const writeNote = (value: string, x: number, top: number, maxChars = 58) => {
     const words = value.trim().split(/\s+/).filter(Boolean);
     const lines: string[] = [];
@@ -81,7 +82,7 @@ export async function createPopPdf(template: Uint8Array, values: PopValues) {
   write(values.agent || "", 526, 260, 8, true);
   write(values.spsb || "", 526, 318, 8, true);
   write(values.salesperson || "", 526, 380, 8, true);
-  write(values.purchaser || "", 526, 444, 8, true);
+  writePurchasers(values.purchaser || "");
   write(values.unit || "", 544, 499, 8, true);
   write(values.unitType || "", 544, 546, 8, true);
   write(values.size ? money(values.size) : "", 553, 590, 8);

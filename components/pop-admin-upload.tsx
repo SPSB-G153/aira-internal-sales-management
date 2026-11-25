@@ -13,6 +13,7 @@ type Extraction = { fields: PopAdminFields; warnings: string[]; saved_path?: str
 const labels: Record<string, string> = {
   customer_name: "Purchaser name",
   customer_name_2: "Purchaser 2 name",
+  customer_name_3: "Purchaser 3 name",
   purchaser_type: "Purchaser type",
   project_name: "Project",
   unit_number: "Unit number",
@@ -47,7 +48,7 @@ const moneyFields = new Set(["purchase_price", "approved_selling_price", "additi
 function formatReviewFields(fields: PopAdminFields) {
   return Object.fromEntries(Object.entries(fields).map(([key, value]) => {
     const raw = String(value || "").trim();
-    if (key === "customer_name" || key === "customer_name_2") return [key, purchaserNameWithoutSalutation(raw)];
+    if (key === "customer_name" || key === "customer_name_2" || key === "customer_name_3") return [key, purchaserNameWithoutSalutation(raw)];
     if (!moneyFields.has(key) || !/^\d+(?:\.\d+)?$/.test(raw)) return [key, value];
     const amount = Number(raw);
     return [key, Number.isFinite(amount) ? amount.toLocaleString("en-MY", { maximumFractionDigits: 2 }) : value];
