@@ -359,6 +359,20 @@ def normalize_agent_company(value):
     return raw
 
 
+def split_pop_purchaser_rows(fields):
+    """Keep three visibly listed POP purchasers in three separate fields."""
+    names = [str(fields.get(key, "") or "").strip() for key in ("customer_name", "customer_name_2", "customer_name_3")]
+    expanded = []
+    for name in names:
+        if not name:
+            continue
+        parts = [part.strip(" ,;&") for part in re.split(r"\s*(?:\r?\n|;|\s+&\s+|,(?=\s*[A-Za-z]))\s*", name) if part.strip(" ,;&")]
+        expanded.extend(parts or [name])
+    for index, key in enumerate(("customer_name", "customer_name_2", "customer_name_3")):
+        fields[key] = expanded[index] if index < len(expanded) else ""
+    return fields
+
+
 def property_section(page):
     rect = page.rect
     clip = fitz.Rect(
@@ -468,7 +482,7 @@ def save_cached_extraction(data, fields, warnings):
 def pop_admin_cache_path(data):
     root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(b"pop-admin-v6-exact-team-member-box" + data).hexdigest()
+    digest = hashlib.sha256(b"pop-admin-v7-three-purchaser-split" + data).hexdigest()
     return root / f"pop-{digest}.json"
 
 
@@ -924,6 +938,7 @@ async def extract_pop_admin(
             raise RuntimeError(f"Private model error: {response.text}")
         parsed = json.loads(response.json()["message"]["content"])
         fields = {name: str(parsed.get(name, "") or "").strip() for name in POP_ADMIN_FIELDS}
+        fields = split_pop_purchaser_rows(fields)
         # The internal salesperson is always the value beside Team Member
         # Assisting. Verify that single row independently so the external
         # introducer in the AGENT row cannot be mistaken for SPSB personnel.

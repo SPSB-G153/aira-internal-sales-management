@@ -44,15 +44,22 @@ const labels: Record<string, string> = {
 const namecardFields = ["agent_name", "agent_designation", "agent_mobile", "agent_email", "agent_company", "agent_address"];
 const staffReviewFields = new Set(["salesperson_name", "salesperson_designation", "salesperson_mobile", "salesperson_email", "pop_assisting_member_2", "salesperson_2_designation", "salesperson_2_mobile", "salesperson_2_email"]);
 const moneyFields = new Set(["purchase_price", "approved_selling_price", "additional_revenue", "repeat_buyer_discount", "rebate_amount"]);
+const purchaserFields = new Set(["customer_name", "customer_name_2", "customer_name_3"]);
 
 function formatReviewFields(fields: PopAdminFields) {
-  return Object.fromEntries(Object.entries(fields).map(([key, value]) => {
+  const formatted=Object.fromEntries(Object.entries(fields).map(([key, value]) => {
     const raw = String(value || "").trim();
     if (key === "customer_name" || key === "customer_name_2" || key === "customer_name_3") return [key, purchaserNameWithoutSalutation(raw)];
     if (!moneyFields.has(key) || !/^\d+(?:\.\d+)?$/.test(raw)) return [key, value];
     const amount = Number(raw);
     return [key, Number.isFinite(amount) ? amount.toLocaleString("en-MY", { maximumFractionDigits: 2 }) : value];
-  }));
+  })) as PopAdminFields;
+  if(!formatted.customer_name_3?.trim()&&formatted.customer_name_2?.includes(",")){
+    const [second,...thirdParts]=formatted.customer_name_2.split(",");
+    const third=thirdParts.join(",").trim();
+    if(second.trim()&&third){formatted.customer_name_2=second.trim();formatted.customer_name_3=third;}
+  }
+  return formatted;
 }
 
 export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseFields, showNamecard = true, compact = false }: {
@@ -212,8 +219,11 @@ export function PopAdminUpload({ saleId, unitNumber, expectedCompany, onUseField
         <p className="subtle">Check the privately extracted details before adding them to the form. Agency/company is filled only when it is shown.</p>
         {result.saved_path && <p className="upload-saved-path">Saved locally with this unit&apos;s booking documents.</p>}
         {message && <p className="upload-message" role="status">{message}</p>}
+        {reviewSource === "POP Form" && <div className="upload-review-purchasers has-third">
+          {["customer_name","customer_name_2","customer_name_3"].map((key,index)=><section key={key} className="upload-review-person"><div className="purchaser-column-title"><span>{String(index+1).padStart(2,"0")}</span><h3>Purchaser {index+1}</h3></div><label><span>Full name</span><input value={result.fields[key]||""} placeholder="Not found — enter manually" onChange={(event)=>updateField(key,event.target.value)}/></label></section>)}
+        </div>}
         <div className="upload-review-fields">
-          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !staffReviewFields.has(key))).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
+          {(reviewSource === "namecard" ? namecardFields : Object.keys(labels).filter((key) => !staffReviewFields.has(key)&&!purchaserFields.has(key))).map((key) => <label key={key}><span>{labels[key]}</span><input value={result.fields[key] || ""} placeholder="Not found — enter manually" onChange={(event) => updateField(key, event.target.value)} /></label>)}
           {reviewSource === "POP Form" && <>
             <div className="purchaser-one-column">
               <div className="purchaser-column-title"><span>01</span><h3>Sales Personnel 1</h3></div>
