@@ -104,6 +104,13 @@ const normalizePurchaserType=(value:string,name:string,salutation:string,identit
   if(/^\d{6}-?\d{2}-?\d{4}$/.test(identity.replace(/\s/g,"")))return "Individual";
   return /\b(company|corporate)\b/i.test(value)?"Company":"Individual";
 };
+const parkingSignature=(value:string)=>{
+  const upper=value.toUpperCase();
+  const levels=[...upper.matchAll(/LG\s*(\d+)/g)].map(match=>Number(match[1])).filter(Number.isFinite);
+  const bays=[...upper.replace(/LG\s*\d+/g," ").matchAll(/\d+/g)].map(match=>Number(match[0])).filter(Number.isFinite);
+  if(!levels.length&&!bays.length)return "";
+  return `${[...new Set(levels)].sort((a,b)=>a-b).join(",")}|${[...new Set(bays)].sort((a,b)=>a-b).join(",")}`;
+};
 
 export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",existingPurchasers}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string;existingPurchasers?:Partial<Record<string,unknown>>}){
   const input=useRef<HTMLInputElement>(null);
@@ -204,7 +211,8 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",e
       if(fields.customer_name_2?.trim()||fields.customer_ic_2?.trim())fields.bumi_status_2=isMalayRace(String(fields.customer_race_2||""))?"yes":"no";
       if(fields.customer_name_3?.trim()||fields.customer_ic_3?.trim())fields.bumi_status_3=isMalayRace(String(fields.customer_race_3||""))?"yes":"no";
       const unitDetails=detailsForUnit(unit);
-      const warnings=[...(Array.isArray(data.warnings)?data.warnings:[])];
+      let warnings=[...(Array.isArray(data.warnings)?data.warnings:[])];
+      if(String(fields.customer_address||"").trim())warnings=warnings.filter(warning=>!/(?:address field is empty|address is not filled|address.*should be filled)/i.test(warning));
       const approvedStorey=storeyForUnit(unit);
       const extractedStorey=String(fields.storey_number||"").trim();
       if(approvedStorey){
@@ -212,14 +220,13 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",e
         fields.storey_number=approvedStorey;
       }
       if(unitDetails){
-        const extractedParking=String(fields.car_parking_bay||"").replace(/[^A-Z0-9]/gi,"").toUpperCase();
-        const approvedParking=String(unitDetails.parkingBay||"").replace(/[^A-Z0-9]/gi,"").toUpperCase();
+        const extractedParking=parkingSignature(String(fields.car_parking_bay||""));
+        const approvedParking=parkingSignature(String(unitDetails.parkingBay||""));
         if(extractedParking&&approvedParking&&extractedParking!==approvedParking)warnings.push("The written parking bay did not match the approved unit record; the approved parking bay is used.");
         fields.floor_area=String(unitDetails.floorAreaSquareFeet);
         fields.floor_area_sqm=String(squareFeetToSquareMetres(unitDetails.floorAreaSquareFeet));
         fields.unit_type=unitDetails.unitType.toUpperCase();
         if(unitDetails.parkingBay)fields.car_parking_bay=unitDetails.parkingBay;
-        warnings.push(`Storey, area, unit type and parking were checked against the approved details for ${unit}.`);
       }
       setResult({...data,fields:withDerivedSalutations(fields),warnings});setMessage(data.cached?"Previous private reading reused — no handwriting scan was needed.":"");
     }catch(error){setMessage(error instanceof Error&&error.message!=="Failed to fetch"?error.message:"Start the private Booking Form reader on this computer, then try again.");}

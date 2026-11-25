@@ -56,5 +56,7 @@ export const detailsForUnit = (unit: string) =>
 export const storeyForUnit = (unit: string) => {
   const level = canonicalUnitNumber(unit).split("-")[1] ?? "";
   if (!level) return "";
+  const alternateLevel = level.match(/^(\d+)A$/);
+  if (alternateLevel) return String(Number(alternateLevel[1]) + 1);
   return /^\d+$/.test(level) ? String(Number(level)) : level.replace(/^0+(?=\d)/, "");
 };
