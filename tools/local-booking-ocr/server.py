@@ -180,7 +180,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-11-25-v17-third-purchaser-particulars"
+CACHE_VERSION = "booking-reader-2026-11-25-v18-third-purchaser-timeout-safe"
 
 
 @app.middleware("http")
@@ -1186,17 +1186,14 @@ async def extract(file: UploadFile = File(...)):
                 focused_value = str(purchaser_rows.get(key, "") or "").strip()
                 if focused_value:
                     fields[key] = focused_value
-        except (KeyError, TypeError, ValueError, RuntimeError):
+        except (KeyError, TypeError, ValueError, RuntimeError, requests.RequestException):
             warnings.append("The numbered purchaser rows need manual review.")
         # A compact model can still stop after row 2 even when row 3 is clearly
         # completed. If that happens, perform a dedicated read of only the
         # third numbered row on the cover and the third particulars row in the
         # appendix. The appendix supplies TIN, nationality, sex and race while
         # the cover supplies the matching identity number.
-        third_required = (
-            "customer_name_3", "customer_ic_3", "customer_tin_3",
-            "customer_nationality_3", "customer_sex_3", "customer_race_3",
-        )
+        third_required = ("customer_name_3", "customer_ic_3")
         if any(not fields.get(key, "").strip() for key in third_required):
             third_payload = {
                 "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
@@ -1230,7 +1227,7 @@ async def extract(file: UploadFile = File(...)):
                     value = str(third.get(key, "") or "").strip()
                     if value:
                         fields[key] = value
-            except (KeyError, TypeError, ValueError, RuntimeError):
+            except (KeyError, TypeError, ValueError, RuntimeError, requests.RequestException):
                 warnings.append("Purchaser 3 needs manual review.")
         # Price is too important to accept from the broad whole-form reading.
         # Verify only the actual Purchase Price row. A blank box must remain
@@ -1260,11 +1257,14 @@ async def extract(file: UploadFile = File(...)):
                 "keep_alive": "30m",
                 "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 100},
             }
-            price_result = requests.post(
-                "http://127.0.0.1:11434/api/chat", json=price_payload, timeout=300
-            )
+            try:
+                price_result = requests.post(
+                    "http://127.0.0.1:11434/api/chat", json=price_payload, timeout=300
+                )
+            except requests.RequestException:
+                price_result = None
             verified_price = ""
-            if price_result.ok:
+            if price_result is not None and price_result.ok:
                 try:
                     price_check = json.loads(price_result.json()["message"]["content"])
                     if price_check.get("is_filled") is True:
@@ -1296,10 +1296,13 @@ async def extract(file: UploadFile = File(...)):
                 "keep_alive": "30m",
                 "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 180},
             }
-            director_result = requests.post(
-                "http://127.0.0.1:11434/api/chat", json=director_payload, timeout=300
-            )
-            if director_result.ok:
+            try:
+                director_result = requests.post(
+                    "http://127.0.0.1:11434/api/chat", json=director_payload, timeout=300
+                )
+            except requests.RequestException:
+                director_result = None
+            if director_result is not None and director_result.ok:
                 try:
                     director = json.loads(director_result.json()["message"]["content"])
                     director_name = str(director.get("director_name", "") or "").strip()
@@ -1338,10 +1341,13 @@ async def extract(file: UploadFile = File(...)):
                 "keep_alive": "30m",
                 "options": {"temperature": 0, "num_ctx": 3072, "num_predict": 120},
             }
-            unit_result = requests.post(
-                "http://127.0.0.1:11434/api/chat", json=unit_payload, timeout=300
-            )
-            if unit_result.ok:
+            try:
+                unit_result = requests.post(
+                    "http://127.0.0.1:11434/api/chat", json=unit_payload, timeout=300
+                )
+            except requests.RequestException:
+                unit_result = None
+            if unit_result is not None and unit_result.ok:
                 unit_parsed = json.loads(unit_result.json()["message"]["content"])
                 fields["unit_number"] = str(unit_parsed.get("unit_number", "") or "").strip()
         unit = safe_part(fields.get("unit_number", ""), "")
