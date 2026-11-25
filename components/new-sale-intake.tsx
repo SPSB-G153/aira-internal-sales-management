@@ -132,6 +132,7 @@ export function NewSaleIntake({ initialValues, bookingOnly = false }: { initialV
         <div className="new-sale-intake-actions">
           <BookingFormUpload
             buttonLabel="Upload Booking Form"
+            existingPurchasers={values}
             onUseFields={(fields) => {
               setValues((current) => ({ ...initialValues, ...current, ...bookingValues(fields) }));
               setMode("booking");

@@ -162,7 +162,7 @@ For the Purchaser's Particulars appendix, follow the physical table rows careful
 The Property Details table maps Parcel No. to unit_number, Storey No. to storey_number, Type to unit_type, the left Area value to floor_area_sqm, the right Area value to floor_area, Purchase Price to purchase_price, and Car Parking Bay to car_parking_bay. Convert values such as RM 10,000,000 to 10000000 and 5,943 square feet to 5943. Use DD/MM/YYYY for clear dates. Return purchase price and areas as digits and decimals only, without RM, commas or units. Return an empty string for every blank or unreadable field. If values appear entered in the wrong labelled boxes, keep each value under the physical label and add a warning. Add a warning for every uncertain reading. Do not extract signatures.
 
 If the Booking Form states an external agent, agency, realty company or introducer, extract the agency/company into agent_company and any printed agent contact details into agent_name, agent_designation, agent_mobile, agent_email and agent_address. Extract the internal Selangor Properties team member separately into the salesperson fields. Never use the purchaser as the agent or agency. Return empty agent fields when no external agent is stated. Return only the requested JSON."""
-CACHE_VERSION = "booking-reader-2026-11-25-v13-three-purchasers"
+CACHE_VERSION = "booking-reader-2026-11-25-v14-three-purchasers"
 
 
 @app.middleware("http")

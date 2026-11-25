@@ -81,7 +81,7 @@ const normalizePurchaserType=(value:string,name:string,salutation:string,identit
   return /\b(company|corporate)\b/i.test(value)?"Company":"Individual";
 };
 
-export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string}){
+export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",existingPurchasers}:{documentId?:string;onUseFields?:(fields:BookingUploadFields)=>void;buttonLabel?:string;existingPurchasers?:Partial<Record<string,unknown>>}){
   const input=useRef<HTMLInputElement>(null);
   const router=useRouter();
   const[busy,setBusy]=useState(false);
@@ -149,6 +149,15 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const solicitor=solicitorForUnit(unit);
       const savedAdministration=await findSavedUnitAdministration(unit);
       const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor,...(savedAdministration||{})};
+      // When the POP was read first, retain any purchaser whom the Booking
+      // Form handwriting pass missed. This is especially important for a
+      // third purchaser whose particulars can appear on the following row.
+      for(const key of [...purchaser1Fields,...purchaser2Fields,...purchaser3Fields]){
+        if(!String(fields[key]||"").trim()){
+          const existing=existingPurchasers?.[key];
+          if(existing!==null&&existing!==undefined&&String(existing).trim())fields[key]=String(existing);
+        }
+      }
       fields.customer_sex=fullSex(String(fields.customer_sex||""));
       fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
       fields.customer_sex_3=fullSex(String(fields.customer_sex_3||""));
