@@ -85,6 +85,7 @@ const acceptanceParagraph=(children:string|TextRun[],options:any={})=>new Paragr
 const acceptanceFactTable=(content:Record<string,unknown>)=>{
   const purchaser=text(content,"customer_name").toLocaleUpperCase("en-MY");
   const purchaser2=text(content,"customer_name_2","").toLocaleUpperCase("en-MY");
+  const purchaser3=text(content,"customer_name_3","").toLocaleUpperCase("en-MY");
   const isCompany=text(content,"purchaser_type","individual")==="company";
   const unit=text(content,"unit_number");
   const tower=unit.split("-")[0]?.toUpperCase();
@@ -94,7 +95,7 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
     ["Property",property],
     ["Developer","Selangor Properties Sdn. Bhd."],
     ["Proprietor",text(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")],
-    ["Purchaser(s)",purchaser2?`1. ${purchaser}\n2. ${purchaser2}`:purchaser],
+    ["Purchaser(s)",purchaser2?`1. ${purchaser}\n2. ${purchaser2}${purchaser3?`\n3. ${purchaser3}`:""}`:purchaser],
     ["Purchase Price",amount(content.purchase_price)],
   ];
   return new Table({
@@ -103,7 +104,7 @@ const acceptanceFactTable=(content:Record<string,unknown>)=>{
     rows:rows.map(([label,value],index)=>{const bottom=index===rows.length-1?{style:BorderStyle.SINGLE,size:4,color:"777777"}:noBorder;return new TableRow({children:[
       new TableCell({width:{size:18,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:label,bold:true})]})]}),
       new TableCell({width:{size:2,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:[new TextRun({text:":",bold:true})]})]}),
-      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:label==="Purchaser(s)"&&purchaser2?[new TextRun({text:`1. ${purchaser}`,bold:true}),new TextRun({text:`2. ${purchaser2}`,bold:true,break:1})]:[new TextRun({text:value,bold:true})]})]}),
+      new TableCell({width:{size:80,type:WidthType.PERCENTAGE},margins:{top:0,bottom:index===rows.length-1?80:0,left:0,right:0},borders:{top:noBorder,bottom,left:noBorder,right:noBorder},children:[new Paragraph({spacing:{before:0,after:40,line:300},children:label==="Purchaser(s)"&&purchaser2?[new TextRun({text:`1. ${purchaser}`,bold:true}),new TextRun({text:`2. ${purchaser2}`,bold:true,break:1}),...(purchaser3?[new TextRun({text:`3. ${purchaser3}`,bold:true,break:1})]:[])]:[new TextRun({text:value,bold:true})]})]}),
     ]});})
   });
 };
@@ -140,6 +141,7 @@ const templateSignature=(content:Record<string,unknown>)=>new Table({
 async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const purchaser=text(content,"customer_name").toLocaleUpperCase("en-MY");
   const purchaser2=text(content,"customer_name_2","").toLocaleUpperCase("en-MY");
+  const purchaser3=text(content,"customer_name_3","").toLocaleUpperCase("en-MY");
   const isCompany=text(content,"purchaser_type","individual")==="company";
   const salutation=text(content,"customer_salutation","Purchaser");
   const contact=text(content,"salesperson_name","Booking contact");
@@ -153,6 +155,7 @@ async function createAcceptanceWord(content:Record<string,unknown>,fullLogo:Uint
     acceptanceParagraph([
       new TextRun({text:purchaser,bold:true}),
       ...(purchaser2?[new TextRun({text:purchaser2,bold:true,break:1})]:[]),
+      ...(purchaser3?[new TextRun({text:purchaser3,bold:true,break:1})]:[]),
       ...addressLines.map((address)=>new TextRun({text:address,break:1})),
     ],{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
     acceptanceParagraph(purchaserGreeting(content),{alignment:AlignmentType.LEFT,spacing:{before:0,after:240,line:300}}),
@@ -626,7 +629,7 @@ async function createPopWord(content:Record<string,unknown>){
 
 async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo:Uint8Array,emblemLogo:Uint8Array){
   const unit=text(content,"unit_number","");
-  const purchasers=[text(content,"customer_name",""),text(content,"customer_name_2","")].filter(Boolean).join(" & ").toUpperCase();
+  const purchasers=[text(content,"customer_name",""),text(content,"customer_name_2",""),text(content,"customer_name_3","")].filter(Boolean).join(" & ").toUpperCase();
   const rawDate=String(content.spa_signed_at||content.letter_issued_at||"");const parsedDate=rawDate?new Date(`${rawDate.slice(0,10)}T00:00:00Z`):null;
   const documentDate=parsedDate&&!Number.isNaN(parsedDate.getTime())?`${String(parsedDate.getUTCDate()).padStart(2,"0")}.${String(parsedDate.getUTCMonth()+1).padStart(2,"0")}.${String(parsedDate.getUTCFullYear()).slice(-2)}`:"—";
   const generatedRaw=String(content.letter_issued_at||"");const generatedDate=generatedRaw?new Date(generatedRaw.length===10?`${generatedRaw}T00:00:00Z`:generatedRaw):null;

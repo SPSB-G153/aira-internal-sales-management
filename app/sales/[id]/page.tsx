@@ -45,7 +45,7 @@ export default async function SaleDetail({ params, searchParams }: { params: Pro
   const expectedDocuments = Math.max(docs.length, (!isPop && paymentRecorded ? 1 : 0) + (canAccessAgentLetter && hasAgent ? 2 : 0) + (sale.status === "hovp_ready" ? 1 : 0) + (sale.rebate_amount && sale.rebate_amount > 0 ? 1 : 0) + (sale.inventory_required ? 1 : 0));
   const missing = [!sale.customer_ic && "IC / Passport", !sale.customer_phone && !sale.customer_email && "phone or email", !sale.unit_number && "unit number", !sale.salesperson_name && "salesperson", !sale.sale_date && "proposal date"].filter(Boolean) as string[];
   const heading = isPop ? "POP details" : "Booking details";
-  const purchaserHeading = [sale.customer_name, sale.customer_name_2].filter(Boolean).join(" & ");
+  const purchaserHeading = [sale.customer_name, sale.customer_name_2, sale.customer_name_3].filter(Boolean).join(" & ");
   const displayStatus = saleDisplayStatus(sale);
   const letterSummary = [...(paymentRecorded ? ["Notice of Acceptance"] : []), ...(canAccessAgentLetter && hasAgent ? ["Agency Appointment Letter", "Agent's Fee Arrangement"] : []), ...(sale.rebate_amount && sale.rebate_amount > 0 ? ["Rebate Letter"] : []), ...(sale.quoted_id_net_selling_price && sale.quoted_id_net_selling_price > 0 ? ["Confirmation of Inventories"] : [])].join(", ");
   const noticeIssuedAt = sale.notice_issued_at || acceptanceDocument?.generated_at?.slice(0, 10) || acceptanceDocument?.created_at?.slice(0, 10) || null;

@@ -1,0 +1,13 @@
+alter table sales add column if not exists customer_name_3 text;
+alter table sales add column if not exists customer_ic_3 text;
+alter table sales add column if not exists customer_salutation_3 text;
+alter table sales add column if not exists customer_tin_3 text;
+alter table sales add column if not exists customer_nationality_3 text;
+alter table sales add column if not exists customer_sex_3 text;
+alter table sales add column if not exists customer_race_3 text;
+alter table sales add column if not exists bumi_status_3 boolean;
+alter table sales add column if not exists customer_occupation_3 text;
+alter table sales add column if not exists contact_person_3 text;
+alter table sales add column if not exists customer_phone_3 text;
+alter table sales add column if not exists customer_email_3 text;
+alter table sales add column if not exists customer_address_3 text;

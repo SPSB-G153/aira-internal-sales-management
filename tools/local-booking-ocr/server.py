@@ -32,6 +32,10 @@ FIELD_NAMES = [
     "customer_tin_2", "customer_nationality_2", "customer_sex_2", "customer_race_2",
     "bumi_status_2", "customer_occupation_2", "contact_person_2", "customer_phone_2",
     "customer_email_2", "customer_address_2", "sale_date", "unit_number",
+    "customer_name_3", "customer_ic_3", "customer_salutation_3", "customer_tin_3",
+    "customer_nationality_3", "customer_sex_3", "customer_race_3", "bumi_status_3",
+    "customer_occupation_3", "contact_person_3", "customer_phone_3", "customer_email_3",
+    "customer_address_3",
     "storey_number", "unit_type", "floor_area_sqm", "floor_area", "purchase_price",
     "car_parking_bay", "payment_method", "payment_reference", "purchaser_type",
     "salesperson_name", "salesperson_designation", "salesperson_mobile", "salesperson_email",
@@ -79,8 +83,10 @@ PURCHASER_IDENTITY_SCHEMA = {
         "customer_ic": {"type": "string"},
         "customer_name_2": {"type": "string"},
         "customer_ic_2": {"type": "string"},
+        "customer_name_3": {"type": "string"},
+        "customer_ic_3": {"type": "string"},
     },
-    "required": ["customer_name", "customer_ic", "customer_name_2", "customer_ic_2"],
+    "required": ["customer_name", "customer_ic", "customer_name_2", "customer_ic_2", "customer_name_3", "customer_ic_3"],
 }
 PRICE_SCHEMA = {
     "type": "object",
@@ -1139,19 +1145,20 @@ async def extract(file: UploadFile = File(...)):
         fields = {name: str(source.get(name, "") or "").strip() for name in FIELD_NAMES}
         warnings = [str(item) for item in parsed.get("warnings", []) if str(item).strip()]
         # Purchaser names and identity numbers are business-critical and the
-        # broad multi-page read can overlook the second handwritten row. Read
-        # the numbered 1/2 rows on the cover independently, then use those
+        # broad multi-page read can overlook a later handwritten row. Read
+        # the numbered 1/2/3 rows on the cover independently, then use those
         # values to complete (not erase) the broad extraction.
         purchaser_payload = {
             "model": os.getenv("BOOKING_OCR_MODEL", "qwen2.5vl:3b"),
             "messages": [{
                 "role": "user",
                 "content": (
-                    "Inspect only the two numbered handwritten rows under Purchaser's Name "
-                    "and the matching two numbered rows under Purchaser's NRIC / Passport / "
+                    "Inspect only the three numbered handwritten rows under Purchaser's Name "
+                    "and the matching three numbered rows under Purchaser's NRIC / Passport / "
                     "Company No. Read row 1 into customer_name and customer_ic. Read row 2 "
-                    "into customer_name_2 and customer_ic_2. A visibly completed second row "
-                    "must never be merged into purchaser 1 or omitted. Preserve spelling, "
+                    "into customer_name_2 and customer_ic_2. Read row 3 into customer_name_3 "
+                    "and customer_ic_3. Any visibly completed row must never be merged into "
+                    "another purchaser or omitted. Preserve spelling, "
                     "letters, digits and hyphens exactly. Ignore the address and all printed "
                     "labels. Return an empty string only for a genuinely blank row. Return "
                     "only the requested JSON."
@@ -1167,7 +1174,7 @@ async def extract(file: UploadFile = File(...)):
             purchaser_rows = structured_model_response(
                 purchaser_payload, timeout=300, retry_num_predict=500
             )
-            for key in ("customer_name", "customer_ic", "customer_name_2", "customer_ic_2"):
+            for key in ("customer_name", "customer_ic", "customer_name_2", "customer_ic_2", "customer_name_3", "customer_ic_3"):
                 focused_value = str(purchaser_rows.get(key, "") or "").strip()
                 if focused_value:
                     fields[key] = focused_value

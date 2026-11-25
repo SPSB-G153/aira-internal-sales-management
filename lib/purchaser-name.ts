@@ -4,8 +4,8 @@ export function purchaserNameWithoutSalutation(value:string|null|undefined){
   return String(value||"").trim().replace(leadingTitle,"").trim();
 }
 
-export function purchaserDisplayName(sale:{customer_name:string|null|undefined;customer_name_2?:string|null},separator=" & "){
-  return [sale.customer_name,sale.customer_name_2]
+export function purchaserDisplayName(sale:{customer_name:string|null|undefined;customer_name_2?:string|null;customer_name_3?:string|null},separator=" & "){
+  return [sale.customer_name,sale.customer_name_2,sale.customer_name_3]
     .map(purchaserNameWithoutSalutation)
     .filter(Boolean)
     .join(separator);

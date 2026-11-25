@@ -18,6 +18,7 @@ function AcceptanceLetterExact({content}:{content:Content}){
   const isCompany=value(content,"purchaser_type","individual")==="company";
   const purchaser=value(content,"customer_name").toLocaleUpperCase("en-MY");
   const purchaser2=value(content,"customer_name_2","").toLocaleUpperCase("en-MY");
+  const purchaser3=value(content,"customer_name_3","").toLocaleUpperCase("en-MY");
   const salutation=value(content,"customer_salutation","Purchaser");
   const contact=value(content,"salesperson_name","Booking contact");
   const designation=designationForSalesPersonnel(contact);
@@ -27,10 +28,10 @@ function AcceptanceLetterExact({content}:{content:Content}){
     <section className="notice-page">
       <CompanyHead/>
       <p className="notice-date"><CurrentLetterDate date={value(content,"letter_issued_at","")}/></p>
-      <p className="notice-recipient"><b className="notice-recipient-names">{purchaser}{purchaser2&&<><br/>{purchaser2}</>}</b><span className="notice-recipient-address"><NoticeAddress address={value(content,"customer_address")}/></span></p>
+      <p className="notice-recipient"><b className="notice-recipient-names">{purchaser}{purchaser2&&<><br/>{purchaser2}</>}{purchaser3&&<><br/>{purchaser3}</>}</b><span className="notice-recipient-address"><NoticeAddress address={value(content,"customer_address")}/></span></p>
       <p className="notice-greeting">{purchaserGreeting(content)}</p>
       <p className="notice-subject"><b>RE:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; NOTICE OF ACCEPTANCE OF OFFER TO PURCHASE</b></p>
-      <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser(s)"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
+      <dl className="notice-facts"><Fact label="Project"><b>{value(content,"project_name")}</b></Fact><Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact><Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact><Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact><Fact label="Purchaser(s)"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}{purchaser3&&<><br/>3. {purchaser3}</>}</>:purchaser}</b></Fact><Fact label="Purchase Price"><b>{money(price)}</b></Fact></dl>
       <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
       <p>We thank you for your Offer to Purchase the Property described above by way of the Booking Form dated {formattedOrdinalDate(content.sale_date)} (&ldquo;<b>Offer</b>&rdquo;). We are pleased that you have made such a discerning decision to purchase a unit in AIRA Residence &ndash; Kuala Lumpur&rsquo;s best kept secret. With your selection, we welcome you to the beginning of AIRA Residence&rsquo;s story and we encourage you to discover more of the hidden treasures which only living in the exclusive enclave of Damansara Heights can offer.</p>
       <p>You are just a few steps away from owning the Property and to help you move along the path to completing the sale and purchase documentation, we are pleased to inform you that your Offer is accepted subject to your execution of the Sale and Purchase Agreement (&ldquo;<b>SPA</b>&rdquo;), the Deed of Mutual Covenants and all other relevant documents in relation to the sale and purchase of the Property (collectively &ldquo;<b>Sale Documents</b>&rdquo;) in the manner described below.</p>
@@ -56,7 +57,8 @@ function AcceptanceLetterSource({content}:{content:Content}){
   const deposit=price*.1;
   const purchaser=value(content,"customer_name").toLocaleUpperCase("en-MY");
   const purchaser2=value(content,"customer_name_2","").toLocaleUpperCase("en-MY");
-  const recipients=purchaser2?`${purchaser} & ${purchaser2}`:purchaser;
+  const purchaser3=value(content,"customer_name_3","").toLocaleUpperCase("en-MY");
+  const recipients=[purchaser,purchaser2,purchaser3].filter(Boolean).join(" & ");
   const salutation=value(content,"customer_salutation","Purchaser");
   const isCompany=value(content,"purchaser_type","individual")==="company";
   const salesperson=value(content,"salesperson_name","your sales and marketing agent");
@@ -72,7 +74,7 @@ function AcceptanceLetterSource({content}:{content:Content}){
       <Fact label="Property"><b>Parcel No. {value(content,"unit_number")}{towerFromUnit(value(content,"unit_number",""))?`, Tower ${towerFromUnit(value(content,"unit_number",""))}`:""}</b></Fact>
       <Fact label="Developer"><b>Selangor Properties Sdn. Bhd.</b></Fact>
       <Fact label="Proprietor"><b>{value(content,"proprietor_name","Bungsar Hill Holdings Sdn. Bhd.")}</b></Fact>
-      <Fact label="Purchaser(s)"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}</>:purchaser}</b></Fact>
+<Fact label="Purchaser(s)"><b>{purchaser2?<>1. {purchaser}<br/>2. {purchaser2}{purchaser3&&<><br/>3. {purchaser3}</>}</>:purchaser}</b></Fact>
       <Fact label="Purchase Price"><b>{money(price)}</b></Fact>
     </dl>
     <p>Greetings from Selangor Properties and the AIRA Residence team.</p>
@@ -114,7 +116,7 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
 
 function CcdTransmittalLetter({content}:{content:Content}){
   const unit=value(content,"unit_number","");
-  const purchasers=[value(content,"customer_name",""),value(content,"customer_name_2","")].filter(Boolean).join(" & ").toUpperCase();
+  const purchasers=[value(content,"customer_name",""),value(content,"customer_name_2",""),value(content,"customer_name_3","")].filter(Boolean).join(" & ").toUpperCase();
   const signedDate=String(content.spa_signed_at||content.letter_issued_at||"");
   const parsedDate=signedDate?new Date(`${signedDate.slice(0,10)}T00:00:00Z`):null;
   const headerDate=parsedDate&&!Number.isNaN(parsedDate.getTime())?`${String(parsedDate.getUTCDate()).padStart(2,"0")}.${String(parsedDate.getUTCMonth()+1).padStart(2,"0")}.${String(parsedDate.getUTCFullYear()).slice(-2)}`:"—";

@@ -25,13 +25,16 @@ const withDerivedSalutations=(fields:Record<string,string>)=>({
   ...fields,
   customer_name:purchaserNameWithoutSalutation(fields.customer_name),
   customer_name_2:purchaserNameWithoutSalutation(fields.customer_name_2),
+  customer_name_3:purchaserNameWithoutSalutation(fields.customer_name_3),
   customer_salutation:salutationFromSex(String(fields.customer_salutation||salutationFromPurchaserName(fields.customer_name)),String(fields.customer_sex||"")),
   customer_salutation_2:salutationFromSex(String(fields.customer_salutation_2||salutationFromPurchaserName(fields.customer_name_2)),String(fields.customer_sex_2||"")),
+  customer_salutation_3:salutationFromSex(String(fields.customer_salutation_3||salutationFromPurchaserName(fields.customer_name_3)),String(fields.customer_sex_3||"")),
 });
 
 const labels:Record<string,string>={
   customer_name:"Purchaser 1 name",customer_ic:"Purchaser 1 NRIC / passport",customer_salutation:"Purchaser 1 salutation",customer_tin:"Purchaser 1 TIN",customer_nationality:"Purchaser 1 nationality",customer_sex:"Purchaser 1 sex",customer_race:"Purchaser 1 race",bumi_status:"Purchaser 1 Bumi status",customer_occupation:"Purchaser 1 occupation",contact_person:"Contact person 1",customer_phone:"Mobile number 1",customer_email:"Email 1",customer_address:"Correspondence address 1",
   customer_name_2:"Purchaser 2 name",customer_ic_2:"Purchaser 2 NRIC / passport",customer_salutation_2:"Purchaser 2 salutation",customer_tin_2:"Purchaser 2 TIN",customer_nationality_2:"Purchaser 2 nationality",customer_sex_2:"Purchaser 2 sex",customer_race_2:"Purchaser 2 race",bumi_status_2:"Purchaser 2 Bumi status",customer_occupation_2:"Purchaser 2 occupation",contact_person_2:"Contact person 2",customer_phone_2:"Mobile number 2",customer_email_2:"Email 2",customer_address_2:"Correspondence address 2",
+  customer_name_3:"Purchaser 3 name",customer_ic_3:"Purchaser 3 NRIC / passport",customer_salutation_3:"Purchaser 3 salutation",customer_tin_3:"Purchaser 3 TIN",customer_nationality_3:"Purchaser 3 nationality",customer_sex_3:"Purchaser 3 sex",customer_race_3:"Purchaser 3 race",bumi_status_3:"Purchaser 3 Bumi status",customer_occupation_3:"Purchaser 3 occupation",contact_person_3:"Contact person 3",customer_phone_3:"Mobile number 3",customer_email_3:"Email 3",customer_address_3:"Correspondence address 3",
   sale_date:"2% payment / booking date",unit_number:"Parcel / unit number",solicitor_name:"Handling lawyer",storey_number:"Storey",unit_type:"Type",floor_area_sqm:"Area (square metres)",floor_area:"Area (square feet)",purchase_price:"Purchase price",booking_fee:"Booking fee paid (RM)",car_parking_bay:"Car parking bay",payment_method:"Payment method",payment_reference:"Cheque / payment reference",purchaser_type:"Purchaser type",
   salesperson_name:"Sales personnel name",salesperson_designation:"Sales personnel designation",salesperson_mobile:"Sales personnel mobile no.",salesperson_email:"Sales personnel email",agent_company:"Sales agency / company",agent_name:"Agent name",agent_designation:"Agent designation",agent_mobile:"Agent mobile no.",agent_email:"Agent email",agent_address:"Sales agency / company address",
 };
@@ -47,11 +50,19 @@ const purchaser1Fields=new Set([
   "customer_occupation","contact_person","customer_phone","customer_email",
   "customer_address",
 ]);
+const purchaser3Fields=new Set([
+  "customer_name_3","customer_ic_3","customer_salutation_3","customer_tin_3",
+  "customer_nationality_3","customer_sex_3","customer_race_3","bumi_status_3",
+  "customer_occupation_3","contact_person_3","customer_phone_3","customer_email_3",
+  "customer_address_3",
+]);
 const normalCaseFields=new Set([
   "customer_name","customer_salutation","customer_nationality","customer_race",
   "bumi_status","customer_occupation","contact_person","customer_address",
   "customer_name_2","customer_salutation_2","customer_nationality_2","customer_race_2",
   "bumi_status_2","customer_occupation_2","contact_person_2","customer_address_2",
+  "customer_name_3","customer_salutation_3","customer_nationality_3","customer_race_3",
+  "bumi_status_3","customer_occupation_3","contact_person_3","customer_address_3",
 ]);
 const toNormalCase=(value:string)=>value.toLocaleLowerCase("en-MY").replace(/(^|[\s,./()'\-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`).replace(/\bAira\b/g,"AIRA").replace(/\b[AB]-\d+[A-Z]?-\d+\b/gi,(unit)=>unit.toUpperCase());
 const nationalityAbbreviations=new Set(["UK","US","USA","UAE","PRC"]);
@@ -61,7 +72,7 @@ const normalizeNationality=(value:string)=>{
 };
 const reviewValue=(key:string,value:string)=>{
   const trimmed=value.trim();
-  if((key==="customer_nationality"||key==="customer_nationality_2")&&nationalityAbbreviations.has(trimmed.toUpperCase()))return trimmed.toUpperCase();
+  if((key==="customer_nationality"||key==="customer_nationality_2"||key==="customer_nationality_3")&&nationalityAbbreviations.has(trimmed.toUpperCase()))return trimmed.toUpperCase();
   return toNormalCase(value);
 };
 const normalizePurchaserType=(value:string,name:string,salutation:string,identity:string)=>{
@@ -84,10 +95,12 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
   const reviewStorageKey=documentId?`aira-booking-review:${documentId}`:"";
   const entries=result?Object.entries(result.fields).filter(([,value])=>value.trim()):[];
   const hasPurchaser2=Boolean(result&&(result.fields.customer_name_2?.trim()||result.fields.customer_ic_2?.trim()));
-  const reviewFields=Object.keys(labels).filter(key=>hasPurchaser2||!purchaser2Fields.has(key));
+  const hasPurchaser3=Boolean(result&&(result.fields.customer_name_3?.trim()||result.fields.customer_ic_3?.trim()));
+  const reviewFields=Object.keys(labels).filter(key=>(hasPurchaser2||!purchaser2Fields.has(key))&&(hasPurchaser3||!purchaser3Fields.has(key)));
   const purchaser1ReviewFields=reviewFields.filter(key=>purchaser1Fields.has(key));
   const purchaser2ReviewFields=reviewFields.filter(key=>purchaser2Fields.has(key));
-  const otherReviewFields=reviewFields.filter(key=>!purchaser1Fields.has(key)&&!purchaser2Fields.has(key));
+  const purchaser3ReviewFields=reviewFields.filter(key=>purchaser3Fields.has(key));
+  const otherReviewFields=reviewFields.filter(key=>!purchaser1Fields.has(key)&&!purchaser2Fields.has(key)&&!purchaser3Fields.has(key));
 
   useEffect(()=>{
     try{
@@ -116,9 +129,9 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
     return normalCaseFields.has(key)?reviewValue(key,value):value;
   }
 
-  function personLabel(key:string){return labels[key].replace(/^Purchaser [12] /,"").replace(/ [12]$/,"");}
+  function personLabel(key:string){return labels[key].replace(/^Purchaser [123] /,"").replace(/ [123]$/,"");}
   function reviewField(key:string,shortLabel=false){
-    const isSalutation=key==="customer_salutation"||key==="customer_salutation_2";
+    const isSalutation=key==="customer_salutation"||key==="customer_salutation_2"||key==="customer_salutation_3";
     const value=displayValue(key);
     const salutationListId=`${key}-options`;
     return <div key={key} className="upload-review-field"><label><span>{shortLabel?personLabel(key):labels[key]}</span>{isSalutation?<><input list={salutationListId} value={value} placeholder="Mr / Ms / title" onChange={event=>updateField(key,event.target.value)}/><datalist id={salutationListId}>{salutations.filter(Boolean).map(option=><option key={option} value={option}/>)}</datalist></>:key.includes("address")?<textarea rows={2} value={value} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>:<input value={value} placeholder="Not found — enter manually" onChange={event=>updateField(key,event.target.value)}/>}</label>{key==="booking_fee"&&<div className="booking-fee-inline"><small>Upload the cheque or payment receipt to auto-fill the fee, payment date, method and reference.</small><BookingFeeUpload unitNumber={result?.fields.unit_number||""} purchasePrice={result?.fields.purchase_price||""} onUseFields={(fields)=>setResult(current=>current?{...current,fields:{...current.fields,...fields}}:current)}/></div>}</div>
@@ -138,19 +151,25 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
       const fields={...data.fields,unit_number:unit,solicitor_name:data.fields?.solicitor_name||solicitor,...(savedAdministration||{})};
       fields.customer_sex=fullSex(String(fields.customer_sex||""));
       fields.customer_sex_2=fullSex(String(fields.customer_sex_2||""));
+      fields.customer_sex_3=fullSex(String(fields.customer_sex_3||""));
       fields.customer_salutation=salutationFromSex(String(fields.customer_salutation||salutationFromPurchaserName(fields.customer_name)),String(fields.customer_sex||""));
       fields.customer_salutation_2=salutationFromSex(String(fields.customer_salutation_2||salutationFromPurchaserName(fields.customer_name_2)),String(fields.customer_sex_2||""));
+      fields.customer_salutation_3=salutationFromSex(String(fields.customer_salutation_3||salutationFromPurchaserName(fields.customer_name_3)),String(fields.customer_sex_3||""));
       fields.customer_name=purchaserNameWithoutSalutation(fields.customer_name);
       fields.customer_name_2=purchaserNameWithoutSalutation(fields.customer_name_2);
+      fields.customer_name_3=purchaserNameWithoutSalutation(fields.customer_name_3);
       fields.customer_nationality=normalizeNationality(String(fields.customer_nationality||""));
       fields.customer_nationality_2=normalizeNationality(String(fields.customer_nationality_2||""));
+      fields.customer_nationality_3=normalizeNationality(String(fields.customer_nationality_3||""));
       fields.purchaser_type=normalizePurchaserType(String(fields.purchaser_type||""),String(fields.customer_name||""),String(fields.customer_salutation||""),String(fields.customer_ic||""));
       if(fields.purchaser_type==="Individual"){
         fields.customer_name=toNormalCase(String(fields.customer_name||""));
         fields.customer_name_2=toNormalCase(String(fields.customer_name_2||""));
+        fields.customer_name_3=toNormalCase(String(fields.customer_name_3||""));
       }
       fields.bumi_status=isMalayRace(String(fields.customer_race||""))?"yes":"no";
       if(fields.customer_name_2?.trim()||fields.customer_ic_2?.trim())fields.bumi_status_2=isMalayRace(String(fields.customer_race_2||""))?"yes":"no";
+      if(fields.customer_name_3?.trim()||fields.customer_ic_3?.trim())fields.bumi_status_3=isMalayRace(String(fields.customer_race_3||""))?"yes":"no";
       const unitDetails=detailsForUnit(unit);
       const warnings=[...(Array.isArray(data.warnings)?data.warnings:[])];
       const approvedStorey=storeyForUnit(unit);
@@ -220,9 +239,10 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload"}:
         <h2>Review extracted information</h2>
         <p className="subtle">Check the handwriting results and fill in any missing items before saving them to the sale and refreshing the letters.</p>
         {result.saved_path&&<p className="upload-saved-path">Saved locally: <strong>{result.saved_path}</strong></p>}
-        <div className={`upload-review-purchasers ${hasPurchaser2?"has-second":""}`}>
+        <div className={`upload-review-purchasers ${hasPurchaser3?"has-third":hasPurchaser2?"has-second":""}`}>
           <section className="upload-review-person"><div className="purchaser-column-title"><span>01</span><h3>Purchaser 1</h3></div><div className="upload-review-person-fields">{purchaser1ReviewFields.map(key=>reviewField(key,true))}</div></section>
           {hasPurchaser2&&<section className="upload-review-person upload-review-person-secondary"><div className="purchaser-column-title"><span>02</span><h3>Purchaser 2</h3></div><div className="upload-review-person-fields">{purchaser2ReviewFields.map(key=>reviewField(key,true))}</div></section>}
+          {hasPurchaser3&&<section className="upload-review-person upload-review-person-secondary"><div className="purchaser-column-title"><span>03</span><h3>Purchaser 3</h3></div><div className="upload-review-person-fields">{purchaser3ReviewFields.map(key=>reviewField(key,true))}</div></section>}
         </div>
         <div className="upload-review-fields">{otherReviewFields.map(key=>reviewField(key))}</div>
         {result.warnings.length>0&&<div className="alert"><strong>Please check:</strong><ul>{result.warnings.map((warning,index)=><li key={index}>{warning}</li>)}</ul></div>}

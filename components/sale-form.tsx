@@ -108,6 +108,7 @@ const derivedSalutation=(salutationValue:unknown,sexValue:unknown)=>{
   return sex==="m"||sex==="male"?"Mr":sex==="f"||sex==="female"?"Ms":"";
 };
 const secondPurchaserFields: (keyof Sale)[] = ["customer_salutation_2", "customer_name_2", "customer_ic_2", "customer_tin_2", "customer_nationality_2", "customer_sex_2", "customer_race_2", "bumi_status_2", "customer_occupation_2", "contact_person_2", "customer_phone_2", "customer_email_2", "customer_address_2"];
+const thirdPurchaserFields: (keyof Sale)[] = ["customer_salutation_3", "customer_name_3", "customer_ic_3", "customer_tin_3", "customer_nationality_3", "customer_sex_3", "customer_race_3", "bumi_status_3", "customer_occupation_3", "contact_person_3", "customer_phone_3", "customer_email_3", "customer_address_3"];
 const detailsByUnit: Record<string, { floorArea: number; unitType: string; parkingBay?: string }> = {
   "A-01-03": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 7, 8, 9" },
   "A-01-3A": { floorArea: 5943, unitType: "A2b", parkingBay: "LG3 33, 34, 35" },
@@ -276,6 +277,7 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
   const [hasSecond, setHasSecond] = useState(
     Boolean(sale?.customer_name_2 || initialValues?.customer_name_2 || state.fields?.customer_name_2 || sale?.contact_person_2 || initialValues?.contact_person_2 || state.fields?.contact_person_2),
   );
+  const hasThird = Boolean(sale?.customer_name_3 || initialValues?.customer_name_3 || state.fields?.customer_name_3 || sale?.customer_ic_3 || initialValues?.customer_ic_3 || state.fields?.customer_ic_3);
   const [secondRelationship, setSecondRelationship] = useState<"spouse" | "joint">("joint");
   const [purchaserType, setPurchaserType] = useState<"individual" | "company">(
     sale?.purchaser_type === "company" || initialValues?.purchaser_type === "company" || state.fields?.purchaser_type === "company"
@@ -438,6 +440,23 @@ export function SaleForm({ sale, initialValues, mode, bookingSource = "manual", 
             <p className="subtle">{purchaserType === "company" ? "Add another authorised director without creating a second purchaser." : "For spouses or another joint purchaser."}</p>
           </div>}
           </div>
+          {purchaserType === "individual" && hasThird && <div className="purchaser-two-column">
+            <div className="purchaser-column-title"><span>03</span><h3>Purchaser 3</h3></div>
+            {thirdPurchaserFields.map((name) => <input key={name} type="hidden" name={name} value={String(v(name) || "")} readOnly />)}
+            <RecordedField label="Salutation" value={v("customer_salutation_3")} />
+            <RecordedField label="Full name" value={v("customer_name_3")} />
+            <RecordedField label="IC / Passport / Company No." value={v("customer_ic_3")} />
+            <RecordedField label="TIN number" value={v("customer_tin_3")} />
+            <RecordedField label="Nationality" value={v("customer_nationality_3")} />
+            <RecordedField label="Sex" value={v("customer_sex_3")} />
+            <RecordedField label="Race" value={v("customer_race_3")} />
+            <RecordedField label="Bumiputera status" value={v("bumi_status_3") === "true" ? "Yes" : v("bumi_status_3") === "false" ? "No" : "—"} />
+            <RecordedField label="Occupation" value={v("customer_occupation_3")} />
+            <RecordedField label="Contact person" value={v("contact_person_3")} />
+            <RecordedField label="Mobile number" value={v("customer_phone_3")} />
+            <RecordedField label="Email" value={v("customer_email_3")} />
+            <RecordedField label="Correspondence address" value={v("customer_address_3")} wide />
+          </div>}
         </div>
       </section>
       {secondOpen && (
