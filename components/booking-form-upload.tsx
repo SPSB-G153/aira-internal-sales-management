@@ -45,10 +45,12 @@ const withDerivedSalutations=(source:Record<string,string>)=>{
     if(/^(?:malay|melayu|m'?sian|malaysian)$/i.test(nationality))fields[nationalityKey]="Malaysian";
     if(isMalayRace(String(fields[raceKey]||"")))fields[bumiKey]="yes";
   }
-  const sharedAddress=String(fields.customer_address||"").trim();
-  if(sharedAddress){
-    if((fields.customer_name_2||fields.customer_ic_2)&&!String(fields.customer_address_2||"").trim())fields.customer_address_2=sharedAddress;
-    if((fields.customer_name_3||fields.customer_ic_3)&&!String(fields.customer_address_3||"").trim())fields.customer_address_3=sharedAddress;
+  // A single correspondence address on page 1 applies to the joint
+  // purchasers. Keep it only under Purchaser 1 instead of repeating the same
+  // long address in every purchaser card.
+  if(String(fields.customer_address||"").trim()){
+    fields.customer_address_2="";
+    fields.customer_address_3="";
   }
   return fields;
 };
@@ -120,8 +122,8 @@ export function BookingFormUpload({documentId,onUseFields,buttonLabel="Upload",e
   const hasPurchaser3=Boolean(result&&(result.fields.customer_name_3?.trim()||result.fields.customer_ic_3?.trim()));
   const reviewFields=Object.keys(labels).filter(key=>(hasPurchaser2||!purchaser2Fields.has(key))&&(hasPurchaser3||!purchaser3Fields.has(key)));
   const purchaser1ReviewFields=reviewFields.filter(key=>purchaser1Fields.has(key));
-  const purchaser2ReviewFields=reviewFields.filter(key=>purchaser2Fields.has(key));
-  const purchaser3ReviewFields=reviewFields.filter(key=>purchaser3Fields.has(key));
+  const purchaser2ReviewFields=reviewFields.filter(key=>purchaser2Fields.has(key)&&key!=="customer_address_2");
+  const purchaser3ReviewFields=reviewFields.filter(key=>purchaser3Fields.has(key)&&key!=="customer_address_3");
   const otherReviewFields=reviewFields.filter(key=>!purchaser1Fields.has(key)&&!purchaser2Fields.has(key)&&!purchaser3Fields.has(key));
 
   useEffect(()=>{
