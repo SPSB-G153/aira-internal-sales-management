@@ -363,7 +363,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       const checklistContent={
         ...buildDocumentSnapshot(updated,"spa_signing_checklist"),
         offer_to_purchase_date:updated.sale_date||popDocument?.generated_at?.slice(0,10)||popDocument?.created_at?.slice(0,10)||null,
-        purchase_proposal_approved_by:[updated.salesperson_name,updated.pop_assisting_member_2].filter(Boolean).join(" & "),
+        purchase_proposal_approved_by:updated.authorised_signatory_name||null,
         purchase_proposal_approved_at:updated.sale_date||popDocument?.generated_at?.slice(0,10)||popDocument?.created_at?.slice(0,10)||null,
       };
       const{error:checklistError}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"spa_signing_checklist",content:checklistContent,status:"generated",generated_at:existingChecklist?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});

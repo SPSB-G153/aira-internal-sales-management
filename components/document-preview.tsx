@@ -119,21 +119,21 @@ function SpaSigningChecklist({content}:{content:Content}){
   const price=number(content,"purchase_price");
   const booking=number(content,"booking_fee")||price*.02;
   const offerDate=value(content,"offer_to_purchase_date",value(content,"sale_date",""));
-  const approvedBy=value(content,"purchase_proposal_approved_by",value(content,"salesperson_name",""));
+  const approvedBy=value(content,"purchase_proposal_approved_by",value(content,"authorised_signatory_name",""));
   const d=(input:unknown)=>typeof input==="string"&&input?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(`${input.slice(0,10)}T00:00:00`)):"";
   const rows=[
-    ["1",`Prospect Offer Proposal Form DD ${d(offerDate)}`,"DOP","",""],
+    ["1",`Prospect Offer Proposal Form DD ${d(offerDate)} __________`,"DOP","",""],
     ["2","Unit, area (m²), price agree to proposal; discounts within LOA","Sales/Fin","",""],
     ["3","Purchaser ID (I/C & Passport)","Sales","Kat",""],
-    ["4",`Offer To Purchase issued ${d(offerDate)}`,"Sales","Kat",""],
-    ["5",`Notice of Acceptance issued ${d(content.notice_issued_at)}`,"Sales","Kat",""],
+    ["4",`Offer To Purchase issued ${d(offerDate)} __________`,"Sales","Kat",""],
+    ["5",`Notice of Acceptance issued ${d(content.notice_issued_at)} __________`,"Sales","Kat",""],
     ["6","SPA & DOMC in approved standard form; deviations approved","Sales/Fin/CCD","Kat/Mila",""],
     ["7","Booking fee and deposit received and banked","CCD/Finance","Mila/Shirley",""],
     ["",`Booking (Deposit 2%) OR No. ${value(content,"payment_reference","")}    Date: ${d(content.sale_date)}`,"","", ""],
     ["",`Deposit 8% OR No. ${value(content,"balance_deposit_reference","")}    Date: ${d(content.balance_deposit_received_at)}`,"","", ""],
   ];
   const information=[
-    ["Project Name",value(content,"project_name","AIRA RESIDENCE DAMANSARA").toUpperCase(),"Unit No.",value(content,"unit_number","")],
+    ["Project Name","AIRA RESIDENCE DAMANSARA","Unit No.",value(content,"unit_number","")],
     ["Purchase Price (RM)",new Intl.NumberFormat("en-MY",{minimumFractionDigits:2}).format(price),"", ""],
     ["Purchaser (1)",value(content,"customer_name","").toUpperCase(),"", ""],
     ["Purchaser (2)",value(content,"customer_name_2","").toUpperCase(),"", ""],
