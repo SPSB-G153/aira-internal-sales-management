@@ -25,6 +25,7 @@ export async function ensureAgentCommissionDocument(sale:Sale){
   if(bookingIsConfirmed&&paymentIsRecorded)required.push("acceptance_letter");
   if(hasExternalAgent(sale))required.push(...agentDocumentTypes);
   if(sale.inventory_required)required.push("inventory_confirmation_letter");
+  if(sale.spa_signed_at)required.push("spa_signing_checklist");
   const missing=required.filter(type=>!(existing??[]).some(document=>document.document_type===type));
   if(!missing.length)return;
   const{data:{user}}=await db.auth.getUser();

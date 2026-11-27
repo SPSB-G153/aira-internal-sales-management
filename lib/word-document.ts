@@ -3,6 +3,7 @@ import path from "node:path";
 import { AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LineRuleType, Packer, PageBreak, PageNumber, Paragraph, Table, TableCell, TableRow, TextRun, UnderlineType, VerticalAlign, VerticalMergeType, WidthType } from "docx";
 import JSZip from "jszip";
 import type { DocumentType } from "@/lib/types";
+import { createSpaSigningChecklistWord } from "@/lib/spa-signing-checklist-word";
 import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
 import { designationForSalesPersonnel, profileForSalesPersonnel } from "@/lib/sales-personnel";
@@ -677,6 +678,7 @@ async function createCcdTransmittalWord(content:Record<string,unknown>,_fullLogo
 
 export async function createWordLetter(type:DocumentType,content:Record<string,unknown>){
   if(type==="pre_booking_form")return createPopWord(content);
+  if(type==="spa_signing_checklist")return createSpaSigningChecklistWord(content);
   const [fullLogo,emblemLogo]=await Promise.all([
     readFile(path.join(process.cwd(),"public","selangor-properties-berhad-letterhead.png")),
     readFile(path.join(process.cwd(),"public","selangor-properties-emblem.png")),

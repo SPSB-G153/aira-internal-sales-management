@@ -109,9 +109,47 @@ export function DocumentPreview({type,content}:{type:DocumentType;content:Conten
     :type==="agent_commission_letter"?<AgentCommissionLetter content={previewContent}/>
     :type==="rebate_letter"?<RebateLetter content={previewContent}/>
     :type==="inventory_confirmation_letter"?<InventoryConfirmationLetter content={previewContent}/>
+    :type==="spa_signing_checklist"?<SpaSigningChecklist content={previewContent}/>
     :type==="ccd_transmittal_letter"?<CcdTransmittalLetter content={previewContent}/>
     :<HovpLetterExact content={previewContent}/>;
   return <LetterDateProvider date={value(previewContent,"letter_issued_at","")}>{preview}</LetterDateProvider>;
+}
+
+function SpaSigningChecklist({content}:{content:Content}){
+  const price=number(content,"purchase_price");
+  const booking=number(content,"booking_fee")||price*.02;
+  const offerDate=value(content,"offer_to_purchase_date",value(content,"sale_date",""));
+  const approvedBy=value(content,"purchase_proposal_approved_by",value(content,"salesperson_name",""));
+  const d=(input:unknown)=>typeof input==="string"&&input?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(`${input.slice(0,10)}T00:00:00`)):"";
+  const rows=[
+    ["1",`Prospect Offer Proposal Form DD ${d(offerDate)}`,"DOP","",""],
+    ["2","Unit, area (m²), price agree to proposal; discounts within LOA","Sales/Fin","",""],
+    ["3","Purchaser ID (I/C & Passport)","Sales","Kat",""],
+    ["4",`Offer To Purchase issued ${d(offerDate)}`,"Sales","Kat",""],
+    ["5",`Notice of Acceptance issued ${d(content.notice_issued_at)}`,"Sales","Kat",""],
+    ["6","SPA & DOMC in approved standard form; deviations approved","Sales/Fin/CCD","Kat/Mila",""],
+    ["7","Booking fee and deposit received and banked","CCD/Finance","Mila/Shirley",""],
+    ["",`Booking (Deposit 2%) OR No. ${value(content,"payment_reference","")}    Date: ${d(content.sale_date)}`,"","", ""],
+    ["",`Deposit 8% OR No. ${value(content,"balance_deposit_reference","")}    Date: ${d(content.balance_deposit_received_at)}`,"","", ""],
+  ];
+  const information=[
+    ["Project Name",value(content,"project_name","AIRA RESIDENCE DAMANSARA").toUpperCase(),"Unit No.",value(content,"unit_number","")],
+    ["Purchase Price (RM)",new Intl.NumberFormat("en-MY",{minimumFractionDigits:2}).format(price),"", ""],
+    ["Purchaser (1)",value(content,"customer_name","").toUpperCase(),"", ""],
+    ["Purchaser (2)",value(content,"customer_name_2","").toUpperCase(),"", ""],
+    ["Purchaser (3)",value(content,"customer_name_3","").toUpperCase(),"", ""],
+    ["Booking (Deposit 2%)",new Intl.NumberFormat("en-MY",{minimumFractionDigits:2}).format(booking),"Received on :",d(content.sale_date)],
+    ["Deposit (Balance 8%)",new Intl.NumberFormat("en-MY",{minimumFractionDigits:2}).format(price*.08),"Received on :",d(content.balance_deposit_received_at)],
+    ["Purchase proposal approved by",approvedBy,"Approved on :",d(content.purchase_proposal_approved_at||offerDate)],
+  ];
+  return <div className="spa-checklist-document">
+    <article className="spa-checklist-page"><h1>SELANGOR PROPERTIES BERHAD</h1><h2>SALE &amp; PURCHASE — DOCUMENT SIGNING CHECKLIST</h2><p className="spa-checklist-note">To accompany each document submitted for the CEO&apos;s signature. Initial each item, or mark N/A with reason.</p>
+      <table className="spa-checklist-info"><thead><tr><th colSpan={4}>GENERAL INFORMATION</th></tr></thead><tbody>{information.map((row,index)=><tr key={index}>{row.map((cell,cellIndex)=><td key={cellIndex} className={cellIndex%2===0?"label":""}>{cell}</td>)}</tr>)}</tbody></table>
+      <table className="spa-checklist-table"><thead><tr><th colSpan={5}>SECTION 1 — SPA SIGNING</th></tr><tr><th>No.</th><th>Check Item</th><th>Responsible</th><th>Checked by / Date</th><th>Reviewed by / Date</th></tr></thead><tbody>{rows.map((row,index)=><tr key={index}>{row.map((cell,cellIndex)=><td key={cellIndex}>{cell}</td>)}</tr>)}<tr><th colSpan={2}>Cleared for SPA signing</th><td colSpan={3}>CEO: ____________________ &nbsp;&nbsp; Date: ____________________</td></tr></tbody></table>
+      <table className="spa-checklist-table"><thead><tr><th colSpan={5}>SECTION 2 — MEMORANDUM OF TRANSFER / FOREIGNER CONSENT</th></tr><tr><th>No.</th><th>Check Item</th><th>Responsible</th><th>Checked by / Date</th><th>Reviewed by / Date</th></tr></thead><tbody><tr><td>1</td><td>Foreigner Consent Form (Applicable &nbsp;&nbsp; N/Applicable)</td><td>CCD</td><td/><td/></tr><tr><td>2</td><td>MOT (Form 14A)</td><td>CCD</td><td/><td/></tr><tr className="spacer"><td/><td/><td/><td/><td/></tr><tr><th colSpan={2}>Cleared for MOT / Foreigner Consent execution</th><td colSpan={3}>CEO: ____________________ &nbsp;&nbsp; Date: ____________</td></tr></tbody></table>
+    </article>
+    <article className="spa-checklist-page spa-checklist-signature-page"><table className="spa-checklist-signatures"><tbody><tr><td>Prepared by : Sales Admin<br/><span/><br/>Date :</td><td>Verified by : Credit Control<br/><span/><br/>Date :</td></tr><tr><td>Reviewed by : Senior Manager, Finance<br/><span/><br/>Date :</td><td>Reviewed by : Chief Financial Officer<br/><span/><br/>Date :</td></tr><tr><td colSpan={2}>Approved for signing: Chief Executive Officer<br/><span/><br/>Date :</td></tr></tbody></table></article>
+  </div>;
 }
 
 function CcdTransmittalLetter({content}:{content:Content}){

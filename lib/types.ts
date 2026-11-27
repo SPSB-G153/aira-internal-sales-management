@@ -1,5 +1,5 @@
 export type SaleStatus = "draft" | "booking_draft" | "confirmed" | "spa_signed" | "hovp_ready";
-export type DocumentType = "pre_booking_form" | "booking_form" | "acceptance_letter" | "agency_appointment_letter" | "agent_commission_letter" | "rebate_letter" | "inventory_confirmation_letter" | "ccd_transmittal_letter" | "hovp_letter";
+export type DocumentType = "pre_booking_form" | "booking_form" | "acceptance_letter" | "agency_appointment_letter" | "agent_commission_letter" | "rebate_letter" | "inventory_confirmation_letter" | "spa_signing_checklist" | "ccd_transmittal_letter" | "hovp_letter";
 export type DocumentStatus = "pending" | "generated" | "reviewed";
 export type TeamRole = "owner" | "admin" | "member";
 
@@ -49,4 +49,4 @@ export interface Sale {
   status:SaleStatus; created_at:string;
 }
 export interface SaleDocument { id:string; team_id:string; user_id:string|null; sale_id:string; document_type:DocumentType; content:Record<string,unknown>; status:DocumentStatus; generated_at:string|null; created_at:string; }
-export const documentNames:Record<DocumentType,string>={pre_booking_form:"Prospect Offer Proposal Form",booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",agency_appointment_letter:"Agency Appointment Letter",agent_commission_letter:"Agent's Fee Arrangement",rebate_letter:"Rebate Letter",inventory_confirmation_letter:"Confirmation of Inventories",ccd_transmittal_letter:"Internal Transmittal to CCD",hovp_letter:"HOVP Letter"};
+export const documentNames:Record<DocumentType,string>={pre_booking_form:"Prospect Offer Proposal Form",booking_form:"Aira Booking Form",acceptance_letter:"Notice of Acceptance",agency_appointment_letter:"Agency Appointment Letter",agent_commission_letter:"Agent's Fee Arrangement",rebate_letter:"Rebate Letter",inventory_confirmation_letter:"Confirmation of Inventories",spa_signing_checklist:"SPA Signing Checklist",ccd_transmittal_letter:"Internal Transmittal to CCD",hovp_letter:"HOVP Letter"};

@@ -346,7 +346,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
     const updated=await updateSaleIgnoringUnavailableTrackerColumns(id,values);
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const{data:recordedDocuments,error:recordedDocumentsError}=await db.from("documents").select("document_type,generated_at,content").eq("team_id",team.id).eq("sale_id",id);
+    const{data:recordedDocuments,error:recordedDocumentsError}=await db.from("documents").select("document_type,generated_at,created_at,content").eq("team_id",team.id).eq("sale_id",id);
     if(recordedDocumentsError)throw recordedDocumentsError;
     const recordedTypes=new Set((recordedDocuments??[]).map(document=>document.document_type));
     if(updated.inventory_required){
@@ -358,6 +358,16 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       if(error)throw error;
     }
     if(signedDate){
+      const existingChecklist=(recordedDocuments??[]).find(document=>document.document_type==="spa_signing_checklist");
+      const popDocument=(recordedDocuments??[]).find(document=>document.document_type==="pre_booking_form");
+      const checklistContent={
+        ...buildDocumentSnapshot(updated,"spa_signing_checklist"),
+        offer_to_purchase_date:updated.sale_date||popDocument?.generated_at?.slice(0,10)||popDocument?.created_at?.slice(0,10)||null,
+        purchase_proposal_approved_by:[updated.salesperson_name,updated.pop_assisting_member_2].filter(Boolean).join(" & "),
+        purchase_proposal_approved_at:updated.sale_date||popDocument?.generated_at?.slice(0,10)||popDocument?.created_at?.slice(0,10)||null,
+      };
+      const{error:checklistError}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"spa_signing_checklist",content:checklistContent,status:"generated",generated_at:existingChecklist?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
+      if(checklistError)throw checklistError;
       const isNric=(value:string|null)=>/^\d{6}-?\d{2}-?\d{4}$/.test(String(value||"").replace(/\s/g,""));
       const identities:Array<[string,string]>=[];
       if(updated.customer_name&&updated.customer_ic)identities.push([updated.customer_name,updated.customer_ic]);
@@ -393,7 +403,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       const{error}=await db.from("documents").upsert({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type:"ccd_transmittal_letter",content,status:"generated",generated_at:existing?.generated_at||new Date().toISOString()},{onConflict:"sale_id,document_type"});
       if(error)throw error;
     }else{
-      const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",id).eq("document_type","ccd_transmittal_letter");
+      const{error}=await db.from("documents").delete().eq("team_id",team.id).eq("sale_id",id).in("document_type",["spa_signing_checklist","ccd_transmittal_letter"]);
       if(error)throw error;
     }
     revalidatePath(`/sales/${id}`);revalidatePath("/sales");revalidatePath("/dashboard");revalidatePath("/operations");

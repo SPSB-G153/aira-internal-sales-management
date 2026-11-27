@@ -3,8 +3,8 @@ import { agencyCompanyForSale, agencyDetailsForSale } from "@/lib/agency-details
 import { profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { solicitorForLetter } from "@/lib/unit-solicitor";
 import { purchaserNameWithoutSalutation } from "@/lib/purchaser-name";
-export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","acceptance_letter","agency_appointment_letter","agent_commission_letter","rebate_letter","inventory_confirmation_letter","ccd_transmittal_letter","hovp_letter"];
-export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,agency_appointment_letter:3,agent_commission_letter:3,rebate_letter:3,inventory_confirmation_letter:3,ccd_transmittal_letter:4,hovp_letter:5};
+export const documentOrder:DocumentType[]=["pre_booking_form","booking_form","acceptance_letter","agency_appointment_letter","agent_commission_letter","rebate_letter","inventory_confirmation_letter","spa_signing_checklist","ccd_transmittal_letter","hovp_letter"];
+export const documentSteps:Record<DocumentType,number>={pre_booking_form:1,booking_form:2,acceptance_letter:3,agency_appointment_letter:3,agent_commission_letter:3,rebate_letter:3,inventory_confirmation_letter:3,spa_signing_checklist:4,ccd_transmittal_letter:4,hovp_letter:5};
 const properPersonName=(name:string|null)=>name?name.toLocaleLowerCase("en-MY").replace(/(^|[\s'-])([\p{L}])/gu,(_match,prefix:string,letter:string)=>`${prefix}${letter.toLocaleUpperCase("en-MY")}`):null;
 const common=(s:Sale)=>{
   const agency=agencyDetailsForSale(s);
