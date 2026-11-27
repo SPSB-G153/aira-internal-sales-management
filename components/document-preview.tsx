@@ -124,12 +124,12 @@ function SpaSigningChecklist({content}:{content:Content}){
   const d=(input:unknown)=>typeof input==="string"&&input?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(`${input.slice(0,10)}T00:00:00`)):"";
   const ds=(input:unknown)=>typeof input==="string"&&input?`${input.slice(8,10)}.${input.slice(5,7)}.${input.slice(2,4)}`:"";
   const rows=[
-    ["1",<>Prospect Offer Proposal Form DD {d(offerDate)}<span className="spa-date-line"/></>,"DOP","",""],
+    ["1",<>Prospect Offer Proposal Form DD <span className="spa-filled-date">{d(offerDate)}</span></>,"DOP","",""],
     ["2","Unit, area (m²), price agree to proposal; discounts within LOA","Sales/Fin","",""],
-    ["3","Purchaser ID (I/C & Passport)","Sales","Kat",""],
-    ["4",<>Offer To Purchase issued {d(offerDate)}<span className="spa-date-line"/></>,"Sales","Kat",""],
-    ["5",<>Notice of Acceptance issued {d(content.notice_issued_at)}<span className="spa-date-line"/></>,"Sales","Kat",""],
-    ["6","SPA & DOMC in approved standard form; deviations approved","Sales/Fin/CCD","Kat/Mila",""],
+    ["3","Purchaser ID (I/C & Passport)","Sales",<span className="spa-kat-signature">Kat</span>,""],
+    ["4",<>Offer To Purchase issued <span className="spa-filled-date">{d(offerDate)}</span></>,"Sales",<span className="spa-kat-signature">Kat</span>,""],
+    ["5",<>Notice of Acceptance issued <span className="spa-filled-date">{d(content.notice_issued_at)}</span></>,"Sales",<span className="spa-kat-signature">Kat</span>,""],
+    ["6","SPA & DOMC in approved standard form; deviations approved","Sales/Fin/CCD",<><span className="spa-kat-signature">Kat</span>/Mila</>,""],
     ["7","Booking fee and deposit received and banked","CCD/Finance","Mila/Shirley",""],
     ["",<>Booking (Deposit 2%) &nbsp; <b><u>OR</u> No.</b><span className="spa-or-date"><b><u>Date :</u></b></span></>,"","", ""],
     ["",<>Deposit 8% &nbsp; <b><u>OR</u> No.</b><span className="spa-or-date"><b><u>Date :</u></b></span></>,"","", ""],

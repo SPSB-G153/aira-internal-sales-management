@@ -25,15 +25,15 @@ export async function createSpaSigningChecklistPdf(content:Record<string,unknown
   draw(shortDate(content.balance_deposit_received_at),412,607);
   draw(text(content,"authorised_signatory_name"),153,584);
   draw(shortDate(content.sale_date),412,584);
-  const datedLine=(labelDate:string,x:number,y:number,width:number)=>{
+  const datedLine=(labelDate:string,x:number,y:number,coverWidth:number)=>{
     if(!labelDate)return;
-    page.drawRectangle({x:x-2,y:y-2,width,height:13,color:rgb(1,1,1)});
+    page.drawRectangle({x:x-2,y:y-2,width:coverWidth,height:13,color:rgb(1,1,1)});
     draw(labelDate,x,y,9.5);
-    page.drawLine({start:{x,y:y-1},end:{x:x+width,y:y-1},thickness:.55,color:ink});
+    page.drawLine({start:{x,y:y-1},end:{x:x+55,y:y-1},thickness:.55,color:ink});
   };
   const offerDate=longDate(content.offer_to_purchase_date||content.sale_date);
-  datedLine(offerDate,212,500,92);
-  datedLine(offerDate,176,440,120);
-  datedLine(longDate(content.notice_issued_at),189,420,105);
+  datedLine(offerDate,212,500,160);
+  datedLine(offerDate,176,440,196);
+  datedLine(longDate(content.notice_issued_at),189,420,183);
   return pdf.save();
 }
