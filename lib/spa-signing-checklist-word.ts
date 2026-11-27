@@ -104,7 +104,7 @@ export async function createSpaSigningChecklistWord(content:Record<string,unknow
   // Keep Mila in the template font and style only Katherine's initials.
   xml=xml.replace(/<w:r>(<w:rPr>(?:(?!<\/w:rPr>)[\s\S])*<\/w:rPr>)<w:t>Kat(\/Mila)?<\/w:t><\/w:r>/g,
     (_run, properties: string, suffix?: string) =>
-      '<w:r><w:rPr><w:rFonts w:ascii="Brush Script MT" w:hAnsi="Brush Script MT" w:cs="Brush Script MT"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>Kat</w:t></w:r>'
+      '<w:r><w:rPr><w:rFonts w:ascii="Brush Script MT" w:hAnsi="Brush Script MT" w:cs="Brush Script MT"/><w:b/><w:bCs/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>Kat</w:t></w:r>'
       + (suffix ? '<w:r>' + properties + '<w:t>' + suffix + '</w:t></w:r>' : ""));
   xml=preserveApprovedSideIndent(xml);
   zip.file("word/document.xml",xml);
