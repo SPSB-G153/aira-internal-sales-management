@@ -65,6 +65,18 @@ function updateDatedRow(xml:string,rowLabel:string,displayLabel:string,date:stri
   });
 }
 
+function preserveApprovedSideIndent(xml:string){
+  // Keep every checklist table centred inside the approved 0.5-inch page margins.
+  // Word can otherwise left-align fixed-width tables after their cells are edited.
+  xml=xml.replace(/<w:tblPr>([\s\S]*?)<\/w:tblPr>/g,(tableProperties,body:string)=>{
+    const withoutAlignment=body.replace(/<w:jc\b[^>]*\/>/g,"");
+    return `<w:tblPr><w:jc w:val="center"/>${withoutAlignment}</w:tblPr>`;
+  });
+  return xml.replace(/<w:pgMar\b[^>]*\/>/g,margin=>margin
+    .replace(/w:left="\d+"/, 'w:left="720"')
+    .replace(/w:right="\d+"/, 'w:right="720"'));
+}
+
 export async function createSpaSigningChecklistWord(content:Record<string,unknown>){
   const template=await readFile(path.join(process.cwd(),"public","templates","SPA_Signing_Checklist.docx"));
   const zip=await JSZip.loadAsync(template);const file=zip.file("word/document.xml");if(!file)throw new Error("SPA checklist template is incomplete.");
@@ -89,6 +101,7 @@ export async function createSpaSigningChecklistWord(content:Record<string,unknow
   xml=updateDatedRow(xml,"Prospect Offer Proposal Form","Prospect Offer Proposal Form DD",offerDate);
   xml=updateDatedRow(xml,"Offer To Purchase issued","Offer To Purchase issued",offerDate);
   xml=updateDatedRow(xml,"Notice of Acceptance issued","Notice of Acceptance issued",noticeDate);
+  xml=preserveApprovedSideIndent(xml);
   zip.file("word/document.xml",xml);
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));
 }
