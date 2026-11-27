@@ -23,10 +23,11 @@ function setCellText(row:string,index:number,value:string){
   const cell=match[0];
   const lines=value.split("\n");
   const run=`<w:r>${lines.map((line,index)=>`${index?"<w:br/>":""}<w:t xml:space="preserve">${escapeXml(line)}</w:t>`).join("")}</w:r>`;
-  const replacement=cell.replace(/<w:p\b([^>]*)>([\s\S]*?)<\/w:p>/,(_paragraph,attributes:string,body:string)=>{
+  let replacement=cell.replace(/<w:p\b([^>]*)>([\s\S]*?)<\/w:p>/,(_paragraph,attributes:string,body:string)=>{
     const properties=body.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0]??"";
     return `<w:p${attributes}>${properties}${run}</w:p>`;
   });
+  if(replacement===cell)replacement=cell.replace(/<w:p\b([^>]*)\/>/,`<w:p$1>${run}</w:p>`);
   return row.slice(0,match.index)+replacement+row.slice((match.index??0)+cell.length);
 }
 
