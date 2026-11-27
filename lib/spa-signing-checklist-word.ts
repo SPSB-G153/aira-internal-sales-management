@@ -23,13 +23,18 @@ function setCellText(row:string,index:number,value:string){
   const cell=match[0];
   const lines=value.split("\n");
   const run=`<w:r>${lines.map((line,index)=>`${index?"<w:br/>":""}<w:t xml:space="preserve">${escapeXml(line)}</w:t>`).join("")}</w:r>`;
-  const replacement=cell.replace(/(<w:p\b[^>]*>[\s\S]*?<w:pPr>[\s\S]*?<\/w:pPr>)[\s\S]*?(<\/w:p>)/,`$1${run}$2`);
+  const replacement=cell.replace(/<w:p\b([^>]*)>([\s\S]*?)<\/w:p>/,(_paragraph,attributes:string,body:string)=>{
+    const properties=body.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0]??"";
+    return `<w:p${attributes}>${properties}${run}</w:p>`;
+  });
   return row.slice(0,match.index)+replacement+row.slice((match.index??0)+cell.length);
 }
 
 function updateRow(xml:string,label:string,updates:Array<[number,string]>){
+  let updated=false;
   return xml.replace(/<w:tr\b[\s\S]*?<\/w:tr>/g,row=>{
-    if(!plain(row).replace(/\s+/g," ").includes(label))return row;
+    if(updated||!plain(row).replace(/\s+/g," ").includes(label))return row;
+    updated=true;
     return updates.reduce((current,[index,value])=>setCellText(current,index,value),row);
   });
 }
