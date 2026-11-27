@@ -6,6 +6,7 @@ import { noticeAddressLines } from "@/lib/notice-address";
 import { purchaserGreeting } from "@/lib/purchaser-greeting";
 import { designationForSalesPersonnel, profileForSalesPersonnel } from "@/lib/sales-personnel";
 import { agencyLetterDetails } from "@/lib/agency-details";
+import { katSignaturePath } from "@/lib/spa-prepared-signature";
 
 type Content=Record<string,unknown>;
 function LetterPageNumber({page}:{page:number}){return <div className="notice-page-number"><span>{page}</span></div>}
@@ -120,6 +121,7 @@ function SpaSigningChecklist({content}:{content:Content}){
   const booking=price*.02;
   const inventory=number(content,"inventory_payment_amount")&&!content.inventory_payment_not_required?number(content,"inventory_payment_amount"):0;
   const offerDate=value(content,"offer_to_purchase_date",value(content,"sale_date",""));
+  const preparedDate=value(content,"prepared_signature_date","");
   const approvedBy=value(content,"purchase_proposal_approved_by",value(content,"authorised_signatory_name",""));
   const d=(input:unknown)=>typeof input==="string"&&input?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(`${input.slice(0,10)}T00:00:00`)):"";
   const ds=(input:unknown)=>typeof input==="string"&&input?`${input.slice(8,10)}.${input.slice(5,7)}.${input.slice(2,4)}`:"";
@@ -150,7 +152,7 @@ function SpaSigningChecklist({content}:{content:Content}){
       <table className="spa-checklist-table"><thead><tr><th colSpan={5}>SECTION 1 — SPA SIGNING</th></tr><tr><th>No.</th><th>Check Item</th><th>Responsible</th><th>Checked by / Date</th><th>Reviewed by / Date</th></tr></thead><tbody>{rows.map((row,index)=><tr key={index}>{row.map((cell,cellIndex)=><td key={cellIndex}>{cell}</td>)}</tr>)}<tr><th colSpan={2}>Cleared for SPA signing</th><td colSpan={3}>CEO: ____________________ &nbsp;&nbsp; Date: ____________________</td></tr></tbody></table>
       <table className="spa-checklist-table"><thead><tr><th colSpan={5}>SECTION 2 — MEMORANDUM OF TRANSFER / FOREIGNER CONSENT</th></tr><tr><th>No.</th><th>Check Item</th><th>Responsible</th><th>Checked by / Date</th><th>Reviewed by / Date</th></tr></thead><tbody><tr><td>1</td><td>Foreigner Consent Form (Applicable &nbsp;&nbsp; N/Applicable)</td><td>CCD</td><td/><td/></tr><tr><td>2</td><td>MOT (Form 14A)</td><td>CCD</td><td/><td/></tr><tr className="spacer"><td/><td/><td/><td/><td/></tr><tr><th colSpan={2}>Cleared for MOT / Foreigner Consent execution</th><td colSpan={3}>CEO: ____________________ &nbsp;&nbsp; Date: ____________</td></tr></tbody></table>
     </article>
-    <article className="spa-checklist-page spa-checklist-signature-page"><table className="spa-checklist-signatures"><tbody><tr><td><b>Prepared <u>by :</u> Sales Admin</b><span/><u>Date :</u></td><td><b>Verified <u>by :</u> Credit Control</b><span/><u>Date :</u></td></tr><tr><td><b>Reviewed <u>by :</u> Senior Manager, Finance</b><span/><u>Date :</u></td><td><b>Reviewed <u>by :</u> Chief Financial Officer</b><span/><u>Date :</u></td></tr></tbody></table><table className="spa-checklist-ceo"><tbody><tr><td><b>Approved for signing: Chief Executive Officer</b><span/><u>Date :</u></td></tr></tbody></table></article>
+    <article className="spa-checklist-page spa-checklist-signature-page"><table className="spa-checklist-signatures"><tbody><tr><td><b>Prepared <u>by :</u> Sales Admin</b><span>{preparedDate && <svg viewBox="-2 -2 143 72" width="58" height="29" role="img" aria-label="Kat" style={{marginTop:16}}><path d={katSignaturePath} fill="currentColor" stroke="currentColor" strokeWidth="1.7"/></svg>}</span><u>Date :</u>{preparedDate && <> &nbsp;{preparedDate}</>}</td><td><b>Verified <u>by :</u> Credit Control</b><span/><u>Date :</u></td></tr><tr><td><b>Reviewed <u>by :</u> Senior Manager, Finance</b><span/><u>Date :</u></td><td><b>Reviewed <u>by :</u> Chief Financial Officer</b><span/><u>Date :</u></td></tr></tbody></table><table className="spa-checklist-ceo"><tbody><tr><td><b>Approved for signing: Chief Executive Officer</b><span/><u>Date :</u></td></tr></tbody></table></article>
   </div>;
 }
 

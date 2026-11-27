@@ -77,6 +77,31 @@ function preserveApprovedSideIndent(xml:string){
     .replace(/w:right="\d+"/, 'w:right="720"'));
 }
 
+function fillPreparedSignature(xml: string, date: string) {
+  if (!date) return xml;
+  let nextRowIsPreparedBox = false;
+  return xml.replace(/<w:tr\b[\s\S]*?<\/w:tr>/g, row => {
+    if (plain(row).includes("Prepared by : Sales Admin")) {
+      nextRowIsPreparedBox = true;
+      return row;
+    }
+    if (!nextRowIsPreparedBox) return row;
+    nextRowIsPreparedBox = false;
+    const signature = '<w:r><w:rPr><w:rFonts w:ascii="Brush Script MT" w:hAnsi="Brush Script MT" w:cs="Brush Script MT"/><w:b/><w:bCs/><w:sz w:val="44"/><w:szCs w:val="44"/></w:rPr><w:t>Kat</w:t></w:r>';
+    const dateRun = '<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="19"/></w:rPr><w:t xml:space="preserve"> ' + escapeXml(date) + '</w:t></w:r>';
+    return row.replace(/<w:tc\b[\s\S]*?<\/w:tc>/, cell => {
+      let paragraph = 0;
+      return cell.replace(/<w:p\b[^>]*>[\s\S]*?<\/w:p>/g, original => {
+        paragraph++;
+        if (paragraph === 1) return "";
+        if (paragraph === 2) return original.replace("<w:pPr>","<w:pPr><w:spacing w:line=\"460\" w:lineRule=\"exact\"/>").replace("</w:p>",signature+"</w:p>");
+        if (original.includes("<w:t>Date :</w:t>")) return original.replace("</w:p>",dateRun+"</w:p>");
+        return original;
+      });
+    });
+  });
+}
+
 export async function createSpaSigningChecklistWord(content:Record<string,unknown>){
   const template=await readFile(path.join(process.cwd(),"public","templates","SPA_Signing_Checklist.docx"));
   const zip=await JSZip.loadAsync(template);const file=zip.file("word/document.xml");if(!file)throw new Error("SPA checklist template is incomplete.");
@@ -107,6 +132,7 @@ export async function createSpaSigningChecklistWord(content:Record<string,unknow
       '<w:r><w:rPr><w:rFonts w:ascii="Brush Script MT" w:hAnsi="Brush Script MT" w:cs="Brush Script MT"/><w:b/><w:bCs/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>Kat</w:t></w:r>'
       + (suffix ? '<w:r>' + properties + '<w:t>' + suffix + '</w:t></w:r>' : ""));
   xml=preserveApprovedSideIndent(xml);
+  xml=fillPreparedSignature(xml,text(content,"prepared_signature_date"));
   zip.file("word/document.xml",xml);
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));
 }

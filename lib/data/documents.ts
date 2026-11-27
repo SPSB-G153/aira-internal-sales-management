@@ -5,6 +5,7 @@ import { buildDocumentSnapshot, documentOrder } from "@/lib/templates";
 import { mergeDocumentContent } from "@/lib/document-content";
 import { hasExternalAgent } from "@/lib/agency-details";
 import { hasRecordedBookingPayment } from "@/lib/sale-state";
+import { spaPreparedDate } from "@/lib/spa-prepared-signature";
 const agentDocumentTypes=["agency_appointment_letter","agent_commission_letter"] as const;
 export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>!doc.content?.uploaded_pop_metadata&&documentOrder.includes(doc.document_type)&&(!agentDocumentTypes.includes(doc.document_type as typeof agentDocumentTypes[number])||(canAccessAgentLetter&&hasExternalAgent(doc.content))));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
 export async function ensureAgentCommissionDocument(sale:Sale){
@@ -67,6 +68,7 @@ export async function getDocument(id:string){
   if(document.document_type==="spa_signing_checklist"){
     const uploadedPop = related?.find(row => row.document_type === "pre_booking_form");
     document.content.purchase_proposal_approved_at = uploadedPop?.content?.verified_pop_approval_date ?? verifiedPopApprovalDate ?? null;
+    document.content.prepared_signature_date = spaPreparedDate((sale as Sale).unit_number, document.generated_at ?? document.created_at);
   }
   if(document.document_type==="booking_form"||document.document_type==="acceptance_letter")document.content.sale_date=current.sale_date;
   return document;

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { katSignaturePath } from "./spa-prepared-signature";
 
 const text=(content:Record<string,unknown>,key:string)=>content[key]==null?"":String(content[key]);
 const money=(value:number)=>new Intl.NumberFormat("en-MY",{maximumFractionDigits:0}).format(value);
@@ -35,5 +36,14 @@ export async function createSpaSigningChecklistPdf(content:Record<string,unknown
   datedLine(longDate(content.purchase_proposal_approved_at),212,500,118);
   datedLine(offerDate,176,440,154);
   datedLine(longDate(content.notice_issued_at),189,420,141);
+  const preparedDate = text(content,"prepared_signature_date");
+  if (preparedDate) {
+    const signoffPage = pdf.getPage(1);
+    signoffPage.drawSvgPath(katSignaturePath, {
+      x:42, y:signoffPage.getHeight()-94, scale:0.30,
+      color:ink, borderColor:ink, borderWidth:1.7,
+    });
+    signoffPage.drawText(preparedDate, {x:71,y:signoffPage.getHeight()-135,size:9.5,font,color:ink});
+  }
   return pdf.save();
 }
