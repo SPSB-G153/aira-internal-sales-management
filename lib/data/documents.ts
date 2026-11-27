@@ -59,10 +59,14 @@ export async function getDocument(id:string){
     {},
   );
   const current=buildDocumentSnapshot(sale as Sale,document.document_type);
+  const verifiedPopApprovalDate = document.content?.verified_pop_approval_date;
   document.content=mergeDocumentContent(
     mergeDocumentContent(historical,document.content),
     current,
   );
+  if(document.document_type==="spa_signing_checklist"){
+    document.content.purchase_proposal_approved_at = verifiedPopApprovalDate ?? null;
+  }
   if(document.document_type==="booking_form"||document.document_type==="acceptance_letter")document.content.sale_date=current.sale_date;
   return document;
 }

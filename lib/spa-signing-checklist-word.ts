@@ -89,7 +89,7 @@ export async function createSpaSigningChecklistWord(content:Record<string,unknow
   const noticeDate=displayDate(content.notice_issued_at);
   const bookingDate=displayDateShort(content.sale_date);
   const balanceDate=displayDateShort(content.balance_deposit_received_at);
-  const approvedDate=displayDateShort(content.purchase_proposal_approved_at||content.sale_date);
+  const approvedDate=displayDateShort(content.purchase_proposal_approved_at);
   xml=updateRow(xml,"Project Name",[[1,"AIRA RESIDENCE DAMANSARA"],[3,text(content,"unit_number")]]);
   xml=updateRow(xml,"Purchase Price (RM)",[[1,amount(price)]]);
   xml=updateRow(xml,"Purchaser (1)",[[1,text(content,"customer_name").toUpperCase()]]);

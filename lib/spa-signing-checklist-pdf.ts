@@ -24,7 +24,7 @@ export async function createSpaSigningChecklistPdf(content:Record<string,unknown
   draw(`${money(price*.08)}${inventory?` + ${money(inventory)}`:""}`,153,607);
   draw(shortDate(content.balance_deposit_received_at),412,607);
   draw(text(content,"purchase_proposal_approved_by")||text(content,"authorised_signatory_name"),153,584);
-  draw(shortDate(content.purchase_proposal_approved_at||content.sale_date),412,584);
+  draw(shortDate(content.purchase_proposal_approved_at),412,584);
   const datedLine=(labelDate:string,x:number,y:number,coverWidth:number)=>{
     if(!labelDate)return;
     page.drawRectangle({x:x-2,y:y-2,width:coverWidth,height:13,color:rgb(1,1,1)});

@@ -142,7 +142,7 @@ function SpaSigningChecklist({content}:{content:Content}){
     ["Purchaser (3)",value(content,"customer_name_3","").toUpperCase(),"", ""],
     ["Booking (Deposit 2%)",new Intl.NumberFormat("en-MY",{maximumFractionDigits:0}).format(booking),"Received on :",ds(content.sale_date)],
     ["Deposit (Balance 8%)",`${new Intl.NumberFormat("en-MY",{maximumFractionDigits:0}).format(price*.08)}${inventory?` + ${new Intl.NumberFormat("en-MY",{maximumFractionDigits:0}).format(inventory)}`:""}`,"Received on :",ds(content.balance_deposit_received_at)],
-    ["Purchase proposal approved by",approvedBy,"Approved on :",ds(content.purchase_proposal_approved_at||offerDate)],
+    ["Purchase proposal approved by",approvedBy,"Approved on :",ds(content.purchase_proposal_approved_at)],
   ];
   return <div className="spa-checklist-document">
     <article className="spa-checklist-page"><h1>SELANGOR PROPERTIES BERHAD</h1><h2>SALE &amp; PURCHASE — DOCUMENT SIGNING CHECKLIST</h2><p className="spa-checklist-note">To accompany each document submitted for the CEO&apos;s signature. Initial each item, or mark N/A with reason.</p>
