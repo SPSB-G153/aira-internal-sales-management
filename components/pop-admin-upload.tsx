@@ -25,6 +25,7 @@ const labels: Record<string, string> = {
   repeat_buyer_discount: "Repeat-buyer discount",
   rebate_amount: "Rebate amount",
   sale_date: "Proposal date",
+  pop_approval_date: "Signed POP approval date",
   sale_reference: "POP / booking reference",
   salesperson_name: "Sales personnel name",
   pop_assisting_member_2: "Second sales personnel name",

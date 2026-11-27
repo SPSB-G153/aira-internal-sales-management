@@ -32,7 +32,7 @@ export async function createSpaSigningChecklistPdf(content:Record<string,unknown
     page.drawLine({start:{x,y:y-1},end:{x:x+55,y:y-1},thickness:.55,color:ink});
   };
   const offerDate=longDate(content.offer_to_purchase_date||content.sale_date);
-  datedLine(offerDate,212,500,118);
+  datedLine(longDate(content.purchase_proposal_approved_at),212,500,118);
   datedLine(offerDate,176,440,154);
   datedLine(longDate(content.notice_issued_at),189,420,141);
   return pdf.save();

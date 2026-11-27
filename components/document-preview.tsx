@@ -124,7 +124,7 @@ function SpaSigningChecklist({content}:{content:Content}){
   const d=(input:unknown)=>typeof input==="string"&&input?new Intl.DateTimeFormat("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(`${input.slice(0,10)}T00:00:00`)):"";
   const ds=(input:unknown)=>typeof input==="string"&&input?`${input.slice(8,10)}.${input.slice(5,7)}.${input.slice(2,4)}`:"";
   const rows=[
-    ["1",<>Prospect Offer Proposal Form DD <span className="spa-filled-date">{d(offerDate)}</span></>,"DOP","",""],
+    ["1",<>Prospect Offer Proposal Form DD <span className="spa-filled-date">{d(content.purchase_proposal_approved_at)}</span></>,"DOP","",""],
     ["2","Unit, area (m²), price agree to proposal; discounts within LOA","Sales/Fin","",""],
     ["3","Purchaser ID (I/C & Passport)","Sales",<span className="spa-kat-signature">Kat</span>,""],
     ["4",<>Offer To Purchase issued <span className="spa-filled-date">{d(offerDate)}</span></>,"Sales",<span className="spa-kat-signature">Kat</span>,""],

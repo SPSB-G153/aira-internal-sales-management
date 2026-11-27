@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDocument } from "@/lib/data/documents";
 import { getSale } from "@/lib/data/sales";
-import { markDocumentReviewed, savePopApprovalDate } from "@/lib/actions/documents";
+import { markDocumentReviewed } from "@/lib/actions/documents";
 import { documentNames } from "@/lib/types";
 import { DocumentPreview } from "@/components/document-preview";
 import { PrintButton } from "@/components/print-button";
@@ -45,14 +45,6 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
 
   if (isSpaChecklist) return <div className="page letter-wrap">
     <div className="page-header no-print booking-page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>SPA Signing Checklist</h1><p className="subtle">The preview, printable PDF and editable Word file all follow the uploaded checklist format.</p></div><div className="form-actions booking-actions"><Link href={`/sales/${sale.id}`} className="button secondary">Back to sale</Link><a href={`${spaPdf}?preview=1#page=1&zoom=85`} target="_blank" rel="noreferrer" className="button secondary">Print / Save PDF</a>{canDownloadWord && <a href={wordUrl} download={wordFilename} className="button secondary">Download Word</a>} {doc.status !== "reviewed" && <form action={review}><button className="button accent">Mark reviewed</button></form>}</div></div>
-    <form action={savePopApprovalDate.bind(null, id)} className="form-actions no-print">
-      <div className="field">
-        <label htmlFor="pop_approval_date">POP approval date</label>
-        <input id="pop_approval_date" name="pop_approval_date" type="date" required
-          defaultValue={String(doc.content.purchase_proposal_approved_at ?? "")} />
-      </div>
-      <button type="submit" className="button secondary">Save approval date</button>
-    </form>
     <div className="template-preview spa-app-preview"><p className="template-preview-note no-print">Exact preview of the approved uploaded checklist.</p><DocumentPreview type={doc.document_type} content={letterContent}/></div>
   </div>;
 

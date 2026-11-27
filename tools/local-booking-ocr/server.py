@@ -157,7 +157,7 @@ SINGLE_CHEQUE_SCHEMA = {
 POP_ADMIN_FIELDS = [
     "customer_name", "customer_name_2", "customer_name_3", "purchaser_type", "project_name", "unit_number",
     "unit_type", "floor_area", "purchase_price", "approved_selling_price",
-    "additional_revenue", "repeat_buyer_discount", "rebate_amount", "sale_date",
+    "additional_revenue", "repeat_buyer_discount", "rebate_amount", "sale_date", "pop_approval_date",
     "sale_reference", "salesperson_name", "pop_assisting_member_2", "salesperson_designation",
     "salesperson_mobile", "salesperson_email", "agent_company", "agent_address",
 ]
@@ -516,7 +516,7 @@ def save_cached_extraction(data, fields, warnings):
 def pop_admin_cache_path(data):
     root = private_upload_root() / ".reader-cache"
     root.mkdir(parents=True, exist_ok=True)
-    digest = hashlib.sha256(b"pop-admin-v7-three-purchaser-split" + data).hexdigest()
+    digest = hashlib.sha256(b"pop-admin-v8-signed-approval-date" + data).hexdigest()
     return root / f"pop-{digest}.json"
 
 
@@ -934,6 +934,10 @@ async def extract_pop_admin(
                 raise ValueError("The POP Form PDF has no pages.")
             page_indexes = [0] if pop.page_count == 1 else [0, pop.page_count - 1]
             images = [pop_admin_section(pop[index]) for index in page_indexes]
+            approval_page = pop[pop.page_count - 1]
+            rect = approval_page.rect
+            approval_area = fitz.Rect(rect.x0, rect.y0 + rect.height * 0.30, rect.x1, rect.y1)
+            images.append(page_png(approval_page, approval_area, zoom=2.0))
         else:
             images = [base64.b64encode(data).decode("ascii")]
         payload = {
@@ -957,7 +961,7 @@ async def extract_pop_admin(
                     "that as agent_company. Extract a clearly printed agency/company mailing address "
                     "as agent_address. Treat NONE AGENT, NO AGENT, NOT APPLICABLE and N/A as no external agent and return agent_company as an empty string. Never infer a company or address from an email domain, logo style "
                     "or person's name. Preserve spelling, numbers and email exactly. Do not "
-                    "use purchaser details as salesperson details. Read sale_date from the dated proposal/signature area, not an approval date. Return all monetary and floor-area values as digits only without RM or commas, use DD/MM/YYYY for sale_date, and preserve the unit number and unit type in uppercase. Return an empty string for any "
+                    "use purchaser details as salesperson details. Read sale_date from the dated proposal/signature area. For pop_approval_date read only the handwritten date beside the Director of Property signature in '2. Comments/Approval'. Never use the proposal date, a printed date above that block, or a booking date for pop_approval_date. Leave it empty if unsigned or unreadable. Return all monetary and floor-area values as digits only without RM or commas, use DD/MM/YYYY for both dates, and preserve the unit number and unit type in uppercase. Return an empty string for any "
                     "field that is not clearly shown. Return only the requested JSON."
                 ),
                 "images": images,
@@ -965,7 +969,7 @@ async def extract_pop_admin(
             "format": POP_ADMIN_SCHEMA,
             "stream": False,
             "keep_alive": "30m",
-            "options": {"temperature": 0, "num_ctx": 4096, "num_predict": 300},
+            "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 380},
         }
         response = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=600)
         if not response.ok:

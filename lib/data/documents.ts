@@ -6,7 +6,7 @@ import { mergeDocumentContent } from "@/lib/document-content";
 import { hasExternalAgent } from "@/lib/agency-details";
 import { hasRecordedBookingPayment } from "@/lib/sale-state";
 const agentDocumentTypes=["agency_appointment_letter","agent_commission_letter"] as const;
-export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>documentOrder.includes(doc.document_type)&&(!agentDocumentTypes.includes(doc.document_type as typeof agentDocumentTypes[number])||(canAccessAgentLetter&&hasExternalAgent(doc.content))));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
+export async function getDocuments(saleId?:string){const db=await createClient();const{team,role,isDemo}=await getTeamContext();const canAccessAgentLetter=role==="owner"||isDemo;let q=db.from("documents").select("*").eq("team_id",team.id).order("created_at",{ascending:false});if(saleId)q=q.eq("sale_id",saleId);const{data,error}=await q;if(error)throw new Error(error.message);const documents=((data??[])as SaleDocument[]).filter(doc=>!doc.content?.uploaded_pop_metadata&&documentOrder.includes(doc.document_type)&&(!agentDocumentTypes.includes(doc.document_type as typeof agentDocumentTypes[number])||(canAccessAgentLetter&&hasExternalAgent(doc.content))));return saleId?documents.sort((a,b)=>documentOrder.indexOf(a.document_type)-documentOrder.indexOf(b.document_type)):documents}
 export async function ensureAgentCommissionDocument(sale:Sale){
   const db=await createClient();const{team}=await getTeamContext();
   const{data:existing,error:lookupError}=await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",sale.id);
@@ -38,7 +38,7 @@ export async function getDocument(id:string){
   const{data,error}=await db.from("documents").select("*").eq("team_id",team.id).eq("id",id).single();
   if(error)throw new Error(error.message);
   const document=data as SaleDocument;
-  if(!documentOrder.includes(document.document_type))throw new Error("This document type is no longer used.");
+  if(document.content?.uploaded_pop_metadata||!documentOrder.includes(document.document_type))throw new Error("This document is not available to preview.");
   if(agentDocumentTypes.includes(document.document_type as typeof agentDocumentTypes[number])&&role!=="owner"&&!isDemo)throw new Error("Only the workspace owner can access this letter.");
 
   // A document is a historical snapshot, but previews/downloads must reflect
@@ -46,7 +46,7 @@ export async function getDocument(id:string){
   // then make the current sale record authoritative. Blank current fields are
   // ignored by mergeDocumentContent, so older captured details remain usable.
   const[{data:related,error:relatedError},{data:sale,error:saleError}]=await Promise.all([
-    db.from("documents").select("content").eq("team_id",team.id).eq("sale_id",document.sale_id),
+    db.from("documents").select("document_type,content").eq("team_id",team.id).eq("sale_id",document.sale_id),
     db.from("sales").select("*").eq("team_id",team.id).eq("id",document.sale_id).single(),
   ]);
   if(relatedError)throw new Error(relatedError.message);
@@ -65,7 +65,8 @@ export async function getDocument(id:string){
     current,
   );
   if(document.document_type==="spa_signing_checklist"){
-    document.content.purchase_proposal_approved_at = verifiedPopApprovalDate ?? null;
+    const uploadedPop = related?.find(row => row.document_type === "pre_booking_form");
+    document.content.purchase_proposal_approved_at = uploadedPop?.content?.verified_pop_approval_date ?? verifiedPopApprovalDate ?? null;
   }
   if(document.document_type==="booking_form"||document.document_type==="acceptance_letter")document.content.sale_date=current.sale_date;
   return document;

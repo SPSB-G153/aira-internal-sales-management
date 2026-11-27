@@ -98,9 +98,14 @@ export async function createSpaSigningChecklistWord(content:Record<string,unknow
   xml=updateRow(xml,"Booking (Deposit 2%)",[[1,amount(booking)],[3,bookingDate]]);
   xml=updateRow(xml,"Deposit (Balance 8%)",[[1,`${amount(balance)}${inventory?` + ${amount(inventory)}`:""}`],[3,balanceDate]]);
   xml=updateRow(xml,"Purchase proposal approved by",[[1,text(content,"purchase_proposal_approved_by",text(content,"authorised_signatory_name"))],[3,approvedDate]]);
-  xml=updateDatedRow(xml,"Prospect Offer Proposal Form","Prospect Offer Proposal Form DD",offerDate);
+  xml=updateDatedRow(xml,"Prospect Offer Proposal Form","Prospect Offer Proposal Form DD",displayDate(content.purchase_proposal_approved_at));
   xml=updateDatedRow(xml,"Offer To Purchase issued","Offer To Purchase issued",offerDate);
   xml=updateDatedRow(xml,"Notice of Acceptance issued","Notice of Acceptance issued",noticeDate);
+  // Keep Mila in the template font and style only Katherine's initials.
+  xml=xml.replace(/<w:r>(<w:rPr>(?:(?!<\/w:rPr>)[\s\S])*<\/w:rPr>)<w:t>Kat(\/Mila)?<\/w:t><\/w:r>/g,
+    (_run, properties: string, suffix?: string) =>
+      '<w:r><w:rPr><w:rFonts w:ascii="Brush Script MT" w:hAnsi="Brush Script MT" w:cs="Brush Script MT"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t>Kat</w:t></w:r>'
+      + (suffix ? '<w:r>' + properties + '<w:t>' + suffix + '</w:t></w:r>' : ""));
   xml=preserveApprovedSideIndent(xml);
   zip.file("word/document.xml",xml);
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));

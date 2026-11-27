@@ -202,18 +202,19 @@ export async function savePopAdminDetails(id:string,fields:Record<string,string>
     const updated=await updateSale(id,values);
     const db=await createClient();
     const[{team},{data:{user}}]=await Promise.all([getTeamContext(),db.auth.getUser()]);
-    const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type,status,generated_at").eq("team_id",team.id).eq("sale_id",id);
+    const{data:documents,error:documentsError}=await db.from("documents").select("id,document_type,status,generated_at,content").eq("team_id",team.id).eq("sale_id",id);
     if(documentsError)throw documentsError;
     {
       const rows=(documents??[]).map(document=>({
         team_id:team.id,user_id:user?.id??null,sale_id:id,
         document_type:document.document_type,
-        content:buildDocumentSnapshot(updated,document.document_type as DocumentType),
+        content:{...document.content,...buildDocumentSnapshot(updated,document.document_type as DocumentType)},
         status:document.status,generated_at:document.generated_at,
       }));
       if(hasExternalAgent(updated))for(const document_type of ["agency_appointment_letter","agent_commission_letter"] as const)if(!(documents??[]).some(document=>document.document_type===document_type))rows.push({team_id:team.id,user_id:user?.id??null,sale_id:id,document_type,content:buildDocumentSnapshot(updated,document_type),status:"generated",generated_at:new Date().toISOString()});
       if(rows.length){const{error}=await db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"});if(error)throw error;}
     }
+    await saveSignedPopDate(db,team.id,user?.id??null,id,clean("pop_approval_date"));
     const{data:agentLetters,error:agentLetterError}=hasExternalAgent(updated)?await db.from("documents").select("id,document_type").eq("team_id",team.id).eq("sale_id",id).in("document_type",["agency_appointment_letter","agent_commission_letter"]):{data:null,error:null};
     if(agentLetterError)throw agentLetterError;
     revalidatePath(`/sales/${id}`);revalidatePath(`/sales/${id}/edit`);revalidatePath("/documents");revalidatePath("/dashboard");
@@ -255,6 +256,7 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const sale=approvedReference&&preliminarySale.sale_reference!==approvedReference
       ?await updateSale(preliminarySale.id,{sale_reference:approvedReference})
       :preliminarySale;
+    await saveSignedPopDate(db,team.id,user?.id??null,sale.id,clean("pop_approval_date"));
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/sales");revalidatePath("/documents");revalidatePath("/dashboard");
     return{saleId:sale.id};
   }catch(error){
@@ -265,6 +267,27 @@ export async function saveUploadedPopDetails(fields:Record<string,string>):Promi
     const hint=typeof databaseError?.hint==="string"&&databaseError.hint?` ${databaseError.hint}`:"";
     return{error:`${message}${details}${hint}`.trim()};
   }
+}
+
+async function saveSignedPopDate(db: Awaited<ReturnType<typeof createClient>>, teamId: string, userId: string | null, saleId: string, input: string) {
+  const iso = input.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const local = input.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2}|\d{4})$/);
+  let date = iso?.[0];
+  if (local) {
+    const [,day,month,year] = local;
+    date = (year.length === 2 ? "20" + year : year) + "-" + month.padStart(2,"0") + "-" + day.padStart(2,"0");
+  }
+  if (!date) return;
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0,10) !== date) return;
+
+  // The source POP stays in the private reader. Store only its signed date.
+  const {error} = await db.from("documents").upsert({
+    team_id: teamId, user_id: userId, sale_id: saleId,
+    document_type: "pre_booking_form", status: "pending", generated_at: null,
+    content: {verified_pop_approval_date: date, uploaded_pop_metadata: true},
+  }, {onConflict:"sale_id,document_type"});
+  if (error) throw error;
 }
 export async function saveUploadedPopDetailsAndContinue(fields:Record<string,string>):Promise<UploadedPopSaveState>{
   const saved=await saveUploadedPopDetails(fields);
@@ -285,7 +308,7 @@ export async function prepareUploadedPopDocuments(saleId:string):Promise<void>{
     const rows=types.map(document_type=>({team_id:team.id,user_id:user?.id??null,sale_id:sale.id,document_type,content:buildDocumentSnapshot(sale,document_type),status:"generated",generated_at}));
     const [letterResult,sourceResult]=await Promise.all([
       rows.length?db.from("documents").upsert(rows,{onConflict:"sale_id,document_type"}):Promise.resolve({error:null}),
-      db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form"),
+      db.from("documents").delete().eq("team_id",team.id).eq("sale_id",sale.id).eq("document_type","pre_booking_form").is("content->>uploaded_pop_metadata",null),
     ]);
     if(letterResult.error)throw letterResult.error;if(sourceResult.error)throw sourceResult.error;
     revalidatePath(`/sales/${sale.id}`);revalidatePath("/documents");
@@ -362,7 +385,7 @@ export async function saveSpaProgress(id:string,_:SpaTrackerState,form:FormData)
       const popDocument=(recordedDocuments??[]).find(document=>document.document_type==="pre_booking_form");
       const checklistContent={
         ...buildDocumentSnapshot(updated,"spa_signing_checklist"),
-        offer_to_purchase_date:updated.sale_date||popDocument?.generated_at?.slice(0,10)||popDocument?.created_at?.slice(0,10)||null,
+        offer_to_purchase_date:updated.sale_date||(!popDocument?.content?.uploaded_pop_metadata&&(popDocument?.generated_at?.slice(0,10)||popDocument?.created_at?.slice(0,10)))||null,
         purchase_proposal_approved_by:updated.authorised_signatory_name||null,
         verified_pop_approval_date:existingChecklist?.content?.verified_pop_approval_date??null,
       };
