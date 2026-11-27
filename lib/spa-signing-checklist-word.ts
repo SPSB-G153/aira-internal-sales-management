@@ -22,7 +22,8 @@ function setCellText(row:string,index:number,value:string){
   const match=cells[index];if(!match)return row;
   const cell=match[0];
   const lines=value.split("\n");
-  const run=`<w:r>${lines.map((line,index)=>`${index?"<w:br/>":""}<w:t xml:space="preserve">${escapeXml(line)}</w:t>`).join("")}</w:r>`;
+  const runProperties=cell.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
+  const run=`<w:r>${runProperties}${lines.map((line,index)=>`${index?"<w:br/>":""}<w:t xml:space="preserve">${escapeXml(line)}</w:t>`).join("")}</w:r>`;
   let replacement=cell.replace(/<w:p\b([^>]*)>([\s\S]*?)<\/w:p>/,(_paragraph,attributes:string,body:string)=>{
     const properties=body.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0]??"";
     return `<w:p${attributes}>${properties}${run}</w:p>`;
