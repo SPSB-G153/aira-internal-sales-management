@@ -44,7 +44,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
   </div>;
 
   if (isSpaChecklist) return <div className="page letter-wrap">
-    <div className="page-header no-print booking-page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>SPA Signing Checklist</h1><p className="subtle">The uploaded checklist format is unchanged; only the available sale information is filled.</p></div><div className="form-actions booking-actions"><Link href={`/sales/${sale.id}`} className="button secondary">Back to sale</Link><PrintButton/><a href={spaPdf} download className="button accent">Download PDF</a>{canDownloadWord && <WordDownloadLink href={wordUrl} filename={wordFilename}/>} {doc.status !== "reviewed" && <form action={review}><button className="button accent">Mark reviewed</button></form>}</div></div>
+    <div className="page-header no-print booking-page-header"><div><p className="eyebrow">{sale.sale_reference}</p><h1>SPA Signing Checklist</h1><p className="subtle">The uploaded checklist format is unchanged; only the available sale information is filled.</p></div><div className="form-actions booking-actions"><Link href={`/sales/${sale.id}`} className="button secondary">Back to sale</Link><PrintButton label="Print / Save PDF"/>{canDownloadWord && <WordDownloadLink href={wordUrl} filename={wordFilename}/>} {doc.status !== "reviewed" && <form action={review}><button className="button accent">Mark reviewed</button></form>}</div></div>
     <div className="template-preview spa-app-preview"><p className="template-preview-note no-print">Complete approved checklist preview. Both pages are shown below.</p><DocumentPreview type={doc.document_type} content={letterContent}/></div>
   </div>;
 
