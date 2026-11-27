@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useMemo, useRef, useState } from "react";
 import { recordTransmittalUpload, saveSpaProgress, type SpaTrackerState } from "@/lib/actions/sales";
 import { privateReaderUrl } from "@/lib/private-reader";
+import { hasRecordedBalanceDeposit } from "@/lib/sale-state";
 import type { Sale } from "@/lib/types";
 
 const money=(value:number)=>new Intl.NumberFormat("en-MY",{style:"currency",currency:"MYR"}).format(value);
@@ -18,7 +19,7 @@ function dueAlert(title:string,due:string,today:string,detail:string):Alert{cons
 function trackerAlert(sale:Sale,noticeIssuedAt:string,today:string):Alert{
   const signingDue=sale.spa_signing_due_at||addDays(noticeIssuedAt,14);
   if(!sale.spa_signed_at)return dueAlert("SPA signing",sale.spa_signing_scheduled_at||signingDue,today,sale.spa_signing_scheduled_at?"Scheduled signing date":"14 days from Notice of Acceptance");
-  if(!sale.balance_deposit_received_at)return{title:"8% balance pending",detail:"Record the balance deposit paid at SPA signing.",className:"draft"};
+  if(!hasRecordedBalanceDeposit(sale))return{title:"8% balance pending",detail:"Record the 8% payment date, method and cheque / transfer reference.",className:"draft"};
   if(sale.foreign_consent_required&&!sale.foreign_consent_received_at)return dueAlert("Foreign consent",addMonths(sale.spa_signed_at,2),today,"Conditional period under the draft SPA");
   if(!sale.spa_developer_executed_at)return{title:"Executed SPA and MOT pending",detail:"Record when the completed hardcopy is returned by the solicitor.",className:"generated"};
   const paymentStart=sale.foreign_consent_required?sale.foreign_consent_received_at:sale.spa_signed_at;

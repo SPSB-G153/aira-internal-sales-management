@@ -3,6 +3,7 @@ import type { Sale } from "@/lib/types";
 type PaymentFields = Pick<Sale, "booking_fee" | "sale_date" | "payment_method">;
 
 type ReferenceFields = Pick<Sale, "sale_date" | "unit_number">;
+type BalanceDepositFields = Pick<Sale, "balance_deposit_received_at" | "balance_deposit_payment_method" | "balance_deposit_reference">;
 
 export function operationalSaleReference(sale: ReferenceFields) {
   const date = sale.sale_date?.replace(/[^0-9]/g, "").slice(0, 8);
@@ -12,6 +13,13 @@ export function operationalSaleReference(sale: ReferenceFields) {
 
 export const hasRecordedBookingPayment = (sale: PaymentFields) =>
   Boolean(sale.booking_fee && sale.booking_fee > 0 && sale.sale_date && sale.payment_method);
+
+export const hasRecordedBalanceDeposit = (sale: BalanceDepositFields) =>
+  Boolean(
+    sale.balance_deposit_received_at
+    && sale.balance_deposit_payment_method
+    && (sale.balance_deposit_payment_method === "cash" || sale.balance_deposit_reference),
+  );
 
 export function saleDisplayStatus(sale: Sale) {
   if ((sale.status === "confirmed" || sale.status === "spa_signed") && !hasRecordedBookingPayment(sale)) {
@@ -25,14 +33,14 @@ export function saleDisplayStatus(sale: Sale) {
   if (sale.foreign_consent_required && !sale.foreign_consent_received_at) return { label: "Foreign Consent Pending", className: "draft" };
   if (sale.spa_developer_executed_at) return { label: "SPA Fully Executed", className: "confirmed" };
   if (sale.spa_sent_to_developer_at) return { label: "Developer Execution Pending", className: "generated" };
-  if (sale.spa_signed_at || sale.status === "spa_signed") {
-    if (!sale.balance_deposit_received_at) return { label: "SPA Signed - 8% Pending", className: "draft" };
+  if (sale.spa_signed_at) {
+    if (!hasRecordedBalanceDeposit(sale)) return { label: "SPA Signed - 8% Pending", className: "draft" };
     const inventoryIncluded=sale.inventory_payment_not_required||sale.inventory_payment_reference==="Included in selling price";
     if (sale.inventory_required && !inventoryIncluded && !sale.inventory_payment_received_at) return { label: "Inventory Payment Pending", className: "draft" };
     return { label: "10% Completed", className: "confirmed" };
   }
+  if (sale.spa_signing_scheduled_at) return { label: "SPA Signing Scheduled", className: "generated" };
   if (sale.notice_issued_at) {
-    if (sale.spa_signing_scheduled_at) return { label: "SPA Signing Scheduled", className: "generated" };
     return { label: "Notice Issued", className: "generated" };
   }
   if (sale.status === "confirmed" && hasRecordedBookingPayment(sale) && sale.payment_method === "cheque") return { label: "Pending 2% Clearance", className: "draft" };

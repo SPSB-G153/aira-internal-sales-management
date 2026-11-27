@@ -1,5 +1,5 @@
 import type { Sale, SaleDocument } from "@/lib/types";
-import { hasRecordedBookingPayment } from "@/lib/sale-state";
+import { hasRecordedBalanceDeposit, hasRecordedBookingPayment } from "@/lib/sale-state";
 import { purchaserDisplayName } from "@/lib/purchaser-name";
 
 export type TrackerTone = "on-track" | "action" | "pending" | "overdue" | "completed";
@@ -42,8 +42,8 @@ export function trackerRow(sale: Sale, today = malaysiaToday()): TrackerRow {
   if (!hasRecordedBookingPayment(sale)) return { ...base, currentStage: "Booking pending payment", keyDate: sale.sale_date, nextAction: "Upload 2% payment evidence", status: "Pending", tone: "pending" };
   if (sale.status === "hovp_ready" || sale.vacant_possession_delivered_at) return { ...base, currentStage: "HOVP issued", keyDate: sale.vacant_possession_delivered_at, nextAction: "Record handover completion", status: "Completed", tone: "completed" };
   if (sale.balance_purchase_price_received_at) return { ...base, currentStage: "Purchase price settled", keyDate: sale.balance_purchase_price_received_at, nextAction: "Upload clearance letter when received", status: "On Track", tone: "on-track" };
-  if (sale.spa_signed_at || sale.status === "spa_signed") {
-    if (!sale.balance_deposit_received_at) return { ...base, currentStage: "SPA signed", keyDate: sale.spa_signed_at, nextAction: "Record 8% balance payment", status: "Action Needed", tone: "action" };
+  if (sale.spa_signed_at) {
+    if (!hasRecordedBalanceDeposit(sale)) return { ...base, currentStage: "SPA signed", keyDate: sale.spa_signed_at, nextAction: "Record 8% balance payment", status: "Action Needed", tone: "action" };
     return { ...base, currentStage: "SPA and 10% deposit completed", keyDate: sale.balance_deposit_received_at, nextAction: "Monitor balance settlement", status: "On Track", tone: "on-track" };
   }
   if (sale.spa_signing_scheduled_at) return { ...base, currentStage: "SPA signing scheduled", keyDate: sale.spa_signing_scheduled_at, nextAction: "Record signing and 8% balance", status: isPast(sale.spa_signing_scheduled_at, today) ? "Overdue" : "On Track", tone: isPast(sale.spa_signing_scheduled_at, today) ? "overdue" : "on-track" };
