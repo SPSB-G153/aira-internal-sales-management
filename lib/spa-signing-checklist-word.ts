@@ -22,7 +22,7 @@ function setCellText(row:string,index:number,value:string){
   const match=cells[index];if(!match)return row;
   const cell=match[0];
   const lines=value.split("\n");
-  const runProperties=cell.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0]??"";
+  const runProperties='<w:rPr><w:rFonts w:ascii="Arial" w:eastAsia="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="19"/><w:szCs w:val="19"/></w:rPr>';
   const run=`<w:r>${runProperties}${lines.map((line,index)=>`${index?"<w:br/>":""}<w:t xml:space="preserve">${escapeXml(line)}</w:t>`).join("")}</w:r>`;
   let replacement=cell.replace(/<w:p\b([^>]*)>([\s\S]*?)<\/w:p>/,(_paragraph,attributes:string,body:string)=>{
     const properties=body.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0]??"";
@@ -32,12 +32,36 @@ function setCellText(row:string,index:number,value:string){
   return row.slice(0,match.index)+replacement+row.slice((match.index??0)+cell.length);
 }
 
+function setCellLabeledDate(row:string,index:number,label:string,date:string){
+  const cells=[...row.matchAll(/<w:tc\b[\s\S]*?<\/w:tc>/g)];
+  const match=cells[index];if(!match)return row;
+  const cell=match[0];
+  const base='<w:rPr><w:rFonts w:ascii="Arial" w:eastAsia="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="19"/><w:szCs w:val="19"/></w:rPr>';
+  const underlined=`<w:r><w:rPr><w:rFonts w:ascii="Arial" w:eastAsia="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="19"/><w:szCs w:val="19"/><w:u w:val="single"/></w:rPr><w:t xml:space="preserve">${escapeXml(date||"____________")}</w:t></w:r>`;
+  const runs=`<w:r>${base}<w:t xml:space="preserve">${escapeXml(label)} </w:t></w:r>${underlined}`;
+  let replacement=cell.replace(/<w:p\b([^>]*)>([\s\S]*?)<\/w:p>/,(_paragraph,attributes:string,body:string)=>{
+    const properties=body.match(/<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0]??"";
+    return `<w:p${attributes}>${properties}${runs}</w:p>`;
+  });
+  if(replacement===cell)replacement=cell.replace(/<w:p\b([^>]*)\/>/,`<w:p$1>${runs}</w:p>`);
+  return row.slice(0,match.index)+replacement+row.slice((match.index??0)+cell.length);
+}
+
 function updateRow(xml:string,label:string,updates:Array<[number,string]>){
   let updated=false;
   return xml.replace(/<w:tr\b[\s\S]*?<\/w:tr>/g,row=>{
     if(updated||!plain(row).replace(/\s+/g," ").includes(label))return row;
     updated=true;
     return updates.reduce((current,[index,value])=>setCellText(current,index,value),row);
+  });
+}
+
+function updateDatedRow(xml:string,rowLabel:string,displayLabel:string,date:string){
+  let updated=false;
+  return xml.replace(/<w:tr\b[\s\S]*?<\/w:tr>/g,row=>{
+    if(updated||!plain(row).replace(/\s+/g," ").includes(rowLabel))return row;
+    updated=true;
+    return setCellLabeledDate(row,1,displayLabel,date);
   });
 }
 
@@ -62,9 +86,9 @@ export async function createSpaSigningChecklistWord(content:Record<string,unknow
   xml=updateRow(xml,"Booking (Deposit 2%)",[[1,amount(booking)],[3,bookingDate]]);
   xml=updateRow(xml,"Deposit (Balance 8%)",[[1,`${amount(balance)}${inventory?` + ${amount(inventory)}`:""}`],[3,balanceDate]]);
   xml=updateRow(xml,"Purchase proposal approved by",[[1,text(content,"purchase_proposal_approved_by",text(content,"authorised_signatory_name"))],[3,approvedDate]]);
-  xml=updateRow(xml,"Prospect Offer Proposal Form",[[1,`Prospect Offer Proposal Form DD ${offerDate}\n____________`]]);
-  xml=updateRow(xml,"Offer To Purchase issued",[[1,`Offer To Purchase issued ${offerDate}\n____________`]]);
-  xml=updateRow(xml,"Notice of Acceptance issued",[[1,`Notice of Acceptance issued ${noticeDate}\n____________`]]);
+  xml=updateDatedRow(xml,"Prospect Offer Proposal Form","Prospect Offer Proposal Form DD",offerDate);
+  xml=updateDatedRow(xml,"Offer To Purchase issued","Offer To Purchase issued",offerDate);
+  xml=updateDatedRow(xml,"Notice of Acceptance issued","Notice of Acceptance issued",noticeDate);
   zip.file("word/document.xml",xml);
   return new Uint8Array(await zip.generateAsync({type:"uint8array",compression:"DEFLATE"}));
 }
